@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Main\Main.csproj" />
+    <ProjectReference Include="..\..\src\RaceDirector\RaceDirector.csproj" />
   </ItemGroup>
 
 </Project>
