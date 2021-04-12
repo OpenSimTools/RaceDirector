@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Main
+namespace RaceDirector.Main
 {
     class Program
     {
