@@ -14,7 +14,8 @@ namespace Tests.Pipeline.SimMonitor
         private static readonly TimeSpan Timeout = PollingInterval * 3;
         private static readonly int DecimalDigitPrecision = 1;
 
-        private static readonly string ProcessName = "RaceDirector.Tests.Contrib.Process";
+        private static readonly string ProcessName = "RaceDirector.Tests.Ext.Process";
+        private static readonly string ProcessArgs = Timeout.Multiply(3).Seconds.ToString();
 
         [Fact]
         public void PollsProcessesAtTheConfiguredInterval()
@@ -36,7 +37,7 @@ namespace Tests.Pipeline.SimMonitor
             using (var simMonitorNode = new SimMonitorNode(config))
             {
                 var source = simMonitorNode.RunningSimSource;
-                using (var process = new RunningProcess(ProcessName))
+                using (var process = new RunningProcess(ProcessName, ProcessArgs))
                 {
                     Assert.Equal(process.Name, source.Receive(Timeout).Name);
                 }
@@ -44,11 +45,11 @@ namespace Tests.Pipeline.SimMonitor
             }
         }
 
-        private record RunningProcess(string Name) : IDisposable
+        private record RunningProcess(string Name, string Args) : IDisposable
         {
             public static string DotExe = ".exe";
 
-            private readonly Process process = Process.Start(Name + DotExe);
+            private readonly Process process = Process.Start(Name + DotExe, Args);
 
             public void Dispose()
             {

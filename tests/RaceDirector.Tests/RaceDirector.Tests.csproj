@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\RaceDirector\RaceDirector.csproj" />
-    <ProjectReference Include="..\RaceDirector.Tests.Contrib.Process\RaceDirector.Tests.Contrib.Process.csproj" />
+    <ProjectReference Include="..\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj" />
   </ItemGroup>
 
 </Project>
