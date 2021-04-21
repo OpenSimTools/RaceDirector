@@ -1,8 +1,8 @@
-﻿using System;
+﻿using RaceDirector.Pipeline.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Pipeline.SimMonitor
@@ -25,19 +25,12 @@ namespace RaceDirector.Pipeline.SimMonitor
             );
         }
 
-        public static ISourceBlock<T> ProcessPoller<T>(TimeSpan PollingInterval, Func<IEnumerable<string>, IEnumerable<T>> f)
+        private ISourceBlock<T> ProcessPoller<T>(TimeSpan pollingInterval, Func<IEnumerable<string>, IEnumerable<T>> f)
         {
             var transformer = new TransformManyBlock<IEnumerable<string>, T>(f);
-
-            var processPoller = new Timer(_ =>
-            {
-                var processes = Process.GetProcesses();
-                var processNames = processes.Select(p => p.ProcessName);
-                transformer.Post(processNames);
-            }, null, TimeSpan.Zero, PollingInterval);
-
-            transformer.Completion.ContinueWith(task => processPoller.Dispose());
-
+            var source = PollingSource.Create(pollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));
+            source.LinkTo(transformer);
+            transformer.Completion.ContinueWith(_ => source.Complete());
             return transformer;
         }
 

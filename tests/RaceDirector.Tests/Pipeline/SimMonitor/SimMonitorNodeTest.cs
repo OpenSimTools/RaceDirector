@@ -5,30 +5,17 @@ using System.Diagnostics;
 using Xunit.Categories;
 using RaceDirector.Pipeline.SimMonitor;
 
-namespace Tests.Pipeline.SimMonitor
+namespace RaceDirector.Tests.Pipeline.SimMonitor
 {
      [IntegrationTest]
      public class SimMonitorNodeTest
     {
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan Timeout = PollingInterval * 3;
-        private static readonly int DecimalDigitPrecision = 1;
 
         private static readonly string ProcessName = "RaceDirector.Tests.Ext.Process";
         private static readonly string ProcessArgs = Timeout.Multiply(3).Seconds.ToString();
 
-        [Fact]
-        public void PollsProcessesAtTheConfiguredInterval()
-        {
-            var source = SimMonitorNode.ProcessPoller(PollingInterval, _ => new[] { DateTime.Now });
-            var start = DateTime.Now;
-            for (var i = 0; i < (Timeout / PollingInterval); i++)
-            {
-                var timePassed = source.Receive(Timeout).Subtract(start);
-                Assert.Equal(i * PollingInterval.TotalSeconds, timePassed.TotalSeconds, DecimalDigitPrecision);
-            }
-            source.Complete();
-        }
 
         [Fact]
         public void OutputsSimNameWhenRunning()

@@ -4,7 +4,7 @@ using System.Linq;
 using Xunit.Categories;
 using System.Collections.Generic;
 
-namespace Tests.Pipeline.SimMonitor
+namespace RaceDirector.Tests.Pipeline.SimMonitor
 {
     [UnitTest]
     public class KeepOneTest
