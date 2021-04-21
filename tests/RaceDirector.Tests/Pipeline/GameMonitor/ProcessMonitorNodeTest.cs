@@ -3,12 +3,12 @@ using System.Threading.Tasks.Dataflow;
 using System;
 using System.Diagnostics;
 using Xunit.Categories;
-using RaceDirector.Pipeline.SimMonitor;
+using RaceDirector.Pipeline.GameMonitor;
 
-namespace RaceDirector.Tests.Pipeline.SimMonitor
+namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
      [IntegrationTest]
-     public class SimMonitorNodeTest
+     public class ProcessMonitorNodeTest
     {
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan Timeout = PollingInterval * 3;
@@ -18,12 +18,12 @@ namespace RaceDirector.Tests.Pipeline.SimMonitor
 
 
         [Fact]
-        public void OutputsSimNameWhenRunning()
+        public void OutputGameNameWhenProcessRunning()
         {
-            var config = new SimMonitorNode.Config(new[] { ProcessName }, PollingInterval);
-            using (var simMonitorNode = new SimMonitorNode(config))
+            var config = new ProcessMonitorNode.Config(new[] { ProcessName }, PollingInterval);
+            using (var processMonitorNode = new ProcessMonitorNode(config))
             {
-                var source = simMonitorNode.RunningSimSource;
+                var source = processMonitorNode.RunningGameSource;
                 using (var process = new RunningProcess(ProcessName, ProcessArgs))
                 {
                     Assert.Equal(process.Name, source.Receive(Timeout).Name);

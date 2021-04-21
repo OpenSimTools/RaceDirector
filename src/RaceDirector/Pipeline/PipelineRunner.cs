@@ -1,4 +1,4 @@
-﻿using RaceDirector.Pipeline.SimMonitor;
+﻿using RaceDirector.Pipeline.GameMonitor;
 using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -13,22 +13,22 @@ namespace RaceDirector.Pipeline
         /// </summary>
         public Task Run()
         {
-            var runningSimSource = SimMonitorNode();
-            var simNameLogger = RunningSimLogger();
-            runningSimSource.LinkTo(simNameLogger);
-            return runningSimSource.Completion;
+            var runningGameSource = RunningGameSource();
+            var runningGameLogger = RunningGameLogger();
+            runningGameSource.LinkTo(runningGameLogger);
+            return runningGameSource.Completion;
         }
 
-        private ISourceBlock<RunningSim> SimMonitorNode()
+        private ISourceBlock<RunningGame> RunningGameSource()
         {
-            var config = new SimMonitorNode.Config(new[] { "RRRE64" }, TimeSpan.FromSeconds(5));
-            var simMonitorNode = new SimMonitorNode(config);
-            return simMonitorNode.RunningSimSource;
+            var config = new ProcessMonitorNode.Config(new[] { "RRRE64" }, TimeSpan.FromSeconds(5));
+            var processMonitorNode = new ProcessMonitorNode(config);
+            return processMonitorNode.RunningGameSource;
         }
 
-        private ITargetBlock<RunningSim> RunningSimLogger()
+        private ITargetBlock<RunningGame> RunningGameLogger()
         {
-            return new ActionBlock<RunningSim>(runningSim => Console.WriteLine("> " + runningSim.Name));
+            return new ActionBlock<RunningGame>(runningGame => Console.WriteLine("> " + runningGame.Name));
         }
     }
 }

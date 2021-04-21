@@ -1,10 +1,10 @@
 using Xunit;
-using RaceDirector.Pipeline.SimMonitor;
+using RaceDirector.Pipeline.GameMonitor;
 using System.Linq;
 using Xunit.Categories;
 using System.Collections.Generic;
 
-namespace RaceDirector.Tests.Pipeline.SimMonitor
+namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
     [UnitTest]
     public class KeepOneTest
