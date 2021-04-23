@@ -23,9 +23,9 @@ namespace RaceDirector.Pipeline.GameMonitor
 
         private ISourceBlock<RunningGame> GameProcessPoller(Config config)
         {
-            var keepOne = new KeepOne<string>(config.GameNames);
+            Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(config.GameNames).Call;
             var transformer = new TransformManyBlock<IEnumerable<string>, RunningGame>(
-                processNames => keepOne.Call(processNames).Select(name => new RunningGame(name))
+                processNames => keepOne(processNames).Select(name => new RunningGame(name))
             );
             var source = PollingSource.Create(config.PollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));
             source.LinkTo(transformer);
