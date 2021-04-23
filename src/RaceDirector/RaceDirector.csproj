@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PluginInterface\PluginInterface.csproj" />
+    <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector", "src\RaceDirector\RaceDirector.csproj", "{6E4A9171-ACDF-4777-886F-2324C7F600F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PluginInterface", "src\PluginInterface\PluginInterface.csproj", "{0345CE39-30DF-4075-BB13-A41687C9EDC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Interface", "src\RaceDirector.Interface\RaceDirector.Interface.csproj", "{0345CE39-30DF-4075-BB13-A41687C9EDC9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Tests", "tests\RaceDirector.Tests\RaceDirector.Tests.csproj", "{34F5609F-1C5F-47F3-8D17-B6A97E5D566F}"
 EndProject
