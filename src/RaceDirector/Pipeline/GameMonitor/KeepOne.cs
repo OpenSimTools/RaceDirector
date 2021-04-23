@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RaceDirector.Pipeline.SimMonitor
+namespace RaceDirector.Pipeline.GameMonitor
 {
     public class KeepOne<T> where T : class
     {
