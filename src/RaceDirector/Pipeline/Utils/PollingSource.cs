@@ -10,7 +10,17 @@ namespace RaceDirector.Pipeline.Utils
         {
             var source = new BufferBlock<T>();
             var processPoller = new Timer(
-                callback: _ => source.Post(f()),
+                callback: _ =>
+                {
+                    try
+                    {
+                        source.Post(f());
+                    }
+                    catch (Exception e) {
+                        // System.Threading.Timer does not swallow exceptions. Unfortunately,
+                        // tests don't catch this but the debugger halts otherwise.
+                    }
+                },
                 state: null,
                 dueTime: TimeSpan.Zero,
                 period: pollingInterval

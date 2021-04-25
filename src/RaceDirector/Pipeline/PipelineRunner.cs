@@ -1,34 +1,31 @@
 ﻿using RaceDirector.Pipeline.GameMonitor;
+using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Telemetry.V0;
 using System;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Pipeline
 {
-
+    [SupportedOSPlatform("windows")]
     public class PipelineRunner
     {
-        /// <summary>
-        /// Constructs and run the whole pipeline.
-        /// </summary>
+        /// <summary>Constructs and run the whole pipeline.</summary>
         public Task Run()
         {
-            var runningGameSource = RunningGameSource();
-            var runningGameLogger = RunningGameLogger();
-            runningGameSource.LinkTo(runningGameLogger);
-            return runningGameSource.Completion;
-        }
+            var processMonitorNode = new ProcessMonitorNode(
+                new ProcessMonitorNode.Config(new[] { "RRRE64" }, TimeSpan.FromSeconds(5))
+            );
+            var telemetryReaderNode = new TelemetryReaderNode();
+            var telemetryLogger = new ActionBlock<ILiveTelemetry>(liveTelemetry =>
+                Console.WriteLine("> " + liveTelemetry.SimulationTime.TotalSeconds)
+            );
 
-        private ISourceBlock<RunningGame> RunningGameSource()
-        {
-            var config = new ProcessMonitorNode.Config(new[] { "RRRE64" }, TimeSpan.FromSeconds(5));
-            var processMonitorNode = new ProcessMonitorNode(config);
-            return processMonitorNode.RunningGameSource;
-        }
+            processMonitorNode.RunningGameSource.LinkTo(telemetryReaderNode.RunningGameTarget);
+            telemetryReaderNode.LiveTelemetrySource.LinkTo(telemetryLogger);
 
-        private ITargetBlock<RunningGame> RunningGameLogger()
-        {
-            return new ActionBlock<RunningGame>(runningGame => Console.WriteLine("> " + runningGame.Name));
+            return processMonitorNode.RunningGameSource.Completion;
         }
     }
 }
