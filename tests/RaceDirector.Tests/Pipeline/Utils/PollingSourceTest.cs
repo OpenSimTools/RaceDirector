@@ -26,5 +26,22 @@ namespace RaceDirector.Tests.Pipeline.Utils
             }
             source.Complete();
         }
+
+        [Fact]
+        public void DoesNotEmitWhenFunctionThrows()
+        {
+            var startEmitting = DateTime.Now.Add(Timeout / 2);
+            var source = PollingSource.Create(PollingInterval, () => {
+                var now = DateTime.Now;
+                if (now < startEmitting)
+                    throw new Exception("BOOM!");
+                else
+                    return now;
+            });
+
+            Assert.True(source.Receive(Timeout) > startEmitting);
+
+            source.Complete();
+        }
     }
 }
