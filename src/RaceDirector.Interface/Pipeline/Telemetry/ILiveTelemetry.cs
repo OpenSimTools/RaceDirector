@@ -6,7 +6,9 @@ namespace RaceDirector.Pipeline.Telemetry
     {
         public interface ILiveTelemetry
         {
-            /// <summary>Time since the physics simulation started.</summary>
+            /// <summary>
+            /// Time since the physics simulation started.
+            /// </summary>
             TimeSpan SimulationTime { get; }
         }
     }

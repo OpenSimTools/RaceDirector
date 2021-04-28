@@ -11,7 +11,9 @@ namespace RaceDirector.Pipeline
     [SupportedOSPlatform("windows")]
     public class PipelineRunner
     {
-        /// <summary>Constructs and run the whole pipeline.</summary>
+        /// <summary>
+        /// Constructs and run the whole pipeline.
+        /// </summary>
         public Task Run()
         {
             var games = new[] {
