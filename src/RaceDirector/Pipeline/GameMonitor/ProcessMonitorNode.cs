@@ -1,4 +1,5 @@
-﻿using RaceDirector.Pipeline.Utils;
+﻿using RaceDirector.Interface.Pipeline.GameMonitor;
+using RaceDirector.Pipeline.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,23 +15,36 @@ namespace RaceDirector.Pipeline.GameMonitor
             get;
         }
 
-        public record Config(string[] GameNames, TimeSpan PollingInterval);
+        public record Config(TimeSpan PollingInterval);
 
-        public ProcessMonitorNode(Config config)
+        public ProcessMonitorNode(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
-            RunningGameSource = GameProcessPoller(config);
+            RunningGameSource = GameProcessPoller(config, gameProcessInfos);
         }
 
-        private ISourceBlock<RunningGame> GameProcessPoller(Config config)
+        private ISourceBlock<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
-            Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(config.GameNames).Call;
+            Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
+            Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
             var transformer = new TransformManyBlock<IEnumerable<string>, RunningGame>(
-                processNames => keepOne(processNames).Select(name => new RunningGame(name))
+                processNames => keepOne(processNames).Select(processName => {
+                    if (processName == null)
+                        return new RunningGame(null);
+                    else
+                        return new RunningGame(gameByProcess.GetValueOrDefault(processName));
+                })
             );
             var source = PollingSource.Create(config.PollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));
             source.LinkTo(transformer);
             transformer.Completion.ContinueWith(_ => source.Complete());
             return transformer;
+        }
+
+        private static Dictionary<string, string> GameByProcess(IEnumerable<IGameProcessInfo> gameProcessInfos)
+        {
+            return gameProcessInfos
+                .SelectMany(gpi => gpi.GameProcessNames.Select(p => KeyValuePair.Create(p, gpi.GameName)))
+                .ToDictionary(x => x.Key, x => x.Value);
         }
 
         public void Dispose()

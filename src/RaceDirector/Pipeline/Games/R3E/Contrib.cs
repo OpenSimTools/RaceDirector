@@ -2,7 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace RaceDirector.Pipeline.Telemetry.R3E.Contrib
+namespace RaceDirector.Pipeline.Games.R3E.Contrib
 {
     //////////////////////////////////////////////////////////////////////////
     // Released by Sector 3 Studios as Public Domain

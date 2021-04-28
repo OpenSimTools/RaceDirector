@@ -6,12 +6,12 @@ namespace RaceDirector.Pipeline.GameMonitor
 {
     public class KeepOne<T> where T : class
     {
-        private readonly T[] _options;
+        private readonly IEnumerable<T> _options;
         private T? _current;
 
         static private readonly IEnumerable<T> NoOutput = Enumerable.Empty<T>();
 
-        public KeepOne(T[] options)
+        public KeepOne(IEnumerable<T> options)
         {
             _options = options;
         }

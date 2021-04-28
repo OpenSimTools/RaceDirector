@@ -1,5 +1,6 @@
 ﻿using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Telemetry.V0;
 using System;
 using System.Threading.Tasks.Dataflow;
 using Xunit;
@@ -15,19 +16,12 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         private static readonly LiveTelemetry Telemetry1 = new LiveTelemetry(TimeSpan.FromMilliseconds(1));
         private static readonly LiveTelemetry Telemetry2 = new LiveTelemetry(TimeSpan.FromMilliseconds(2));
         private static readonly LiveTelemetry Telemetry3 = new LiveTelemetry(TimeSpan.FromMilliseconds(3));
-        private static readonly LiveTelemetry Telemetry4 = new LiveTelemetry(TimeSpan.FromMilliseconds(4));
-
-        [Fact]
-        public void DoesNotEmitWhenGameNotRunning()
-        {
-            var trn = new TelemetryReaderNode(_ => StaticSourceBlock(Telemetry1));
-            Assert.Throws<TimeoutException>(() => trn.LiveTelemetrySource.Receive(Timeout));
-        }
 
         [Fact]
         public void DoesNotEmitWhenGameNotMatching()
         {
-            var trn = new TelemetryReaderNode(_ => null);
+            var trn = new TelemetryReaderNode(new ITelemetrySourceFactory[0]);
+            trn.RunningGameTarget.Post(new RunningGame(null));
             trn.RunningGameTarget.Post(new RunningGame("any"));
             Assert.Throws<TimeoutException>(() => trn.LiveTelemetrySource.Receive(Timeout));
         }
@@ -35,23 +29,26 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         [Fact]
         public void SwitchesSourcesWhenGameChanges()
         {
-            var trn = new TelemetryReaderNode(rg =>
+            var trn = new TelemetryReaderNode(new[]
             {
-                switch (rg)
-                {
-                    case "a":
-                        return StaticSourceBlock(Telemetry1, Telemetry2);
-                    case "b":
-                        return StaticSourceBlock(Telemetry3);
-                    default:
-                        return null;
-                }
+                new TestTelemetrySourceFactory("a", Telemetry1, Telemetry2),
+                new TestTelemetrySourceFactory("b", Telemetry3)
             });
             trn.RunningGameTarget.Post(new RunningGame("a"));
             Assert.Equal(Telemetry1, trn.LiveTelemetrySource.Receive(Timeout));
             Assert.Equal(Telemetry2, trn.LiveTelemetrySource.Receive(Timeout));
             trn.RunningGameTarget.Post(new RunningGame("b"));
             Assert.Equal(Telemetry3, trn.LiveTelemetrySource.Receive(Timeout));
+        }
+
+        private record TestTelemetrySourceFactory(string gameName, params LiveTelemetry[] elements) : ITelemetrySourceFactory
+        {
+            public string GameName => gameName;
+
+            public ISourceBlock<ILiveTelemetry> CreateTelemetrySource()
+            {
+                return StaticSourceBlock(elements);
+            }
         }
 
         private static ISourceBlock<T> StaticSourceBlock<T>(params T[] elements)

@@ -14,10 +14,15 @@ namespace RaceDirector.Pipeline
         /// <summary>Constructs and run the whole pipeline.</summary>
         public Task Run()
         {
+            var games = new[] {
+                new Games.R3E.Game(new Games.R3E.Game.Config(TimeSpan.FromMilliseconds(500)))
+            };
+
             var processMonitorNode = new ProcessMonitorNode(
-                new ProcessMonitorNode.Config(new[] { "RRRE64" }, TimeSpan.FromSeconds(5))
+                new ProcessMonitorNode.Config(TimeSpan.FromSeconds(5)),
+                games
             );
-            var telemetryReaderNode = new TelemetryReaderNode();
+            var telemetryReaderNode = new TelemetryReaderNode(games);
             var telemetryLogger = new ActionBlock<ILiveTelemetry>(liveTelemetry =>
                 Console.WriteLine("> " + liveTelemetry.SimulationTime.TotalSeconds)
             );
