@@ -21,8 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RaceDirector\RaceDirector.csproj" />
-    <ProjectReference Include="..\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj" />
+    <ProjectReference Include="..\..\src\HUD\HUD.csproj" />
   </ItemGroup>
 
 </Project>

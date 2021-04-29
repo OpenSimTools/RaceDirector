@@ -4,12 +4,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector", "src\RaceDirector\RaceDirector.csproj", "{6E4A9171-ACDF-4777-886F-2324C7F600F0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7819888D-DC0A-4C8D-A9BA-FA6209170011} = {7819888D-DC0A-4C8D-A9BA-FA6209170011}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Interface", "src\RaceDirector.Interface\RaceDirector.Interface.csproj", "{0345CE39-30DF-4075-BB13-A41687C9EDC9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Tests", "tests\RaceDirector.Tests\RaceDirector.Tests.csproj", "{34F5609F-1C5F-47F3-8D17-B6A97E5D566F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Tests.Ext.Process", "tests\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj", "{BA783BFC-E7A7-4034-9D57-2056AFA846B4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD", "src\HUD\HUD.csproj", "{7819888D-DC0A-4C8D-A9BA-FA6209170011}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0345CE39-30DF-4075-BB13-A41687C9EDC9} = {0345CE39-30DF-4075-BB13-A41687C9EDC9}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HUD.Tests", "tests\HUD.Tests\HUD.Tests.csproj", "{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +43,14 @@ Global
 		{BA783BFC-E7A7-4034-9D57-2056AFA846B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA783BFC-E7A7-4034-9D57-2056AFA846B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA783BFC-E7A7-4034-9D57-2056AFA846B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7819888D-DC0A-4C8D-A9BA-FA6209170011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7819888D-DC0A-4C8D-A9BA-FA6209170011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7819888D-DC0A-4C8D-A9BA-FA6209170011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7819888D-DC0A-4C8D-A9BA-FA6209170011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
