@@ -1,55 +1,25 @@
-﻿using NetCoreServer;
-using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using ILiveTelemetry = RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry;
+using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
-    using ILiveTelemetry = RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry;
-    using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
-
-    public class WebSocketTelemetryNode : IDisposable
+    public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, ILiveTelemetry>
     {
-        public record Config(int port = 8070);
-
-        private readonly DashboardServer server;
-
-        public WebSocketTelemetryNode(Config config, IEnumerable<ITelemetryEndpoint> endpoints)
-        {
-            server = new DashboardServer(config.port, endpoints);
-            RunningGameTarget = new ActionBlock<IRunningGame>(runningGame => {
-                if (runningGame.Name is null)
-                    server.Stop();
-                else
-                    server.Start();
-            });
-            LiveTelemetryTarget = new ActionBlock<ILiveTelemetry>(_ => { });
-        }
-
         public ITargetBlock<IRunningGame> RunningGameTarget
         {
-            get;
+            get { return TriggerTarget; }
         }
 
         public ITargetBlock<ILiveTelemetry> LiveTelemetryTarget
         {
-            get;
+            get { return DataTarget; }
         }
 
-        public void Dispose()
-        {
-            RunningGameTarget.Complete();
-            LiveTelemetryTarget.Complete();
-            server.Dispose();
-        }
+        public WebSocketTelemetryNode(params IWsServer<ILiveTelemetry>[] servers) : base(servers) { }
 
-        private class DashboardServer : WsServer
-        {
-            public DashboardServer(int port, IEnumerable<ITelemetryEndpoint> endpoints)
-                : base(IPAddress.Any, port)
-            {
-            }
+        override protected bool ShouldRun(IRunningGame runningGame) {
+            return runningGame.IsRunning();
         }
     }
 }

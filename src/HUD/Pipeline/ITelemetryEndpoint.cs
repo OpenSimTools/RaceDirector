@@ -1,9 +1,12 @@
-﻿namespace RaceDirector.Plugin.HUD.Pipeline
+﻿using NetCoreServer;
+using ILiveTelemetry = RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry;
+
+namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public interface ITelemetryEndpoint
     {
-        string Path { get; }
+        bool Matches(HttpRequest request);
 
-        void BroadcastTelemetry(RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry telemetry);
+        object Transform(ILiveTelemetry telemetry);
     }
 }

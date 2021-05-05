@@ -16,7 +16,8 @@ namespace RaceDirector.Pipeline.Utils
                     {
                         source.Post(f());
                     }
-                    catch (Exception e) {
+                    catch
+                    {
                         // System.Threading.Timer does not swallow exceptions. Unfortunately,
                         // tests don't catch this but the debugger halts otherwise.
                     }

@@ -6,6 +6,11 @@ namespace RaceDirector.Pipeline.GameMonitor
     {
         public interface IRunningGame {
             string? Name { get; }
+
+            bool IsRunning()
+            {
+                return Name is not null;
+            }
         };
     }
 }
