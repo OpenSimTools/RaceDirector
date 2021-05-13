@@ -17,7 +17,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         protected WebSocketNodeBase(params IWsServer<TData>[] servers)
         {
             TriggerTarget = new ActionBlock<TTrigger>(trigger => {
-                if (ShouldRun(trigger))
+                if (ServerShouldRun(trigger))
                     foreach (var s in servers) s.Start();
                 else
                     foreach (var s in servers) s.Stop();
@@ -32,7 +32,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         /// </summary>
         /// <param name="trigger"></param>
         /// <returns></returns>
-        protected abstract bool ShouldRun(TTrigger trigger);
+        protected abstract bool ServerShouldRun(TTrigger trigger);
 
         public virtual void Dispose()
         {

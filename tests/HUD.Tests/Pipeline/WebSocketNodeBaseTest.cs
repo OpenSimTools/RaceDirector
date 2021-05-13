@@ -50,7 +50,7 @@ namespace HUD.Tests.Pipeline
         {
             public TestWebSocketNode(params IWsServer<int>[] servers) : base(servers) { }
 
-            protected override bool ShouldRun(bool trigger)
+            protected override bool ServerShouldRun(bool trigger)
             {
                 return trigger;
             }

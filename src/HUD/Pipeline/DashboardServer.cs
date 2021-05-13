@@ -21,9 +21,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static readonly JsonWriterOptions jsonWriterOptions = new JsonWriterOptions();
 
-        public DashboardServer(Config config) : base(config.address, config.port, _endpoints)
-        {
-        }
+        public DashboardServer(Config config) : base(config.address, config.port, _endpoints) { }
 
         private static byte[] ToR3EDash(ILiveTelemetry telemetry)
         {

@@ -21,7 +21,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         public WebSocketTelemetryNode(params IWsServer<ILiveTelemetry>[] servers) : base(servers) { }
 
-        override protected bool ShouldRun(IRunningGame runningGame) {
+        override protected bool ServerShouldRun(IRunningGame runningGame) {
             return runningGame.IsRunning();
         }
     }
