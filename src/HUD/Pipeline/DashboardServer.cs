@@ -8,6 +8,9 @@ using System.IO;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
+    /// <summary>
+    /// Exposes live telemetry for dashboards.
+    /// </summary>
     public class DashboardServer : MultiEndpointWsServer<ILiveTelemetry>
     {
         public record Config(IPAddress address, int port = 8070);
@@ -31,7 +34,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     writer.WriteStartObject();
                     writer.WritePropertyName("Player");
                         writer.WriteStartObject();
-                        writer.WriteNumber("GameSimulationTime",telemetry.SimulationTime.TotalSeconds);
+                        writer.WriteNumber("GameSimulationTime", telemetry.SimulationTime.TotalSeconds);
                         writer.WriteEndObject();
                     writer.WriteEndObject();
                 }
