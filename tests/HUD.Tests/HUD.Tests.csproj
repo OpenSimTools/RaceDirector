@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.categories" Version="2.0.4" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -21,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RaceDirector\RaceDirector.csproj" />
-    <ProjectReference Include="..\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj" />
+    <ProjectReference Include="..\..\src\HUD\HUD.csproj" />
   </ItemGroup>
 
 </Project>
