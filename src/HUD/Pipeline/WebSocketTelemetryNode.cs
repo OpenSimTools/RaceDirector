@@ -1,13 +1,14 @@
 ﻿using ILiveTelemetry = RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry;
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using System.Threading.Tasks.Dataflow;
+using RaceDirector.Pipeline;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
     /// <summary>
     /// Exposes live telemetry as a web socket server.
     /// </summary>
-    public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, ILiveTelemetry>
+    public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, ILiveTelemetry>, INode
     {
         public ITargetBlock<IRunningGame> RunningGameTarget
         {

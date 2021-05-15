@@ -1,7 +1,5 @@
 ﻿using RaceDirector.Pipeline.GameMonitor;
-using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using RaceDirector.Pipeline.Telemetry;
-using ILiveTelemetry = RaceDirector.Pipeline.Telemetry.V0.ILiveTelemetry;
 using RaceDirector.Plugin.HUD.Pipeline;
 using System;
 using System.Net;
@@ -34,29 +32,27 @@ namespace RaceDirector.Pipeline
 
             var telemetryReaderNode = new TelemetryReaderNode(games);
 
-            var telemetryLogger = new ActionBlock<ILiveTelemetry>(liveTelemetry =>
+            var telemetryLoggerNode = new TelemetryLoggerNode();
+
+            var dashboardServer = new DashboardServer(new DashboardServer.Config(IPAddress.Any));
+            var telemetryServerNode = new WebSocketTelemetryNode(dashboardServer);
+
+            PipelineBuilder.LinkNodes(processMonitorNode, telemetryReaderNode, telemetryLoggerNode, telemetryServerNode);
+
+            return processMonitorNode.RunningGameSource.Completion;
+        }
+    }
+
+    public class TelemetryLoggerNode : INode, IDisposable
+    {
+        public ITargetBlock<Telemetry.V0.ILiveTelemetry> LiveTelemetryTarget =>
+            new ActionBlock<Telemetry.V0.ILiveTelemetry>(liveTelemetry =>
                 Console.WriteLine("> " + liveTelemetry.SimulationTime.TotalSeconds)
             );
 
-            var dashboardServer = new DashboardServer(new DashboardServer.Config(IPAddress.Any));
-            var telemetryServer = new WebSocketTelemetryNode(dashboardServer);
-
-            var runningGameBroadcast = new BroadcastBlock<IRunningGame>(null);
-            var telemetryBroadcast = new BroadcastBlock<ILiveTelemetry>(null);
-
-            // Linking
-
-            processMonitorNode.RunningGameSource.LinkTo(runningGameBroadcast);
-
-            runningGameBroadcast.LinkTo(telemetryReaderNode.RunningGameTarget);
-            runningGameBroadcast.LinkTo(telemetryServer.RunningGameTarget);
-
-            telemetryReaderNode.LiveTelemetrySource.LinkTo(telemetryBroadcast);
-
-            telemetryBroadcast.LinkTo(telemetryServer.LiveTelemetryTarget);
-            telemetryBroadcast.LinkTo(telemetryLogger);
-
-            return processMonitorNode.RunningGameSource.Completion;
+        public void Dispose()
+        {
+            LiveTelemetryTarget.Complete();
         }
     }
 }
