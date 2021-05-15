@@ -8,7 +8,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Pipeline.GameMonitor
 {
-    public class ProcessMonitorNode : IDisposable
+    public class ProcessMonitorNode : INode, IDisposable
     {
         public ISourceBlock<RunningGame> RunningGameSource
         {

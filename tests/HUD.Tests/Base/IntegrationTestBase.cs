@@ -7,8 +7,8 @@ namespace HUD.Tests.Base
     [IntegrationTest]
     public abstract class IntegrationTestBase
     {
-        protected TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
-        protected TimeSpan PollingInterval { get => TimeSpan.FromMilliseconds(50); }
+        protected static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
+        protected static TimeSpan PollingInterval { get => TimeSpan.FromMilliseconds(50); }
 
         protected void Eventually(Action f)
         {

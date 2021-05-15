@@ -6,7 +6,7 @@ using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
-    public class TelemetryReaderNode : IDisposable
+    public class TelemetryReaderNode : INode, IDisposable
     {
         public ISourceBlock<V0.ILiveTelemetry> LiveTelemetrySource
         {
