@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics;
 using Xunit.Categories;
 using RaceDirector.Pipeline.GameMonitor;
-using RaceDirector.Interface.Pipeline.GameMonitor;
+using RaceDirector.Pipeline.GameMonitor.Config;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
@@ -25,7 +25,7 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
             var gameProcessInfos = new [] {
                 new GameProcessInfo(GameName, new string[] { ProcessName })
             };
-            var config = new ProcessMonitorNode.Config(PollingInterval);
+            var config = new ProcessMonitorNodeConfig(PollingInterval);
             using (var processMonitorNode = new ProcessMonitorNode(config, gameProcessInfos))
             {
                 var source = processMonitorNode.RunningGameSource;

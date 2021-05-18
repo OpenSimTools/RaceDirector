@@ -1,4 +1,4 @@
-﻿using RaceDirector.Interface.Pipeline.GameMonitor;
+﻿using RaceDirector.Pipeline.GameMonitor.Config.V0;
 using RaceDirector.Pipeline.Utils;
 using System;
 using System.Collections.Generic;
@@ -15,14 +15,12 @@ namespace RaceDirector.Pipeline.GameMonitor
             get;
         }
 
-        public record Config(TimeSpan PollingInterval);
-
-        public ProcessMonitorNode(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        public ProcessMonitorNode(IProcessMonitorNodeConfig config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             RunningGameSource = GameProcessPoller(config, gameProcessInfos);
         }
 
-        private ISourceBlock<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        private ISourceBlock<RunningGame> GameProcessPoller(IProcessMonitorNodeConfig config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;

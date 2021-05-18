@@ -2,6 +2,7 @@ using HUD.Tests.Base;
 using HUD.Tests.TestUtils;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Plugin.HUD.Pipeline;
+using RaceDirector.Plugin.HUD.Pipeline.Config;
 using System;
 using System.Net;
 using Xunit;
@@ -13,7 +14,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void ServesR3ETelemetryEndpoint()
         {
-            using (var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort)))
+            using (var server = new DashboardServer(new DashboardServerConfig(IPAddress.Any, _serverPort)))
             {
                 server.Start();
                 using (var client = new JsonWsClient(Timeout, _serverPort, "/r3e"))

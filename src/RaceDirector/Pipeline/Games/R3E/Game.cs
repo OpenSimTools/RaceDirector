@@ -1,4 +1,4 @@
-﻿using RaceDirector.Interface.Pipeline.GameMonitor;
+﻿using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Utils;
 using System;
@@ -8,7 +8,7 @@ using System.Threading.Tasks.Dataflow;
 namespace RaceDirector.Pipeline.Games.R3E
 {
     [SupportedOSPlatform("windows")]
-    public class Game : IGameInfo, ITelemetrySourceFactory, IGameProcessInfo
+    public class Game : IGame
     {
         private Config _config;
 

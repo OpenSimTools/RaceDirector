@@ -2,6 +2,7 @@
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using System.Threading.Tasks.Dataflow;
 using RaceDirector.Pipeline;
+using System.Collections.Generic;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -20,7 +21,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             get { return DataTarget; }
         }
 
-        public WebSocketTelemetryNode(params IWsServer<ILiveTelemetry>[] servers) : base(servers) { }
+        public WebSocketTelemetryNode(IEnumerable<IWsServer<ILiveTelemetry>> servers) : base(servers) { }
 
         override protected bool ServerShouldRun(IRunningGame runningGame) {
             return runningGame.IsRunning();

@@ -1,6 +1,6 @@
 ﻿using RaceDirector.Pipeline.Games;
 
-namespace RaceDirector.Interface.Pipeline.GameMonitor
+namespace RaceDirector.Pipeline.GameMonitor
 {
     public interface IGameProcessInfo : IGameInfo
     {
