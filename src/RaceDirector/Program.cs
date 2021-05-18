@@ -3,10 +3,8 @@ using Microsoft.Extensions.Hosting;
 using RaceDirector.DependencyInjection;
 using RaceDirector.Pipeline;
 using RaceDirector.Pipeline.GameMonitor;
-using RaceDirector.Pipeline.GameMonitor.Config;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Plugin.HUD.Pipeline;
-using RaceDirector.Plugin.HUD.Pipeline.Config;
 using System;
 using System.Net;
 using System.Runtime.Versioning;
@@ -20,13 +18,13 @@ namespace RaceDirector
         {
             IHost host = Host.CreateDefaultBuilder(args)
                 .ConfigureServices((_, services) => services
-                    .AddSingletonWithInterfaces(_ => new Pipeline.Games.R3E.Game.Config(TimeSpan.FromMilliseconds(500))) // FIXME
+                    .AddSingletonWithInterfaces(_ => new Pipeline.Games.R3E.Game.Config(TimeSpan.FromMilliseconds(500)))
                     .AddSingletonWithInterfaces<Pipeline.Games.R3E.Game>()
-                    .AddSingletonWithInterfaces(_ => new ProcessMonitorNodeConfig(TimeSpan.FromSeconds(5)))
+                    .AddSingletonWithInterfaces(_ => new ProcessMonitorNode.Config(TimeSpan.FromSeconds(5)))
                     .AddTransientWithInterfaces<ProcessMonitorNode>()
                     .AddTransientWithInterfaces<TelemetryReaderNode>()
                     .AddTransientWithInterfaces<TelemetryLoggerNode>()
-                    .AddSingletonWithInterfaces(_ => new DashboardServerConfig(IPAddress.Any))
+                    .AddSingletonWithInterfaces(_ => new DashboardServer.Config(IPAddress.Any))
                     .AddTransientWithInterfaces<DashboardServer>()
                     .AddTransientWithInterfaces<WebSocketTelemetryNode>()
                 ).Build();

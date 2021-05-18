@@ -10,13 +10,13 @@ namespace RaceDirector.Pipeline.Games.R3E
     [SupportedOSPlatform("windows")]
     public class Game : IGame
     {
+        public record Config(TimeSpan PollingInterval); // TODO remove when config done
+
         private Config _config;
 
         public string GameName => "R3E";
 
         public string[] GameProcessNames => new[] { "RRRE64", "RRRE" };
-
-        public record Config(TimeSpan PollingInterval);
 
         public Game(Config config)
         {

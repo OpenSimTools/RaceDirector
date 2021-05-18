@@ -1,5 +1,4 @@
-﻿using RaceDirector.Pipeline.GameMonitor.Config.V0;
-using RaceDirector.Pipeline.Utils;
+﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,17 +9,19 @@ namespace RaceDirector.Pipeline.GameMonitor
 {
     public class ProcessMonitorNode : INode, IDisposable
     {
+        public record Config(TimeSpan PollingInterval); // TODO remove when config done
+
         public ISourceBlock<RunningGame> RunningGameSource
         {
             get;
         }
 
-        public ProcessMonitorNode(IProcessMonitorNodeConfig config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        public ProcessMonitorNode(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             RunningGameSource = GameProcessPoller(config, gameProcessInfos);
         }
 
-        private ISourceBlock<RunningGame> GameProcessPoller(IProcessMonitorNodeConfig config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        private ISourceBlock<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
