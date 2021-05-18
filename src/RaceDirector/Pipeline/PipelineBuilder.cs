@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Pipeline
@@ -14,7 +13,7 @@ namespace RaceDirector.Pipeline
         /// Linking source and target node properties based on their types.
         /// </summary>
         /// <param name="nodes">Nodes to inspect.</param>
-        public static void LinkNodes(params INode[] nodes)
+        public static void LinkNodes(IEnumerable<INode> nodes)
         {
             ForEachProperty(typeof(ISourceBlock<>), nodes, (sourceBlockType, sourceBlock) =>
             {
@@ -37,7 +36,13 @@ namespace RaceDirector.Pipeline
             });
         }
 
-        private static void ForEachProperty(Type genericTypeDefinition, object[] objects, Action<Type, dynamic> action)
+        /// <summary>
+        /// Convenience method for tests.
+        /// </summary>
+        /// <param name="nodes">Nodes to inspect.</param>
+        public static void LinkNodes(params INode[] nodes) => LinkNodes((IEnumerable<INode>) nodes);
+
+        private static void ForEachProperty(Type genericTypeDefinition, IEnumerable<object> objects, Action<Type, dynamic> action)
         {
             foreach (var o in objects)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks.Dataflow;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
@@ -14,7 +15,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         protected readonly ITargetBlock<TTrigger> TriggerTarget;
         protected readonly ITargetBlock<TData> DataTarget;
 
-        protected WebSocketNodeBase(params IWsServer<TData>[] servers)
+        protected WebSocketNodeBase(IEnumerable<IWsServer<TData>> servers)
         {
             TriggerTarget = new ActionBlock<TTrigger>(trigger => {
                 if (ServerShouldRun(trigger))

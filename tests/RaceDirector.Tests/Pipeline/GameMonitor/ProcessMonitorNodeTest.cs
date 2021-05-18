@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using Xunit.Categories;
 using RaceDirector.Pipeline.GameMonitor;
-using RaceDirector.Interface.Pipeline.GameMonitor;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {

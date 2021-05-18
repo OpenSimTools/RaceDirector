@@ -1,5 +1,4 @@
-﻿using RaceDirector.Interface.Pipeline.GameMonitor;
-using RaceDirector.Pipeline.Utils;
+﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,12 +9,12 @@ namespace RaceDirector.Pipeline.GameMonitor
 {
     public class ProcessMonitorNode : INode, IDisposable
     {
+        public record Config(TimeSpan PollingInterval); // TODO remove when config done
+
         public ISourceBlock<RunningGame> RunningGameSource
         {
             get;
         }
-
-        public record Config(TimeSpan PollingInterval);
 
         public ProcessMonitorNode(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {

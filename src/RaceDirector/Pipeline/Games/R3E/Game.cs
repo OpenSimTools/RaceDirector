@@ -1,4 +1,4 @@
-﻿using RaceDirector.Interface.Pipeline.GameMonitor;
+﻿using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Utils;
 using System;
@@ -8,15 +8,15 @@ using System.Threading.Tasks.Dataflow;
 namespace RaceDirector.Pipeline.Games.R3E
 {
     [SupportedOSPlatform("windows")]
-    public class Game : IGameInfo, ITelemetrySourceFactory, IGameProcessInfo
+    public class Game : IGame
     {
+        public record Config(TimeSpan PollingInterval); // TODO remove when config done
+
         private Config _config;
 
         public string GameName => "R3E";
 
         public string[] GameProcessNames => new[] { "RRRE64", "RRRE" };
-
-        public record Config(TimeSpan PollingInterval);
 
         public Game(Config config)
         {

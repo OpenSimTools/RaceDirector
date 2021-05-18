@@ -2,9 +2,9 @@
 using RaceDirector.Plugin.HUD.Server;
 using static RaceDirector.Plugin.HUD.Server.Endpoint;
 using System.Collections.Generic;
-using System.Net;
 using System.Text.Json;
 using System.IO;
+using System.Net;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -13,7 +13,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     public class DashboardServer : MultiEndpointWsServer<ILiveTelemetry>
     {
-        public record Config(IPAddress address, int port = 8070);
+        public record Config(IPAddress address, int port = 8070); // TODO remove when config done
 
         private static readonly IEnumerable<IEndpoint<ILiveTelemetry>> _endpoints = new[] {
             new Endpoint<ILiveTelemetry>(PathMatcher("/r3e"), ToR3EDash)
