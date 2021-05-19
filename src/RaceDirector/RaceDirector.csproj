@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HUD\HUD.csproj" />
     <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
+    <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
   </ItemGroup>
 
 </Project>
