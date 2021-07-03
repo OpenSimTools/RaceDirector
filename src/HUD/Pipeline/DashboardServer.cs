@@ -11,19 +11,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// <summary>
     /// Exposes live telemetry for dashboards.
     /// </summary>
-    public class DashboardServer : MultiEndpointWsServer<ILiveTelemetry>
+    public class DashboardServer : MultiEndpointWsServer<IGameTelemetry>
     {
         public record Config(IPAddress address, int port = 8070); // TODO remove when config done
 
-        private static readonly IEnumerable<IEndpoint<ILiveTelemetry>> _endpoints = new[] {
-            new Endpoint<ILiveTelemetry>(PathMatcher("/r3e"), ToR3EDash)
+        private static readonly IEnumerable<IEndpoint<IGameTelemetry>> _endpoints = new[] {
+            new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), ToR3EDash)
         };
 
         private static readonly JsonWriterOptions jsonWriterOptions = new JsonWriterOptions();
 
         public DashboardServer(Config config) : base(config.address, config.port, _endpoints) { }
 
-        private static byte[] ToR3EDash(ILiveTelemetry telemetry)
+        private static byte[] ToR3EDash(IGameTelemetry telemetry)
         {
             using (var stream = new MemoryStream())
             {

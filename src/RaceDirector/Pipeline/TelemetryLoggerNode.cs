@@ -9,14 +9,14 @@ namespace RaceDirector.Pipeline
     /// </summary>
     public class TelemetryLoggerNode : INode, IDisposable
     {
-        public ITargetBlock<Telemetry.V0.ILiveTelemetry> LiveTelemetryTarget =>
-            new ActionBlock<Telemetry.V0.ILiveTelemetry>(liveTelemetry =>
-                Console.WriteLine("> " + liveTelemetry.SimulationTime.TotalSeconds)
+        public ITargetBlock<Telemetry.V0.IGameTelemetry> GameTelemetryTarget =>
+            new ActionBlock<Telemetry.V0.IGameTelemetry>(gameTelemetry =>
+                Console.WriteLine("> " + gameTelemetry.SimulationTime.TotalSeconds)
             );
 
         public void Dispose()
         {
-            LiveTelemetryTarget.Complete();
+            GameTelemetryTarget.Complete();
         }
     }
 }

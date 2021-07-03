@@ -13,9 +13,9 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
     {
         private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(50);
 
-        private static readonly LiveTelemetry Telemetry1 = new LiveTelemetry(TimeSpan.FromMilliseconds(1));
-        private static readonly LiveTelemetry Telemetry2 = new LiveTelemetry(TimeSpan.FromMilliseconds(2));
-        private static readonly LiveTelemetry Telemetry3 = new LiveTelemetry(TimeSpan.FromMilliseconds(3));
+        private static readonly GameTelemetry Telemetry1 = new GameTelemetry(TimeSpan.FromMilliseconds(1));
+        private static readonly GameTelemetry Telemetry2 = new GameTelemetry(TimeSpan.FromMilliseconds(2));
+        private static readonly GameTelemetry Telemetry3 = new GameTelemetry(TimeSpan.FromMilliseconds(3));
 
         [Fact]
         public void DoesNotEmitWhenGameNotMatching()
@@ -23,7 +23,7 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
             var trn = new TelemetryReaderNode(new ITelemetrySourceFactory[0]);
             trn.RunningGameTarget.Post(new RunningGame(null));
             trn.RunningGameTarget.Post(new RunningGame("any"));
-            Assert.Throws<TimeoutException>(() => trn.LiveTelemetrySource.Receive(Timeout));
+            Assert.Throws<TimeoutException>(() => trn.GameTelemetrySource.Receive(Timeout));
         }
 
         [Fact]
@@ -35,17 +35,17 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
                 new TestTelemetrySourceFactory("b", Telemetry3)
             });
             trn.RunningGameTarget.Post(new RunningGame("a"));
-            Assert.Equal(Telemetry1, trn.LiveTelemetrySource.Receive(Timeout));
-            Assert.Equal(Telemetry2, trn.LiveTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry1, trn.GameTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry2, trn.GameTelemetrySource.Receive(Timeout));
             trn.RunningGameTarget.Post(new RunningGame("b"));
-            Assert.Equal(Telemetry3, trn.LiveTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry3, trn.GameTelemetrySource.Receive(Timeout));
         }
 
-        private record TestTelemetrySourceFactory(string gameName, params LiveTelemetry[] elements) : ITelemetrySourceFactory
+        private record TestTelemetrySourceFactory(string gameName, params GameTelemetry[] elements) : ITelemetrySourceFactory
         {
             public string GameName => gameName;
 
-            public ISourceBlock<ILiveTelemetry> CreateTelemetrySource()
+            public ISourceBlock<IGameTelemetry> CreateTelemetrySource()
             {
                 return StaticSourceBlock(elements);
             }

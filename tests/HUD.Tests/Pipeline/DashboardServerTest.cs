@@ -19,7 +19,7 @@ namespace HUD.Tests.Pipeline
                 using (var client = new JsonWsClient(Timeout, _serverPort, "/r3e"))
                 {
                     Assert.True(client.ConnectAndWait());
-                    server.Multicast(new LiveTelemetry(TimeSpan.FromSeconds(4.2)));
+                    server.Multicast(new GameTelemetry(TimeSpan.FromSeconds(4.2)));
                     var message = client.nextJson();
                     Assert.Equal(4.2, message.Path("Player", "GameSimulationTime").GetDouble());
                 }

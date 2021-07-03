@@ -23,15 +23,15 @@ namespace RaceDirector.Pipeline.Games.R3E
             _config = config;
         }
 
-        public ISourceBlock<Telemetry.V0.ILiveTelemetry> CreateTelemetrySource()
+        public ISourceBlock<Telemetry.V0.IGameTelemetry> CreateTelemetrySource()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
-            return PollingSource.Create<Telemetry.V0.ILiveTelemetry>(_config.PollingInterval, () => Transform(mmReader.Read()));
+            return PollingSource.Create<Telemetry.V0.IGameTelemetry>(_config.PollingInterval, () => Transform(mmReader.Read()));
         }
 
-        private LiveTelemetry Transform(Contrib.Data.Shared sharedData)
+        private GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
-            return new LiveTelemetry(TimeSpan.FromSeconds(sharedData.Player.GameSimulationTime));
+            return new GameTelemetry(TimeSpan.FromSeconds(sharedData.Player.GameSimulationTime));
         }
     }
 }
