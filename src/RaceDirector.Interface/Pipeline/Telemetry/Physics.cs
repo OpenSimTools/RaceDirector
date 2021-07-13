@@ -24,6 +24,10 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
         /// </summary>
         Double Mi { get; }
 
+        IDistance Mul(Double factor);
+
+        public static IDistance operator *(IDistance distance, Double factor) => distance.Mul(factor);
+
         static IDistance FromM(Double M) => new DistanceM(M);
         static IDistance FromKm(Double Km) => new DistanceKm(Km);
         static IDistance FromMi(Double Mi) => new DistanceMi(Mi);
@@ -35,6 +39,8 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
             public Double Km => M * s_MToKmRatio;
             public Double Mi => M * s_MToMiRatio;
+
+            public IDistance Mul(double factor) => new DistanceM(M * factor);
         }
 
         private record DistanceKm(Double Km) : IDistance
@@ -43,6 +49,8 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
             public Double M => Km * s_KmToMRatio;
             public Double Mi => Km * s_KmToMiRatio;
+
+            public IDistance Mul(double factor) => new DistanceKm(Km * factor);
         }
 
         private record DistanceMi(Double Mi) : IDistance
@@ -51,6 +59,8 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
             public Double M => Mi * s_MiToMRatio;
             public Double Km => Mi * s_MiToKmRatio;
+
+            public IDistance Mul(double factor) => new DistanceMi(Mi * factor);
         }
     }
 

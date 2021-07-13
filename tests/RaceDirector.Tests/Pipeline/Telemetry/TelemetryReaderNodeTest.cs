@@ -1,4 +1,6 @@
-﻿using RaceDirector.Pipeline.GameMonitor;
+﻿using AutoBogus;
+using AutoBogus.Moq;
+using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
 using System;
@@ -13,9 +15,7 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
     {
         private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(50);
 
-        private static readonly GameTelemetry Telemetry1 = new GameTelemetry(TimeSpan.FromMilliseconds(1));
-        private static readonly GameTelemetry Telemetry2 = new GameTelemetry(TimeSpan.FromMilliseconds(2));
-        private static readonly GameTelemetry Telemetry3 = new GameTelemetry(TimeSpan.FromMilliseconds(3));
+        private static readonly IGameTelemetry[] Telemetry = AutoFaker.Generate<IGameTelemetry>(3, b => b.WithBinder<MoqBinder>()).ToArray();
 
         [Fact]
         public void DoesNotEmitWhenGameNotMatching()
@@ -31,17 +31,17 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         {
             var trn = new TelemetryReaderNode(new[]
             {
-                new TestTelemetrySourceFactory("a", Telemetry1, Telemetry2),
-                new TestTelemetrySourceFactory("b", Telemetry3)
+                new TestTelemetrySourceFactory("a", Telemetry[0], Telemetry[1]),
+                new TestTelemetrySourceFactory("b", Telemetry[2])
             });
             trn.RunningGameTarget.Post(new RunningGame("a"));
-            Assert.Equal(Telemetry1, trn.GameTelemetrySource.Receive(Timeout));
-            Assert.Equal(Telemetry2, trn.GameTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry[0], trn.GameTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry[1], trn.GameTelemetrySource.Receive(Timeout));
             trn.RunningGameTarget.Post(new RunningGame("b"));
-            Assert.Equal(Telemetry3, trn.GameTelemetrySource.Receive(Timeout));
+            Assert.Equal(Telemetry[2], trn.GameTelemetrySource.Receive(Timeout));
         }
 
-        private record TestTelemetrySourceFactory(string gameName, params GameTelemetry[] elements) : ITelemetrySourceFactory
+        private record TestTelemetrySourceFactory(string gameName, params IGameTelemetry[] elements) : ITelemetrySourceFactory
         {
             public string GameName => gameName;
 

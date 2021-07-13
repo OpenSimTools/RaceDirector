@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.IO;
 using System.Net;
+using System;
+using RaceDirector.Plugin.HUD.Utils;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -16,28 +18,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         public record Config(IPAddress address, int port = 8070); // TODO remove when config done
 
         private static readonly IEnumerable<IEndpoint<IGameTelemetry>> _endpoints = new[] {
-            new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), ToR3EDash)
+            new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), R3EDashTransformer.ToR3EDash)
         };
 
-        private static readonly JsonWriterOptions jsonWriterOptions = new JsonWriterOptions();
-
         public DashboardServer(Config config) : base(config.address, config.port, _endpoints) { }
-
-        private static byte[] ToR3EDash(IGameTelemetry telemetry)
-        {
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = new Utf8JsonWriter(stream, jsonWriterOptions))
-                {
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("Player");
-                        writer.WriteStartObject();
-                        writer.WriteNumber("GameSimulationTime", telemetry.SimulationTime.TotalSeconds);
-                        writer.WriteEndObject();
-                    writer.WriteEndObject();
-                }
-                return stream.ToArray();
-            }
-        }
     }
 }

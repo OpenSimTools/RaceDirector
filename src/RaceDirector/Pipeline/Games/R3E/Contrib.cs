@@ -12,19 +12,19 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
     {
         public const string SharedMemoryName = "$R3E";
 
-        enum VersionMajor
+        internal enum VersionMajor
         {
             // Major version number to test against
             R3E_VERSION_MAJOR = 2
         };
 
-        enum VersionMinor
+        internal enum VersionMinor
         {
             // Minor version number to test against
             R3E_VERSION_MINOR = 10
         };
 
-        enum Session
+        internal enum Session
         {
             Unavailable = -1,
             Practice = 0,
@@ -33,7 +33,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Warmup = 3,
         };
 
-        enum SessionPhase
+        internal enum SessionPhase
         {
             Unavailable = -1,
 
@@ -56,7 +56,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Checkered = 6,
         };
 
-        enum Control
+        internal enum Control
         {
             Unavailable = -1,
 
@@ -73,7 +73,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Replay = 3,
         };
 
-        enum PitWindow
+        internal enum PitWindow
         {
             Unavailable = -1,
 
@@ -93,7 +93,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Completed = 4,
         };
 
-        enum PitStopStatus
+        internal enum PitStopStatus
         {
             // No mandatory pitstops
             Unavailable = -1,
@@ -108,7 +108,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Served = 1,
         };
 
-        enum FinishStatus
+        internal enum FinishStatus
         {
             // N/A
             Unavailable = -1,
@@ -132,7 +132,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             DQ = 5,
         };
 
-        enum SessionLengthFormat
+        internal enum SessionLengthFormat
         {
             // N/A
             Unavailable = -1,
@@ -145,7 +145,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             TimeAndLapBased = 2
         };
 
-        enum PitMenuSelection
+        internal enum PitMenuSelection
         {
             // Pit menu unavailable
             Unavailable = -1,
@@ -171,14 +171,14 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Max = 11
         };
 
-        enum TireType
+        internal enum TireType
         {
             Unavailable = -1,
             Option = 0,
             Prime = 1,
         };
 
-        enum TireSubtype
+        internal enum TireSubtype
         {
             Unavailable = -1,
             Primary = 0,
@@ -188,7 +188,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Hard = 4
         };
 
-        enum EngineType
+        internal enum EngineType
         {
             COMBUSTION = 0,
             ELECTRIC = 1,
