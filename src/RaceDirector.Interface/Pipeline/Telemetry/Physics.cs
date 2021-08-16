@@ -28,9 +28,9 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
         public static IDistance operator *(IDistance distance, Double factor) => distance.Mul(factor);
 
-        static IDistance FromM(Double M) => new DistanceM(M);
-        static IDistance FromKm(Double Km) => new DistanceKm(Km);
-        static IDistance FromMi(Double Mi) => new DistanceMi(Mi);
+        public static IDistance FromM(Double M) => new DistanceM(M);
+        public static IDistance FromKm(Double Km) => new DistanceKm(Km);
+        public static IDistance FromMi(Double Mi) => new DistanceMi(Mi);
 
         private record DistanceM(Double M) : IDistance
         {

@@ -10,18 +10,28 @@ namespace RaceDirector.Pipeline.Telemetry
     (
         GameState GameState,
         Boolean UsingVR,
-        IEvent? Event,
-        ISession? Session,
-        IVehicle[] Vehicles,
-        IVehicle? CurrentVehicle,
-        IPlayer? Player
-    ) : IGameTelemetry;
+        Event? Event,
+        Session? Session,
+        Vehicle[] Vehicles,
+        Vehicle? CurrentVehicle,
+        Player? Player
+    ) : IGameTelemetry
+    {
+        IEvent? IGameTelemetry.Event => Event;
+        ISession? IGameTelemetry.Session => Session;
+        IVehicle[] IGameTelemetry.Vehicles => Vehicles;
+        IVehicle? IGameTelemetry.CurrentVehicle => CurrentVehicle;
+        IPlayer? IGameTelemetry.Player => Player;
+    }
 
     public record Event
     (
-        ITrackLayout Track,
+        TrackLayout Track,
         Double FuelRate
-    ) : IEvent;
+    ) : IEvent
+    {
+        ITrackLayout IEvent.Track => Track;
+    }
 
     public record TrackLayout
     (
@@ -33,19 +43,33 @@ namespace RaceDirector.Pipeline.Telemetry
         SessionType Type,
         SessionPhase Phase,
         ISessionDuration? Length,
-        ISessionRequirements Requirements,
+        SessionRequirements Requirements,
         ISpeed PitSpeedLimit,
         TimeSpan ElapsedTime,
-        IStartLights? StartLights,
-        ILapTime? BestLap,
-        ISectors? BestSectors
-    ) : ISession;
+        StartLights? StartLights,
+        LapTime? BestLap,
+        Sectors? BestSectors
+    ) : ISession
+    {
+        ISessionRequirements ISession.Requirements => Requirements;
+        IStartLights? ISession.StartLights => StartLights;
+        ILapTime? ISession.BestLap => BestLap;
+        ISectors? ISession.BestSectors => BestSectors;
+    }
 
     public record SessionRequirements
     (
         UInt32 MandatoryPitStops,
         Interval<ISessionDuration>? PitWindow
     ) : ISessionRequirements;
+
+    public record StartLights(
+        LightColour Colour,
+        BoundedValue<UInt32> Lit
+    ) : IStartLights
+    {
+        IBoundedValue<uint> IStartLights.Lit => Lit;
+    }
 
     public record Vehicle
     (
@@ -57,42 +81,83 @@ namespace RaceDirector.Pipeline.Telemetry
         UInt32 PositionClass,
         TimeSpan GapAhead,
         TimeSpan GapBehind,
-        ISectors? BestSectors,
+        Sectors? BestSectors,
         UInt32 CompletedLaps,
         Boolean CurrentLapValid,
-        ILapTime? CurrentLapTime,
-        ILapTime? PreviousLapTime,
-        ILapTime? PersonalBestLapTime,
+        LapTime? CurrentLapTime,
+        LapTime? PreviousLapTime,
+        LapTime? PersonalBestLapTime,
         IFraction<IDistance> CurrentLapDistance,
         Vector3<IDistance> Location,
         ISpeed Speed,
-        IDriver CurrentDriver,
-        ICounter MandatoryPitStops,
-        IVehiclePit Pit
-    ) : IVehicle;
+        Driver CurrentDriver,
+        Counter MandatoryPitStops,
+        VehiclePit Pit
+    ) : IVehicle
+    {
+        ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
+        ILapTime? IVehicle.PreviousLapTime => PreviousLapTime;
+        ILapTime? IVehicle.PersonalBestLapTime => PersonalBestLapTime;
+        ISectors? IVehicle.BestSectors => BestSectors;
+        IDriver IVehicle.CurrentDriver => CurrentDriver;
+        ICounter IVehicle.MandatoryPitStops => MandatoryPitStops;
+        IVehiclePit IVehicle.Pit => Pit;
+    }
+
+    public record Driver(
+        String Name
+    ) : IDriver;
+
+    public record Counter(
+        UInt32 Total,
+        UInt32 Left,
+        UInt32 Done
+    ) : ICounter;
+
+    public record VehiclePit(
+        Boolean InPitLane,
+        TimeSpan? PitLaneTime,
+        Boolean? InPitStall,
+        TimeSpan? PitStallTime
+    ) : IVehiclePit;
 
     public record Player
     (
-        IRawInputs RawInputs,
-        IDrivingAids DrivingAids,
-        IVehicleSettings VehicleSettings,
-        IVehicleDamage VehicleDamage,
-        ITyre[][] Tyres,
-        IFuel Fuel,
-        IEngine Engine,
+        RawInputs RawInputs,
+        DrivingAids DrivingAids,
+        VehicleSettings VehicleSettings,
+        VehicleDamage VehicleDamage,
+        Tyre[][] Tyres,
+        Fuel Fuel,
+        Engine Engine,
         Vector3<IDistance> CgLocation,
         Orientation Orientation,
         Vector3<IAcceleration> Acceleration,
-        ILapTime? ClassBestLap,
-        ISectors? ClassBestSectors,
-        ISectors? PersonalBestSectors,
+        LapTime? ClassBestLap,
+        Sectors? ClassBestSectors,
+        Sectors? PersonalBestSectors,
         TimeSpan? PersonalBestDelta,
-        IActivationToggled? Drs,
-        IWaitTimeToggled? PushToPass,
-        IPlayerPit? Pit,
+        ActivationToggled? Drs,
+        WaitTimeToggled? PushToPass,
+        PlayerPit? Pit,
         Flags GameFlags,
         Penalties Penalties
-    ) : IPlayer;
+    ) : IPlayer
+    {
+        IRawInputs IPlayer.RawInputs => RawInputs;
+        IDrivingAids IPlayer.DrivingAids => DrivingAids;
+        IVehicleSettings IPlayer.VehicleSettings => VehicleSettings;
+        IVehicleDamage IPlayer.VehicleDamage => VehicleDamage;
+        ITyre[][] IPlayer.Tyres => Tyres;
+        IFuel IPlayer.Fuel => Fuel;
+        IEngine IPlayer.Engine => Engine;
+        ILapTime? IPlayer.ClassBestLap => ClassBestLap;
+        ISectors? IPlayer.ClassBestSectors => ClassBestSectors;
+        ISectors? IPlayer.PersonalBestSectors => PersonalBestSectors;
+        IActivationToggled? IPlayer.Drs => Drs;
+        IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
+        IPlayerPit? IPlayer.Pit => Pit;
+    }
 
     public record RawInputs
     (
@@ -141,9 +206,13 @@ namespace RaceDirector.Pipeline.Telemetry
         Double Dirt,
         Double Grip,
         Double Wear,
-        ITemperaturesMatrix Temperatures,
-        ITemperaturesSingle BrakeTemperatures
-    ) : ITyre;
+        TemperaturesMatrix Temperatures,
+        TemperaturesSingle BrakeTemperatures
+    ) : ITyre
+    {
+        ITemperaturesMatrix ITyre.Temperatures => Temperatures;
+        ITemperaturesSingle ITyre.BrakeTemperatures => BrakeTemperatures;
+    }
 
     public record TemperaturesSingle
     (
@@ -182,4 +251,35 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan DurationTotal,
         TimeSpan DurationLeft
     ) : IPlayerPit;
+
+    public record LapTime(
+        TimeSpan Overall,
+        Sectors Sectors
+    ) : ILapTime
+    {
+        ISectors ILapTime.Sectors => Sectors;
+    }
+
+    public record Sectors(
+        TimeSpan[] Individual,
+        TimeSpan[] Cumulative
+    ) : ISectors;
+
+    public record ActivationToggled
+    (
+        Boolean Available,
+        Boolean Engaged,
+        UInt32 ActivationsLeft
+    ) : IActivationToggled;
+
+    public record WaitTimeToggled
+    (
+        Boolean Available,
+        Boolean Engaged,
+        UInt32 ActivationsLeft,
+        TimeSpan EngagedTimeLeft,
+        TimeSpan WaitTimeLeft
+    ) : IWaitTimeToggled;
+
+    public record BoundedValue<T>(T Total, T Value) : IBoundedValue<T>;
 }

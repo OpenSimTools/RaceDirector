@@ -6,15 +6,15 @@ using RaceDirector.Plugin.HUD.Utils;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
-    static class R3EDashTransformer
+    public static class R3EDashTransformer
     {
-        private static readonly JsonWriterOptions jsonWriterOptions = new JsonWriterOptions();
+        private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
         public static byte[] ToR3EDash(IGameTelemetry telemetry)
         {
             using (var stream = new MemoryStream())
             {
-                using (var writer = new Utf8JsonWriter(stream, jsonWriterOptions))
+                using (var writer = new Utf8JsonWriter(stream, JsonWriterOptions))
                 {
                     WriteR3EDash(writer, telemetry);
                 }
@@ -82,4 +82,3 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         }
     }
 }
-

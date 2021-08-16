@@ -584,8 +584,11 @@ namespace RaceDirector.Pipeline.Telemetry
     public interface IFraction<T> : IBoundedValue<T>
     {
         Double Fraction { get; }
+    }
 
-        static IFraction<IDistance> Of(IDistance Total, Double Fraction) => new DistanceFraction(Total, Fraction);
+    public static class IFraction
+    {
+        public static IFraction<IDistance> Of(IDistance Total, Double Fraction) => new DistanceFraction(Total, Fraction);
 
         private record DistanceFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
         {
@@ -601,8 +604,6 @@ namespace RaceDirector.Pipeline.Telemetry
 
         T Total { get; }
     }
-
-    public record BoundedValue<T>(T Total, T Value) : IBoundedValue<T>;
 
     public record Interval<T>(T Start, T Finish);
 

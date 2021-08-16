@@ -24,8 +24,8 @@ namespace HUD.Tests.Pipeline
                     Assert.True(client.ConnectAndWait());
                     server.Multicast(telemetry);
                     var message = client.nextJson();
-                    Assert.Equal(2, message.Path("VersionMajor").GetInt32());
-                    Assert.Equal(10, message.Path("VersionMinor").GetInt32());
+                    Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);
+                    Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMinor").ValueKind);
                 }
             }
         }

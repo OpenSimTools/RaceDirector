@@ -34,10 +34,10 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new GameTelemetry(
                 GameState(sharedData),
                 sharedData.GameUsingVr > 0,
-                Event(sharedData),
-                Session(sharedData),
+                null, // Event(sharedData),
+                null, // Session(sharedData),
                 // TODO
-                new Telemetry.V0.IVehicle[0],
+                new Vehicle[0],
                 null,
                 null
             );
@@ -52,15 +52,15 @@ namespace RaceDirector.Pipeline.Games.R3E
             return Telemetry.V0.GameState.Driving;
         }
 
-        private static Telemetry.V0.IEvent? Event(Contrib.Data.Shared sharedData)
+        private static Event? Event(Contrib.Data.Shared sharedData)
         {
             // TODO if not in session it should be null!
             var layoutLength = IDistance.FromM(sharedData.LayoutLength);
             var sectors = new IFraction<IDistance>[]
             {
-                IFraction<IDistance>.Of(layoutLength, sharedData.SectorStartFactors.Sector1),
-                IFraction<IDistance>.Of(layoutLength, sharedData.SectorStartFactors.Sector2),
-                IFraction<IDistance>.Of(layoutLength, sharedData.SectorStartFactors.Sector3)
+                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector1),
+                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector2),
+                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector3)
             };
             return new Event(
                 new TrackLayout(sectors),
@@ -68,7 +68,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private static Telemetry.V0.ISession? Session(Contrib.Data.Shared sharedData)
+        private static Session? Session(Contrib.Data.Shared sharedData)
         {
             var maybeSessionType = SessionType(sharedData);
             var maybeSessionPhase = SessionPhase(sharedData);
@@ -140,7 +140,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
         }
-        private static Telemetry.V0.ISessionRequirements SessionRequirements(Contrib.Data.Shared sharedData)
+        private static SessionRequirements SessionRequirements(Contrib.Data.Shared sharedData)
         {
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
                 return new SessionRequirements(0, null);
