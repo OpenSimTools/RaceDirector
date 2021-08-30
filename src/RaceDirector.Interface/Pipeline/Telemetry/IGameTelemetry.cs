@@ -85,10 +85,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             IFraction<IDistance>[] SectorsEnd { get; } // R3E SectorStartFactors
 
-            IDistance Length()
-            {
-                return SectorsEnd[^1].Value;
-            }
+            IDistance? Length { get => (SectorsEnd.Length > 0) ? SectorsEnd[^1].Value : null; }
         }
 
         public interface ISession

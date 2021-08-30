@@ -8,6 +8,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
+        private static readonly Double UndefinedDoubleValue = -1.0;
+
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
         public static byte[] ToR3EDash(IGameTelemetry telemetry)
@@ -33,12 +35,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 w.WriteNumber("GameInReplay", MatchToInteger(telemetry.GameState, GameState.Replay));
                 w.WriteNumber("GameUsingVr", BooleanToInteger(telemetry.UsingVR));
 
-                w.WriteObject("Player", _ =>
-                {
-                    // TODO
-                });
+                //w.WriteObject("Player", _ =>
+                //{
+                //    w.WriteObject("Position", _ =>
+                //    {
+                //        // TODO
+                //        //w.WriteNumber("X", telemetry.Player.???);
+                //        //w.WriteNumber("Z", telemetry.Player.???);
+                //    });
+                //});
 
-                //w.WriteNumber("LayoutLength", (telemetry.Event?.Track.Length) ?? -1.0d); // FIXME
+                w.WriteNumber("LayoutLength", (telemetry.Event?.Track.Length?.M) ?? UndefinedDoubleValue);
                 w.WriteObject("SectorStartFactors", _ =>
                 {
                     var sectorsEnd = telemetry.Event?.Track.SectorsEnd;
@@ -48,24 +55,35 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                         w.WriteNumber("Sector2", sectorsEnd[1].Fraction);
                         w.WriteNumber("Sector3", sectorsEnd[2].Fraction);
                     }
+                    else
+                    {
+                        w.WriteNumber("Sector1", UndefinedDoubleValue);
+                        w.WriteNumber("Sector2", UndefinedDoubleValue);
+                        w.WriteNumber("Sector3", UndefinedDoubleValue);
+                    }
                 });
 
-                w.WriteNumber("SessionType", telemetry.Session?.Type switch
-                {
-                    SessionType.Practice => 0,
-                    SessionType.Qualify => 1,
-                    SessionType.Race => 2,
-                    SessionType.Warmup => 3,
-                    _ => -1
-                });
-
-                // SessionType
-                // SessionLengthFormat
+                //w.WriteNumber("SessionType", telemetry.Session?.Type switch
+                //{
+                //    SessionType.Practice => 0,
+                //    SessionType.Qualify => 1,
+                //    SessionType.Race => 2,
+                //    SessionType.Warmup => 3,
+                //    _ => -1
+                //});
+                // SessionPitSpeedLimit
                 // SessionPhase
+                // StartLights
+
+                //w.WriteNumber("FuelUseActive", Convert.ToInt32(telemetry.Event?.FuelRate ?? -1.0));
+
+                // NumberOfLaps
+                // SessionTimeRemaining
+                // PitWindowStatus
                 // PitWindowStart
                 // PitWindowEnd
+                // InPitlane
 
-                w.WriteNumber("FuelUseActive", Convert.ToInt32(telemetry.Event?.FuelRate ?? -1.0d));
             });
         }
 
