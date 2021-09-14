@@ -30,6 +30,42 @@ namespace HUD.Tests.Pipeline
             }
         }
 
+        [Fact]
+        public void Working()
+        {
+            var telemetry =
+                new AutoFaker<RaceDirector.Pipeline.Telemetry.GameTelemetry>()
+                .Configure(b => b.WithBinder<MoqBinder>())
+                .RuleFor(t => t.Event, f =>
+                    new AutoFaker<RaceDirector.Pipeline.Telemetry.Event>()
+                        .Configure(b => b.WithBinder<MoqBinder>())
+                        .RuleFor(e => e.FuelRate, f => 2.0)
+                        .Generate()
+                    )
+                .Generate();
+
+            Assert.Equal(2.0, telemetry.Event?.FuelRate);
+            Assert.NotNull(telemetry.Session);
+        }
+
+        [Fact]
+        public void NotWorking()
+        {
+            var telemetry =
+                new AutoFaker<IGameTelemetry>()
+                .Configure(b => b.WithBinder<MoqBinder>())
+                .RuleFor(t => t.Event, f =>
+                    new AutoFaker<IEvent>()
+                        .Configure(b => b.WithBinder<MoqBinder>())
+                        .RuleFor(e => e.FuelRate, f => 2.0)
+                        .Generate()
+                    )
+                .Generate();
+
+            Assert.Equal(2.0, telemetry.Event?.FuelRate);
+            Assert.NotNull(telemetry.Session);
+        }
+
         #region Test setup
 
         int _serverPort = Tcp.FreePort();
