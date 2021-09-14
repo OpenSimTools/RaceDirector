@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using RaceDirector.Pipeline.Telemetry.Physics;
 
 namespace RaceDirector.Pipeline.Telemetry
@@ -85,7 +86,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             IFraction<IDistance>[] SectorsEnd { get; } // R3E SectorStartFactors
 
-            IDistance? Length { get => (SectorsEnd.Length > 0) ? SectorsEnd[^1].Value : null; }
+            IDistance? Length { get => SectorsEnd.LastOrDefault()?.Total; }
         }
 
         public interface ISession
@@ -585,7 +586,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public static class IFraction
     {
-        public static IFraction<IDistance> Of(IDistance Total, Double Fraction) => new DistanceFraction(Total, Fraction);
+        public static IFraction<IDistance> Of(IDistance total, Double fraction) => new DistanceFraction(total, fraction);
+
+        public static IFraction<IDistance>[] Of(IDistance total, params Double[] fractions) =>
+            fractions.Select(f => new DistanceFraction(total, f)).ToArray();
 
         private record DistanceFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
         {
