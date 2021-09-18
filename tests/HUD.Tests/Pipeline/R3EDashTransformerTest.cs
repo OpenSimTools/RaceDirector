@@ -8,13 +8,14 @@ using System;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using AutoBogus;
 using RaceDirector.Pipeline.Telemetry.V0;
+using AutoBogus.Moq;
 
 namespace HUD.Tests.Pipeline
 {
     [UnitTest]
     public class R3EDashTransformerTest
     {
-        private GameTelemetry gt = AutoFaker.Generate<GameTelemetry>();
+        private GameTelemetry gt = AutoFaker.Generate<GameTelemetry>(b => b.WithBinder<MoqBinder>());
 
         [Fact]
         public void VersionInformation()
