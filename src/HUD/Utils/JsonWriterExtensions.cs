@@ -7,7 +7,7 @@ namespace RaceDirector.Plugin.HUD.Utils
     {
         public static void WriteObject(this Utf8JsonWriter writer, String propertyName, Action<Utf8JsonWriter> f)
         {
-            writer.WritePropertyName("SectorStartFactors");
+            writer.WritePropertyName(propertyName);
             writer.WriteObject(f);
         }
 

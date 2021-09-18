@@ -77,8 +77,8 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector2").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector3").GetDouble());
+            Assert.Equal(-1.0, result.Path("FuelUseActive").GetDouble());
         }
-
 
         [Fact]
         public void Event_Track_SectorsEnd__Empty()
@@ -114,6 +114,14 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
+        public void Event_FuelRate()
+        {
+            var result = ToR3EDash(gt.WithEvent(e => e with { FuelRate = 4.2 }));
+
+            Assert.Equal(4, result.Path("FuelUseActive").GetInt32());
+        }
+
+        [Fact]
         public void Session__Null()
         {
             var result = ToR3EDash(gt with { Session = null });
@@ -140,6 +148,32 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(code, result.Path("SessionType").GetInt32());
         }
 
+        [Fact]
+        public void Player__Null()
+        {
+            var result = ToR3EDash(gt with { Event = null });
+
+            Assert.Equal(0.0, result.Path("Player", "Position", "X").GetDouble());
+            Assert.Equal(0.0, result.Path("Player", "Position", "Y").GetDouble());
+            Assert.Equal(0.0, result.Path("Player", "Position", "Z").GetDouble());
+        }
+
+        [Fact]
+        public void Player_CgLocation()
+        {
+            var cgLocation = new Vector3<IDistance>
+            (
+                IDistance.FromM(1.0),
+                IDistance.FromM(2.0),
+                IDistance.FromM(3.0)
+            );
+            var result = ToR3EDash(gt.WithPlayer(p => p with { CgLocation = cgLocation }));
+
+            Assert.Equal(1.0, result.Path("Player", "Position", "X").GetDouble());
+            Assert.Equal(2.0, result.Path("Player", "Position", "Y").GetDouble());
+            Assert.Equal(3.0, result.Path("Player", "Position", "Z").GetDouble());
+        }
+
         #region Test setup
 
         private static JsonDocument ToR3EDash(GameTelemetry gt)
@@ -155,17 +189,16 @@ namespace HUD.Tests.Pipeline
 
 static class GameTelemetryExensions
 {
-    public static GameTelemetry WithTrack(this GameTelemetry gt, Func<TrackLayout, TrackLayout> f)
+    public static GameTelemetry WithEvent(this GameTelemetry gt, Func<Event, Event> f)
     {
         if (gt.Event is null)
             return gt;
-        return gt with
-        {
-            Event = gt.Event with
-            {
-                Track = f(gt.Event.Track)
-            }
-        };
+        return gt with { Event = f(gt.Event) };
+    }
+
+    public static GameTelemetry WithTrack(this GameTelemetry gt, Func<TrackLayout, TrackLayout> f)
+    {
+        return gt.WithEvent(e => e with { Track = f( e.Track) });
     }
 
     public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, IFraction<IDistance>[] sectorsEnd)
@@ -181,5 +214,12 @@ static class GameTelemetryExensions
         {
             Session = gt.Session with { Type = sessionType }
         };
+    }
+
+    public static GameTelemetry WithPlayer(this GameTelemetry gt, Func<Player, Player> f)
+    {
+        if (gt.Player is null)
+            return gt;
+        return gt with { Player = f(gt.Player) };
     }
 }

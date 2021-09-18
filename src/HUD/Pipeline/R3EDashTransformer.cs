@@ -1,7 +1,6 @@
 ﻿using RaceDirector.Pipeline.Telemetry.V0;
 using System.Text.Json;
 using System.IO;
-using System.Linq;
 using System;
 using RaceDirector.Plugin.HUD.Utils;
 
@@ -12,6 +11,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         private static readonly UInt32 MajorVersion = 2;
         private static readonly UInt32 MinorVersion = 10;
         private static readonly Double UndefinedDoubleValue = -1.0;
+        private static readonly Int32 UndefinedIntegerValue = -1;
+        private static readonly String UndefinedBase64 = "AA==";
+        private static readonly Int32 UndefinedGear = -2;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -38,15 +40,15 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 w.WriteNumber("GameInReplay", MatchToInteger(telemetry.GameState, GameState.Replay));
                 w.WriteNumber("GameUsingVr", BooleanToInteger(telemetry.UsingVR));
 
-                //w.WriteObject("Player", _ =>
-                //{
-                //    w.WriteObject("Position", _ =>
-                //    {
-                //        // TODO
-                //        //w.WriteNumber("X", telemetry.Player.???);
-                //        //w.WriteNumber("Z", telemetry.Player.???);
-                //    });
-                //});
+                w.WriteObject("Player", _ =>
+                {
+                    w.WriteObject("Position", _ =>
+                    {
+                        w.WriteNumber("X", (telemetry.Player?.CgLocation.X.M) ?? 0.0);
+                        w.WriteNumber("Y", (telemetry.Player?.CgLocation.Y.M) ?? 0.0);
+                        w.WriteNumber("Z", (telemetry.Player?.CgLocation.Z.M) ?? 0.0);
+                    });
+                });
 
                 w.WriteNumber("LayoutLength", (telemetry.Event?.Track.Length?.M) ?? UndefinedDoubleValue);
                 w.WriteObject("SectorStartFactors", _ =>
@@ -71,7 +73,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SessionPhase
                 // StartLights
 
-                //w.WriteNumber("FuelUseActive", Convert.ToInt32(telemetry.Event?.FuelRate ?? -1.0));
+                w.WriteNumber("FuelUseActive", Convert.ToInt32(telemetry.Event?.FuelRate ?? UndefinedIntegerValue));
 
                 // NumberOfLaps
                 // SessionTimeRemaining
@@ -80,6 +82,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // PitWindowEnd
                 // InPitlane
 
+
+                // NOTE ** PlayerName is the current vehicle's driver name rather than player name!
             });
         }
 
