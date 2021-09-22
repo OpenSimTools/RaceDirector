@@ -155,29 +155,44 @@ namespace RaceDirector.Pipeline.Telemetry
         public interface ISessionRequirements
         {
             UInt32 MandatoryPitStops { get; } // 0 to disable
+            MandatoryPitRequirements MandatoryPitRequirements { get;  }
 
             /// <summary>
             /// Mandatory pit window.
             /// </summary>
-            Interval<ISessionDuration>? PitWindow { get; } // R3E PitWindowEnd, PitWindowStart
+            Interval<IPitWindowBoundary>? PitWindow { get; } // R3E PitWindowEnd, PitWindowStart
 
             // TODO
-            //  - driver swap, max stint, tyre change, refuel, ... https://www.acc-wiki.info/wiki/Server_Configuration#eventRules.json
-            //  - cleared or not goes in the player or driver?
+            //  - driver swap, max stint, tyre change, refuel, ...
+            //    R3E PitStopStatus in DriverData tells if it's 2 or 4 wheels
+            //    ACC https://www.acc-wiki.info/wiki/Server_Configuration#eventRules.json
         }
 
-        public interface ISessionDuration
+        [Flags]
+        public enum MandatoryPitRequirements
         {
-            public record LapsDuration(UInt32 Laps, TimeSpan? EstimatedTime) : ISessionDuration;
-            
-            public record TimeDuration(TimeSpan Time, UInt32? EstimatedLaps) : ISessionDuration; // might have an extra lap or not?
-            
+            Fuel = 1 << 0,
+            DriverSwap = 1 << 1,
+            TwoTyres = 1 << 2,
+            FourTyres = 1 << 3
+        }
+
+        public interface IPitWindowBoundary { }
+
+        public interface ISessionDuration { }
+
+        public static class RaceDuration {
+
+            public record LapsDuration(UInt32 Laps, TimeSpan? EstimatedTime) : ISessionDuration, IPitWindowBoundary;
+
+            public record TimeDuration(TimeSpan Time, UInt32? EstimatedLaps) : ISessionDuration, IPitWindowBoundary;
+
             /// <summary>
             /// Laps are added after the time duration.
             /// </summary>
             public record TimePlusLapsDuration(TimeSpan Time, UInt32 ExtraLaps, UInt32? EstimatedLaps) : ISessionDuration;
 
-            // public record TimeOrLapsDuration(TimeSpan Time, UInt32 Laps) : IRaceDuration;
+            // public record TimeOrLapsDuration(TimeSpan Time, UInt32 Laps) : ISessionDuration;
         }
 
         // TODO shall we have an array of Off/Red/Green? Or like for flags separate game and real (historic might be different)?
@@ -247,8 +262,6 @@ namespace RaceDirector.Pipeline.Telemetry
 
             // IDriver Drivers { get; } // Only one per vehicle in R3E
 
-            ICounter MandatoryPitStops { get; } // R3E DriverData[].PitStopStatus for 0 or 1
-
             IVehiclePit Pit { get; }
         }
 
@@ -276,18 +289,29 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IVehiclePit
         {
+            UInt32 StopsDone { get; }
+            UInt32 MandatoryStopsDone { get; } // R3E DriverData[].PitStopStatus for 0 or 1
+
             Boolean InPitLane { get; } // R3E DriverData[].InPitlane
 
             /// <summary>
-            /// Time since entering the pit lane. Available for an entire lap after pitting or until entering the pit lane again.
+            /// Time since entering the pit lane. When the vehicle exits, it stays
+            /// available for an entire lap or until entering the pit lane again.
             /// </summary>
             /// <remarks>
-            /// Not available in replay mode.
+            /// It can be inferred when not available (ACC, R3E in replay mode, etc.)
             /// </remarks>
             TimeSpan? PitLaneTime { get; } // R3E PitTotalDuration for player
 
-            Boolean? InPitStall { get; } // R3E PitState for player
+            Boolean InPitStall { get; } // R3E PitState for player
 
+            /// <summary>
+            /// Time since stopping at the pit stall. When the vehicle leaves it, it stays
+            /// available for an entire lap or until entering the pit lane again.
+            /// </summary>
+            /// <remarks>
+            /// It can be inferred when not available (ACC, R3E in replay mode, etc.)
+            /// </remarks>
             TimeSpan? PitStallTime { get; } // R3E PitElapsedTime for player
         }
 
@@ -322,7 +346,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
             Orientation Orientation { get; }
 
-            Vector3<IAcceleration> Acceleration { get; } // R3E Player.LocalGforce.*, ACC/AC accG
+            /// <summary>
+            /// Acceleration relative to the Orientation.
+            /// </summary>
+            Vector3<IAcceleration> LocalAcceleration { get; } // R3E Player.LocalGforce.*, ACC/AC accG
 
             // TODO player or current vehicle?
             // this is odd because it's related to the player's car class. we could extract it in the session if we compute it outselves
@@ -568,15 +595,6 @@ namespace RaceDirector.Pipeline.Telemetry
             StopAndGo = 1 << 4,
             TimeDeduction = 1 << 5
         }
-    }
-
-    public interface ICounter
-    {
-        UInt32 Total { get; }
-
-        UInt32 Left { get; }
-
-        UInt32 Done { get; }
     }
 
     public interface IFraction<T> : IBoundedValue<T>

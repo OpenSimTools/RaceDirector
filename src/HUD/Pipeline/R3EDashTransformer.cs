@@ -3,67 +3,157 @@ using System.Text.Json;
 using System.IO;
 using System;
 using RaceDirector.Plugin.HUD.Utils;
+using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
+using RaceDirector.Pipeline.Telemetry;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
         private static readonly UInt32 MajorVersion = 2;
-        private static readonly UInt32 MinorVersion = 10;
-        private static readonly Double UndefinedDoubleValue = -1.0;
-        private static readonly Int32 UndefinedIntegerValue = -1;
-        private static readonly String UndefinedBase64 = "AA==";
-        private static readonly Int32 UndefinedGear = -2;
+        private static readonly UInt32 MinorVersion = 11;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
-        public static byte[] ToR3EDash(IGameTelemetry telemetry)
+        public static byte[] ToR3EDash(IGameTelemetry gt)
         {
             using (var stream = new MemoryStream())
             {
                 using (var writer = new Utf8JsonWriter(stream, JsonWriterOptions))
                 {
-                    WriteR3EDash(writer, telemetry);
+                    WriteR3EDash(writer, gt);
                 }
                 return stream.ToArray();
             }
         }
 
-        private static void WriteR3EDash(Utf8JsonWriter w, IGameTelemetry telemetry)
+        private static void WriteR3EDash(Utf8JsonWriter w, IGameTelemetry gt)
         {
             w.WriteObject(_ =>
             {
                 w.WriteNumber("VersionMajor", MajorVersion);
                 w.WriteNumber("VersionMinor", MinorVersion);
 
-                w.WriteNumber("GameInMenus", MatchToInteger(telemetry.GameState, GameState.Menu));
-                w.WriteNumber("GameInReplay", MatchToInteger(telemetry.GameState, GameState.Replay));
-                w.WriteNumber("GameUsingVr", BooleanToInteger(telemetry.UsingVR));
+                // AllDriversOffset
+                // DriverDataSize
+                // GamePaused
+
+                w.WriteNumber("GameInMenus", MatchToInteger(gt.GameState, GameState.Menu));
+                w.WriteNumber("GameInReplay", MatchToInteger(gt.GameState, GameState.Replay));
+
+                w.WriteNumber("GameUsingVr", BooleanToInteger(gt.UsingVR));
 
                 w.WriteObject("Player", _ =>
                 {
+                    // Player.GameSimulationTicks
+                    // Player.GameSimulationTime
+
                     w.WriteObject("Position", _ =>
                     {
-                        w.WriteNumber("X", (telemetry.Player?.CgLocation.X.M) ?? 0.0);
-                        w.WriteNumber("Y", (telemetry.Player?.CgLocation.Y.M) ?? 0.0);
-                        w.WriteNumber("Z", (telemetry.Player?.CgLocation.Z.M) ?? 0.0);
+                        w.WriteNumber("X", (gt.Player?.CgLocation.X.M) ?? 0.0);
+                        w.WriteNumber("Y", (gt.Player?.CgLocation.Y.M) ?? 0.0);
+                        w.WriteNumber("Z", (gt.Player?.CgLocation.Z.M) ?? 0.0);
                     });
-                    // Player.LocalGforce.X
-                    // Player.LocalGforce.Y
-                    // Player.LocalGforce.Z
+
+                    // Player.Velocity.X
+                    // Player.Velocity.Y
+                    // Player.Velocity.Z
+                    // Player.LocalVelocity.X
+                    // Player.LocalVelocity.Y
+                    // Player.LocalVelocity.Z
+                    // Player.Acceleration.X
+                    // Player.Acceleration.Y
+                    // Player.Acceleration.Z
+
+                    w.WriteObject("LocalAcceleration", _ =>
+                    {
+                        w.WriteNumber("X", (gt.Player?.LocalAcceleration.X.MPS2) ?? 0.0);
+                        w.WriteNumber("Y", (gt.Player?.LocalAcceleration.Y.MPS2) ?? 0.0);
+                        w.WriteNumber("Z", (gt.Player?.LocalAcceleration.Z.MPS2) ?? 0.0);
+                    });
+
+                    // Player.Orientation.X
+                    // Player.Orientation.Y
+                    // Player.Orientation.Z
+                    // Player.Rotation.X
+                    // Player.Rotation.Y
+                    // Player.Rotation.Z
+                    // Player.AngularAcceleration.X
+                    // Player.AngularAcceleration.Y
+                    // Player.AngularAcceleration.Z
+                    // Player.AngularVelocity.X
+                    // Player.AngularVelocity.Y
+                    // Player.AngularVelocity.Z
+                    // Player.LocalAngularVelocity.X
+                    // Player.LocalAngularVelocity.Y
+                    // Player.LocalAngularVelocity.Z
+
+                    w.WriteObject("LocalGforce", _ =>
+                    {
+                        w.WriteNumber("X", (gt.Player?.LocalAcceleration.X.G) ?? 0.0);
+                        w.WriteNumber("Y", (gt.Player?.LocalAcceleration.Y.G) ?? 0.0);
+                        w.WriteNumber("Z", (gt.Player?.LocalAcceleration.Z.G) ?? 0.0);
+                    });
+
+                    // Player.SteeringForce
+                    // Player.SteeringForcePercentage
+                    // Player.EngineTorque
+                    // Player.CurrentDownforce
+                    // Player.Voltage
+                    // Player.ErsLevel
+                    // Player.PowerMguH
+                    // Player.PowerMguK
+                    // Player.TorqueMguK
+                    // Player.SuspensionDeflection.FrontLeft
+                    // Player.SuspensionDeflection.FrontRight
+                    // Player.SuspensionDeflection.RearLeft
+                    // Player.SuspensionDeflection.RearRight
+                    // Player.SuspensionVelocity.FrontLeft
+                    // Player.SuspensionVelocity.FrontRight
+                    // Player.SuspensionVelocity.RearLeft
+                    // Player.SuspensionVelocity.RearRight
+                    // Player.Camber.FrontLeft
+                    // Player.Camber.FrontRight
+                    // Player.Camber.RearLeft
+                    // Player.Camber.RearRight
+                    // Player.RideHeight.FrontLeft
+                    // Player.RideHeight.FrontRight
+                    // Player.RideHeight.RearLeft
+                    // Player.RideHeight.RearRight
+                    // Player.FrontWingHeight
+                    // Player.FrontRollAngle
+                    // Player.RearRollAngle
+                    // Player.thirdSpringSuspensionDeflectionFront
+                    // Player.thirdSpringSuspensionVelocityFront
+                    // Player.thirdSpringSuspensionDeflectionRear
+                    // Player.thirdSpringSuspensionVelocityRear
                 });
 
-                w.WriteNumber("LayoutLength", (telemetry.Event?.Track.Length?.M) ?? UndefinedDoubleValue);
+                // TrackName
+                // LayoutName
+                // TrackId
+                // LayoutId
+
+                w.WriteNumber("LayoutLength", (gt.Event?.Track.Length?.M) ?? -1.0);
+
                 w.WriteObject("SectorStartFactors", _ =>
                 {
-                    var sectorsEnd = telemetry.Event?.Track.SectorsEnd;
+                    var sectorsEnd = gt.Event?.Track.SectorsEnd;
                     for (int i = 0; i < 3; i++)
                     {
-                        w.WriteNumber("Sector" + (i + 1), sectorsEnd?.Length > i ? sectorsEnd[i].Fraction : UndefinedDoubleValue);
+                        w.WriteNumber("Sector" + (i + 1), sectorsEnd?.Length > i ? sectorsEnd[i].Fraction : -1.0);
                     }
                 });
 
-                w.WriteNumber("SessionType", telemetry.Session?.Type switch
+                // RaceSessionLaps.Race1
+                // RaceSessionLaps.Race2
+                // RaceSessionLaps.Race3
+                // RaceSessionMinutes.Race1
+                // RaceSessionMinutes.Race2
+                // RaceSessionMinutes.Race3
+                // EventIndex
+
+                w.WriteNumber("SessionType", gt.Session?.Type switch
                 {
                     SessionType.Practice => 0,
                     SessionType.Qualify => 1,
@@ -72,17 +162,64 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     _ => -1
                 });
 
-                // SessionPitSpeedLimit
-                // SessionPhase
-                // StartLights
+                // SessionIteration
+                // SessionLengthFormat
 
-                w.WriteNumber("FuelUseActive", Convert.ToInt32(telemetry.Event?.FuelRate ?? UndefinedIntegerValue));
+                w.WriteNumber("SessionLengthFormat", gt.Session?.Length switch
+                {
+                    RaceDuration.TimeDuration => 0,
+                    RaceDuration.LapsDuration => 1,
+                    RaceDuration.TimePlusLapsDuration => 2,
+                    _ => -1
+                });
+                w.WriteNumber("SessionPitSpeedLimit", gt.Session?.PitSpeedLimit.MPS ?? -1.0);
+                w.WriteNumber("SessionPhase", gt.Session?.Phase switch
+                {
+                    SessionPhase.Garage => 1,
+                    SessionPhase.Gridwalk => 2,
+                    SessionPhase.Formation => 3,
+                    SessionPhase.Countdown => 4,
+                    SessionPhase.Started => 5,
+                    SessionPhase.Over => 6,
+                    _ => -1
+                });
+                w.WriteNumber("StartLights", StartLightsAsNumber(gt.Session?.StartLights));
 
-                // NumberOfLaps
-                // SessionTimeRemaining
-                // PitWindowStatus
-                // PitWindowStart
-                // PitWindowEnd
+                // TireWearActive
+                w.WriteNumber("FuelUseActive", Convert.ToInt32(gt.Event?.FuelRate ?? -1));
+
+                w.WriteNumber("NumberOfLaps", gt.Session?.Length switch
+                {
+                    LapsDuration length => length.Laps,
+                    _ => -1
+                });
+                w.WriteNumber("SessionTimeDuration", gt.Session?.Length switch
+                {
+                    TimeDuration length => length.Time.TotalSeconds,
+                    TimePlusLapsDuration length => length.Time.TotalSeconds,
+                    _ => -1.0
+                });
+                w.WriteNumber("SessionTimeRemaining", gt.Session?.Length switch
+                {
+                    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    _ => -1.0
+                });
+                // MaxIncidentPoints
+
+                w.WriteNumber("PitWindowStatus", PitWindowStatusAsNumber(gt));
+                w.WriteNumber("PitWindowStart", gt.Session?.Requirements.PitWindow?.Start switch {
+                    LapsDuration length => Convert.ToInt32(length.Laps),
+                    TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
+                    _ => -1
+                });
+                w.WriteNumber("PitWindowEnd", gt.Session?.Requirements.PitWindow?.Finish switch
+                {
+                    LapsDuration length => Convert.ToInt32(length.Laps),
+                    TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
+                    _ => -1
+                });
+
+                // TODO
                 // InPitlane
                 // PitState
                 // PitTotalDuration
@@ -243,6 +380,50 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             if (value is null)
                 return -1;
             return value.Equals(constant) ? 1 : 0;
+        }
+
+        private static Int32 StartLightsAsNumber(IStartLights? startLights)
+        {
+            if (startLights is null)
+                return -1;
+            else if (startLights.Colour == LightColour.Green)
+                return 6;
+            else
+                return Convert.ToInt32(5 * startLights.Lit.Value / startLights.Lit.Total);
+        }
+
+
+        private static Int32 PitWindowStatusAsNumber(IGameTelemetry gt)
+        {
+            if (gt.Session is null)
+                return -1; // Unavailable
+            var pitWindow = gt.Session.Requirements.PitWindow;
+            if (pitWindow is null)
+                return 0; // Disabled
+            var vehicle = gt.CurrentVehicle;
+            if (vehicle?.Pit.MandatoryStopsDone > 0)
+                return 4; // Completed
+
+            switch (pitWindow)
+            {
+                case Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish):
+                    if (vehicle is null)
+                        return -1; // Unavailable
+                    if (start.Laps.CompareTo(vehicle.CompletedLaps) > 0
+                        || 0 > finish.Laps.CompareTo(gt.CurrentVehicle.CompletedLaps))
+                        return 1; // Closed
+                    break;
+                case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish):
+                    if (start.Time.CompareTo(gt.Session.ElapsedTime) > 0
+                        || 0 > finish.Time.CompareTo(gt.Session.ElapsedTime))
+                        return 1; // Closed
+                    break;
+            }
+
+            if (vehicle?.Pit.InPitStall == true)
+                return 3; // Stopped
+            else
+                return 2; // Open
         }
     }
 }

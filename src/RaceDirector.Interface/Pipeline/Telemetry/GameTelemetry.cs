@@ -27,6 +27,7 @@ namespace RaceDirector.Pipeline.Telemetry
     public record Event
     (
         TrackLayout Track,
+        // ISessionDuration[] SessionsLength
         Double FuelRate
     ) : IEvent
     {
@@ -60,7 +61,8 @@ namespace RaceDirector.Pipeline.Telemetry
     public record SessionRequirements
     (
         UInt32 MandatoryPitStops,
-        Interval<ISessionDuration>? PitWindow
+        MandatoryPitRequirements MandatoryPitRequirements,
+        Interval<IPitWindowBoundary>? PitWindow
     ) : ISessionRequirements;
 
     public record StartLights(
@@ -91,7 +93,6 @@ namespace RaceDirector.Pipeline.Telemetry
         Vector3<IDistance> Location,
         ISpeed Speed,
         Driver CurrentDriver,
-        Counter MandatoryPitStops,
         VehiclePit Pit
     ) : IVehicle
     {
@@ -100,7 +101,6 @@ namespace RaceDirector.Pipeline.Telemetry
         ILapTime? IVehicle.PersonalBestLapTime => PersonalBestLapTime;
         ISectors? IVehicle.BestSectors => BestSectors;
         IDriver IVehicle.CurrentDriver => CurrentDriver;
-        ICounter IVehicle.MandatoryPitStops => MandatoryPitStops;
         IVehiclePit IVehicle.Pit => Pit;
     }
 
@@ -108,16 +108,12 @@ namespace RaceDirector.Pipeline.Telemetry
         String Name
     ) : IDriver;
 
-    public record Counter(
-        UInt32 Total,
-        UInt32 Left,
-        UInt32 Done
-    ) : ICounter;
-
     public record VehiclePit(
+        UInt32 StopsDone,
+        UInt32 MandatoryStopsDone,
         Boolean InPitLane,
         TimeSpan? PitLaneTime,
-        Boolean? InPitStall,
+        Boolean InPitStall,
         TimeSpan? PitStallTime
     ) : IVehiclePit;
 
@@ -132,7 +128,7 @@ namespace RaceDirector.Pipeline.Telemetry
         Engine Engine,
         Vector3<IDistance> CgLocation,
         Orientation Orientation,
-        Vector3<IAcceleration> Acceleration,
+        Vector3<IAcceleration> LocalAcceleration,
         LapTime? ClassBestLap,
         Sectors? ClassBestSectors,
         Sectors? PersonalBestSectors,
@@ -281,5 +277,5 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;
 
-    public record BoundedValue<T>(T Total, T Value) : IBoundedValue<T>;
+    public record BoundedValue<T>(T Value, T Total) : IBoundedValue<T>;
 }

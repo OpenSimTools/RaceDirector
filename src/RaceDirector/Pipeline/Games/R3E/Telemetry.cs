@@ -6,6 +6,8 @@ namespace RaceDirector.Pipeline.Games.R3E
 {
     static class Telemetry
     {
+        private static readonly UInt32 MaxLights = 5;
+
         public static GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
             // TODO check major version
@@ -13,8 +15,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 GameState(sharedData),
                 sharedData.GameUsingVr > 0,
                 Event(sharedData),
-                null, // Session(sharedData),
-                      // TODO
+                Session(sharedData),
                 new Vehicle[0],
                 null,
                 Player(sharedData)
@@ -75,9 +76,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                 maybeSessionLength,
                 sessionRequirements,
                 // TODO
-                ISpeed.FromKmPH(1),
+                ISpeed.FromMPS(sharedData.SessionPitSpeedLimit),
                 TimeSpan.FromSeconds(1),
-                null,
+                StartLights(sharedData.StartLights),
                 null,
                 null
             );
@@ -106,59 +107,83 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private static Pipeline.Telemetry.V0.ISessionDuration? SessionLength(Contrib.Data.Shared sharedData)
         {
-            return (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
+            // TODO Create Event.SessionsLength and get the SessionIteration-1 element from it
+            var (laps, minutes) = sharedData.SessionIteration switch
             {
-                Contrib.Constant.SessionLengthFormat.LapBased =>
-                    new Pipeline.Telemetry.V0.ISessionDuration.LapsDuration(
-                        Convert.ToUInt32(sharedData.NumberOfLaps),
-                        null // TODO
-                    ),
-                Contrib.Constant.SessionLengthFormat.TimeBased =>
-                    new Pipeline.Telemetry.V0.ISessionDuration.TimeDuration(
-                        TimeSpan.FromSeconds(Convert.ToDouble(sharedData.SessionTimeDuration)),
-                        null // TODO
-                    ),
-                Contrib.Constant.SessionLengthFormat.TimeAndLapBased =>
-                    new Pipeline.Telemetry.V0.ISessionDuration.TimePlusLapsDuration(
-                        TimeSpan.FromSeconds(Convert.ToDouble(sharedData.SessionTimeDuration)),
-                        Convert.ToUInt32(sharedData.NumberOfLaps), // TODO check if this is correct
-                        null // TODO
-                    ),
-                _ => null
+                1 => (sharedData.RaceSessionLaps.Race1, sharedData.RaceSessionMinutes.Race1),
+                2 => (sharedData.RaceSessionLaps.Race2, sharedData.RaceSessionMinutes.Race2),
+                3 => (sharedData.RaceSessionLaps.Race3, sharedData.RaceSessionMinutes.Race3),
+                _ => (-1, -1)
             };
+            if (laps >= 0)
+            {
+                if (minutes >= 0)
+                    return new Pipeline.Telemetry.V0.RaceDuration.TimePlusLapsDuration
+                    (
+                        TimeSpan.FromMinutes(minutes),
+                        Convert.ToUInt32(laps),
+                        null // TODO
+                    );
+                else
+                    return new Pipeline.Telemetry.V0.RaceDuration.LapsDuration
+                    (
+                        Convert.ToUInt32(laps),
+                        null // TODO
+                    );
+            }
+            else
+            {
+                if (minutes >= 0)
+                    return new Pipeline.Telemetry.V0.RaceDuration.TimeDuration
+                    (
+                        TimeSpan.FromMinutes(minutes),
+                        null // TODO
+                    );
+                else
+                    return null;
+            }
         }
 
         private static SessionRequirements SessionRequirements(Contrib.Data.Shared sharedData)
         {
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
-                return new SessionRequirements(0, null);
+                return new SessionRequirements(0, 0, null);
 
             var window = (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
             {
                 Contrib.Constant.SessionLengthFormat.LapBased =>
-                    new Interval<Pipeline.Telemetry.V0.ISessionDuration>(
-                        new Pipeline.Telemetry.V0.ISessionDuration.LapsDuration(
+                    new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
+                        new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
                             Convert.ToUInt32(sharedData.PitWindowStart),
                             null // TODO
                         ),
-                        new Pipeline.Telemetry.V0.ISessionDuration.LapsDuration(
+                        new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
                             Convert.ToUInt32(sharedData.PitWindowStart),
                             null // TODO
                         )
                     ),
                 _ =>
-                    new Interval<Pipeline.Telemetry.V0.ISessionDuration>(
-                        new Pipeline.Telemetry.V0.ISessionDuration.TimeDuration(
+                    new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
+                        new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
                             TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowStart)),
                             null // TODO
                         ),
-                        new Pipeline.Telemetry.V0.ISessionDuration.TimeDuration(
+                        new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
                             TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowEnd)),
                             null // TODO
                         )
                     ),
             };
-            return new SessionRequirements(1, window);
+            return new SessionRequirements(1, 0, window);
+        }
+
+        private static StartLights? StartLights(Int32 startLights)
+        {
+            if (startLights < 0)
+                return null;
+            if (startLights > MaxLights)
+                return new StartLights(Pipeline.Telemetry.V0.LightColour.Green, new BoundedValue<UInt32>(MaxLights, MaxLights));
+            return new StartLights(Pipeline.Telemetry.V0.LightColour.Red, new BoundedValue<UInt32>((UInt32)startLights, MaxLights));
         }
 
         private static Player? Player(Contrib.Data.Shared sharedData)
@@ -232,9 +257,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 new Vector3<IAcceleration>
                 (
-                    IAcceleration.FromG(0.0), // TODO
-                    IAcceleration.FromG(0.0), // TODO
-                    IAcceleration.FromG(0.0) // TODO
+                    IAcceleration.FromMPS2(sharedData.Player.LocalAcceleration.X),
+                    IAcceleration.FromMPS2(sharedData.Player.LocalAcceleration.Y),
+                    IAcceleration.FromMPS2(sharedData.Player.LocalAcceleration.Z)
                 ),
                 null, // TODO
                 null, // TODO
