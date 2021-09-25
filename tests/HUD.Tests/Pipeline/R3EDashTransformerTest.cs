@@ -206,37 +206,51 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Laps()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Length = new LapsDuration(3, TimeSpan.FromSeconds(4.5)) }));
+            var result = ToR3EDash(gt.WithSession(s => s with {
+                ElapsedTime = TimeSpan.FromSeconds(1.2),
+                Length = new LapsDuration(3, TimeSpan.FromSeconds(4.5)),
+            }));
 
             Assert.Equal(1, result.Path("SessionLengthFormat").GetInt32());
             Assert.Equal(3, result.Path("NumberOfLaps").GetInt32());
             Assert.Equal(-1.0, result.Path("SessionTimeDuration").GetDouble());
+            Assert.Equal(-1.0, result.Path("SessionTimeRemaining").GetDouble());
         }
 
         [Fact]
         public void Session_Length__Time()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Length = new TimeDuration(TimeSpan.FromSeconds(3.4), 5) }));
+            var result = ToR3EDash(gt.WithSession(s => s with {
+                ElapsedTime = TimeSpan.FromSeconds(1.2),
+                Length = new TimeDuration(TimeSpan.FromSeconds(3.4), 5),
+            }));
 
             Assert.Equal(0, result.Path("SessionLengthFormat").GetInt32());
             Assert.Equal(-1, result.Path("NumberOfLaps").GetInt32());
             Assert.Equal(3.4, result.Path("SessionTimeDuration").GetDouble());
+            Assert.Equal(2.2, result.Path("SessionTimeRemaining").GetDouble());
         }
 
         [Fact]
         public void Session_Length__TimePlusLaps()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Length = new TimePlusLapsDuration(TimeSpan.FromSeconds(3.4), 5, 6) }));
+            var result = ToR3EDash(gt.WithSession(s => s with {
+                ElapsedTime = TimeSpan.FromSeconds(1.2),
+                Length = new TimePlusLapsDuration(TimeSpan.FromSeconds(3.4), 5, 6)
+            }));
 
             Assert.Equal(2, result.Path("SessionLengthFormat").GetInt32());
             Assert.Equal(-1, result.Path("NumberOfLaps").GetInt32());
             Assert.Equal(3.4, result.Path("SessionTimeDuration").GetDouble());
+            Assert.Equal(2.2, result.Path("SessionTimeRemaining").GetDouble());
         }
 
         [Fact]
         public void Session_Requirements_PitWindow__Null()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Requirements = s.Requirements with { PitWindow = null } }));
+            var result = ToR3EDash(gt.WithSession(s => s with {
+                Requirements = s.Requirements with { PitWindow = null }
+            }));
 
             Assert.Equal(0, result.Path("PitWindowStatus").GetInt32());
             Assert.Equal(-1, result.Path("PitWindowStart").GetInt32());
@@ -388,6 +402,30 @@ namespace HUD.Tests.Pipeline
                 );
 
             Assert.Equal(4, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Null()
+        {
+            var result = ToR3EDash(gt with { CurrentVehicle = null });
+
+            Assert.Equal(-1, result.Path("InPitLane").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(true, 1)]
+        [InlineData(false, 0)]
+        public void CurrentVehicle_Pit_InPitLane(Boolean inPitLane, Int32 expected)
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                        {
+                            Pit = cv.Pit with { InPitLane = inPitLane }
+                        }
+                    )
+                );
+
+            Assert.Equal(expected, result.Path("InPitLane").GetInt32());
         }
 
         [Fact]

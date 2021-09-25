@@ -201,7 +201,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 });
                 w.WriteNumber("SessionTimeRemaining", gt.Session?.Length switch
                 {
-                    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    TimeDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
+                    TimePlusLapsDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
                     _ => -1.0
                 });
                 // MaxIncidentPoints
@@ -218,10 +219,24 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
                     _ => -1
                 });
+                w.WriteNumber("InPitLane", BooleanToInteger(gt.CurrentVehicle?.Pit.InPitLane));
+
+                // PitMenuSelection
+                // PitMenuState.Preset
+                // PitMenuState.Penalty
+                // PitMenuState.Driverchange
+                // PitMenuState.Fuel
+                // PitMenuState.FrontTires
+                // PitMenuState.RearTires
+                // PitMenuState.FrontWing
+                // PitMenuState.RearWing
+                // PitMenuState.Suspension
+                // PitMenuState.ButtonTop
+                // PitMenuState.ButtonBottom
+
+                w.WriteNumber("PitState", -2); // Replace InPitLane, InPitStall with this...
 
                 // TODO
-                // InPitlane
-                // PitState
                 // PitTotalDuration
                 // PitElapsedTime
                 // PitAction
