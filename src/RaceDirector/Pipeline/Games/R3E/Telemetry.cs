@@ -267,7 +267,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 null, // TODO
                 null, // TODO
                 null, // TODO
-                null, // TODO
+                0, // TODO
                 0, // TODO
                 0 // TODO
             );

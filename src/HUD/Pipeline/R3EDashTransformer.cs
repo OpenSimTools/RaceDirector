@@ -219,7 +219,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
                     _ => -1
                 });
-                w.WriteNumber("InPitLane", BooleanToInteger(gt.CurrentVehicle?.Pit.InPitLane));
+                w.WriteNumber("InPitLane", InPitLaneAsNumber(gt.CurrentVehicle));
 
                 // PitMenuSelection
                 // PitMenuState.Preset
@@ -234,19 +234,36 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // PitMenuState.ButtonTop
                 // PitMenuState.ButtonBottom
 
-                w.WriteNumber("PitState", -2); // Replace InPitLane, InPitStall with this...
+                w.WriteNumber("PitState", PitStateAsNumber(gt));
+                w.WriteNumber("PitTotalDuration", gt.CurrentVehicle?.Pit.PitLaneTime?.TotalSeconds ?? -1.0);
+                w.WriteNumber("PitElapsedTime", gt.CurrentVehicle?.Pit.PitStallTime?.TotalSeconds ?? -1.0);
+                w.WriteNumber("PitAction", PitActionAsNumber(gt.Player));
 
-                // TODO
-                // PitTotalDuration
-                // PitElapsedTime
-                // PitAction
-                // Flags.Yellow
-                // Flags.Blue
-                // Flags.Black
-                // Flags.Green
-                // Flags.Checkered
-                // Flags.White
-                // Flags.BlackAndWhite
+                // NumPitstopsPerformed
+                // PitMinDurationTotal
+                // PitMinDurationLeft
+
+                w.WriteObject("Flags", _ =>
+                {
+                    w.WriteNumber("Yellow", -42);
+
+                    // Flags.YellowCausedIt
+                    // Flags.YellowOvertake
+                    // Flags.YellowPositionsGained
+                    // Flags.SectorYellow.Sector1
+                    // Flags.SectorYellow.Sector2
+                    // Flags.SectorYellow.Sector3
+                    // Flags.ClosestYellowDistanceIntoTrack
+
+                    // TODO
+                    // Flags.Blue
+                    // Flags.Black
+                    // Flags.Green
+                    // Flags.Checkered
+                    // Flags.White
+                    // Flags.BlackAndWhite
+                });
+
                 // PositionClass
                 // Penalties.DriveThrough
                 // Penalties.StopAndGo
@@ -425,7 +442,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     if (vehicle is null)
                         return -1; // Unavailable
                     if (start.Laps.CompareTo(vehicle.CompletedLaps) > 0
-                        || 0 > finish.Laps.CompareTo(gt.CurrentVehicle.CompletedLaps))
+                        || 0 > finish.Laps.CompareTo(vehicle.CompletedLaps))
                         return 1; // Closed
                     break;
                 case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish):
@@ -435,10 +452,61 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     break;
             }
 
-            if (vehicle?.Pit.InPitStall == true)
+            if (vehicle?.Pit.PitLaneState == PitLaneState.Stopped)
                 return 3; // Stopped
             else
                 return 2; // Open
         }
+
+        private static Int32 InPitLaneAsNumber(IVehicle? vehicle)
+        {
+            if (vehicle is null)
+                return -1;
+            if (vehicle.Pit.PitLaneState is null)
+                return 0;
+            return 1;
+        }
+
+        private static decimal PitStateAsNumber(IGameTelemetry gt)
+        {
+            if (gt.CurrentVehicle is null)
+                return -1;
+            switch (gt.CurrentVehicle.Pit.PitLaneState)
+            {
+                case PitLaneState.Entered:
+                    return 2;
+                case PitLaneState.Stopped:
+                    return 3;
+                case PitLaneState.Exiting:
+                    return 4;
+            }
+            if (gt.Player?.PitStop.HasFlag(PlayerPitStop.Requested) ?? false)
+                return 1;
+            return 0;
+        }
+
+        private static Int32 PitActionAsNumber(IPlayer? player)
+        {
+            if (player is null)
+                return -1;
+            Int32 pitAction = 0;
+            foreach ((PlayerPitStop playerPitstopFlag, Int32 pitActionFlag) in pitActionMapping)
+                if (player.PitStop.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
+            return pitAction;
+        }
+
+        private static readonly (PlayerPitStop, Int32)[] pitActionMapping = {
+                (PlayerPitStop.Preparing,        1 << 0),
+                (PlayerPitStop.ServingPenalty,   1 << 1),
+                (PlayerPitStop.DriverChange,     1 << 2),
+                (PlayerPitStop.Refuelling,       1 << 3),
+                (PlayerPitStop.ChangeFrontTyres, 1 << 4),
+                (PlayerPitStop.ChangeRearTyres,  1 << 5),
+                (PlayerPitStop.RepairBody,       1 << 6),
+                (PlayerPitStop.RepairFrontWing,  1 << 7),
+                (PlayerPitStop.RepairRearWing,   1 << 8),
+                (PlayerPitStop.RepairSuspension, 1 << 9)
+            };
+
     }
 }

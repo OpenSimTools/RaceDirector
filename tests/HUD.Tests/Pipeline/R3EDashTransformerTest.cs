@@ -271,7 +271,7 @@ namespace HUD.Tests.Pipeline
                         Pit = cv.Pit with
                         {
                             MandatoryStopsDone = 0,
-                            InPitStall = false
+                            PitLaneState = null
                         }
                     })
                     .WithSession(s => s with
@@ -304,7 +304,7 @@ namespace HUD.Tests.Pipeline
                         Pit = cv.Pit with
                         {
                             MandatoryStopsDone = 0,
-                            InPitStall = false
+                            PitLaneState = null
                         }
                     })
                     .WithSession(s => s with
@@ -358,7 +358,7 @@ namespace HUD.Tests.Pipeline
                         Pit = cv.Pit with
                         {
                             MandatoryStopsDone = 0,
-                            InPitStall = true
+                            PitLaneState = PitLaneState.Stopped
                         }
                     })
                     .WithSession(s => s with
@@ -410,28 +410,99 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(gt with { CurrentVehicle = null });
 
             Assert.Equal(-1, result.Path("InPitLane").GetInt32());
+            Assert.Equal(-1, result.Path("PitState").GetInt32());
+            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
+            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
         }
 
-        [Theory]
-        [InlineData(true, 1)]
-        [InlineData(false, 0)]
-        public void CurrentVehicle_Pit_InPitLane(Boolean inPitLane, Int32 expected)
+        [Fact]
+        public void CurrentVehicle_Pit_PitLaneState__Null()
         {
             var result = ToR3EDash(gt
                     .WithCurrentVehicle(cv => cv with
-                        {
-                            Pit = cv.Pit with { InPitLane = inPitLane }
-                        }
-                    )
+                    {
+                        Pit = cv.Pit with { PitLaneState = null }
+                    })
+                    .WithPlayer(p => p with { PitStop = 0 })
                 );
 
-            Assert.Equal(expected, result.Path("InPitLane").GetInt32());
+            Assert.Equal(0, result.Path("InPitLane").GetInt32());
+            Assert.Equal(0, result.Path("PitState").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(PitLaneState.Entered, 1, 2)]
+        [InlineData(PitLaneState.Stopped, 1, 3)]
+        [InlineData(PitLaneState.Exiting, 1, 4)]
+        public void CurrentVehicle_Pit_PitLaneState(PitLaneState? pitLaneState, Int32 inPitLane, Int32 pitState)
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Pit = cv.Pit with { PitLaneState = pitLaneState }
+                    })
+                );
+
+            Assert.Equal(inPitLane, result.Path("InPitLane").GetInt32());
+            Assert.Equal(pitState, result.Path("PitState").GetInt32());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Pit_PitLaneTime__Null()
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Pit = cv.Pit with { PitLaneTime = null }
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Pit_PitLaneTime()
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Pit = cv.Pit with { PitLaneTime = TimeSpan.FromSeconds(1.2) }
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("PitTotalDuration").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Pit_PitStallTime__Null()
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Pit = cv.Pit with { PitStallTime = null }
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Pit_PitStallTime()
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Pit = cv.Pit with { PitStallTime = TimeSpan.FromSeconds(1.2) }
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("PitElapsedTime").GetDouble());
         }
 
         [Fact]
         public void Player__Null()
         {
-            var result = ToR3EDash(gt with { Event = null });
+            var result = ToR3EDash(gt with { Player = null });
 
             Assert.Equal(0.0, result.Path("Player", "Position", "X").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "Position", "Y").GetDouble());
@@ -442,6 +513,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "X").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
+            Assert.Equal(-1, result.Path("PitAction").GetInt32());
         }
 
         [Fact]
@@ -490,6 +562,29 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.0, result.Path("Player", "LocalGforce", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(3.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
+        }
+
+        [Theory]
+        [InlineData(PlayerPitStop.Requested, 1, 0)]
+        [InlineData(PlayerPitStop.Preparing, 0, 1)]
+        [InlineData(PlayerPitStop.ServingPenalty, 0, 2)]
+        [InlineData(PlayerPitStop.DriverChange, 0, 4)]
+        [InlineData(PlayerPitStop.Refuelling, 0, 8)]
+        [InlineData(PlayerPitStop.ChangeFrontTyres, 0, 16)]
+        [InlineData(PlayerPitStop.ChangeRearTyres, 0, 32)]
+        [InlineData(PlayerPitStop.RepairBody, 0, 64)]
+        [InlineData(PlayerPitStop.RepairFrontWing, 0, 128)]
+        [InlineData(PlayerPitStop.RepairRearWing, 0, 256)]
+        [InlineData(PlayerPitStop.RepairSuspension, 0, 512)]
+        [InlineData(PlayerPitStop.Requested | PlayerPitStop.Preparing | PlayerPitStop.ServingPenalty, 1, 3)]
+        public void Player_PitStop(PlayerPitStop pitStop, Int32 pitState, Int32 pitAction)
+        {
+            var result = ToR3EDash(gt
+                .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
+                .WithPlayer(p => p with { PitStop = pitStop }));
+
+            Assert.Equal(pitState, result.Path("PitState").GetInt32());
+            Assert.Equal(pitAction, result.Path("PitAction").GetInt32());
         }
 
         #region Test setup

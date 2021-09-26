@@ -291,8 +291,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             UInt32 StopsDone { get; }
             UInt32 MandatoryStopsDone { get; } // R3E DriverData[].PitStopStatus for 0 or 1
-
-            Boolean InPitLane { get; } // R3E DriverData[].InPitlane
+            PitLaneState? PitLaneState { get; } // R3E PitState (player) or DriverData[].InPitlane and inference
 
             /// <summary>
             /// Time since entering the pit lane. When the vehicle exits, it stays
@@ -303,16 +302,21 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </remarks>
             TimeSpan? PitLaneTime { get; } // R3E PitTotalDuration for player
 
-            Boolean InPitStall { get; } // R3E PitState for player
-
             /// <summary>
             /// Time since stopping at the pit stall. When the vehicle leaves it, it stays
             /// available for an entire lap or until entering the pit lane again.
             /// </summary>
             /// <remarks>
-            /// It can be inferred when not available (ACC, R3E in replay mode, etc.)
+            /// It can be inferred when not available (ACC, R3E in replay mode or for other drivers, etc.)
             /// </remarks>
             TimeSpan? PitStallTime { get; } // R3E PitElapsedTime for player
+        }
+
+        public enum PitLaneState
+        {
+            Entered,   // Entered pit lane
+            Stopped,   // Stopped at the pit stall
+            Exiting    // Heading for pit exit
         }
 
         public interface IPlayer
@@ -371,7 +375,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             IWaitTimeToggled? PushToPass { get; }
 
-            IPlayerPit? Pit { get; }
+            PlayerPitStop PitStop { get; }
 
             // TODO: Replace with something more realistic (see https://en.wikipedia.org/wiki/Racing_flags#Summary)
             //   but still keeping the original flag information if one is shown.
@@ -541,59 +545,42 @@ namespace RaceDirector.Pipeline.Telemetry
             IAngularSpeed MaxSpeed { get; } // R3E MaxEngineRps
         }
 
-        public interface IPlayerPit
-        {
-            PitState State { get; }
-
-            PitAction Action { get; }
-
-            TimeSpan DurationTotal { get; }
-
-            TimeSpan DurationLeft { get; }
-        }
-
-        public enum PitState
-        {
-            Requested,      // Requested stop
-            EnteredPitlane, // Entered pitlane heading for pitspot
-            Pitspot,        // Stopped at pitspot
-            ExitingPitlane  // Exiting pitspot heading for pit exit
-        }
-
         [Flags]
-        public enum PitAction
+        public enum PlayerPitStop
         {
-            Preparing = 1 << 0,
-            ServingPenalty = 1 << 1,
-            DriverChange = 1 << 2,
-            Refuelling = 1 << 3,
-            ChangeFrontTyres = 1 << 4,
-            ChangeRearTyres = 1 << 5,
-            RepairFrontWing = 1 << 6,
-            RepairRearWing = 1 << 7,
-            RepairSuspension = 1 << 8
+            Requested        = 1 << 0,
+            Preparing        = 1 << 1,
+            ServingPenalty   = 1 << 2,
+            DriverChange     = 1 << 3,
+            Refuelling       = 1 << 4,
+            ChangeFrontTyres = 1 << 5,
+            ChangeRearTyres  = 1 << 6,
+            RepairBody       = 1 << 7,
+            RepairFrontWing  = 1 << 8,
+            RepairRearWing   = 1 << 9,
+            RepairSuspension = 1 << 10
         }
 
         [Flags]
         public enum Flags // r3e not all available during replay (only black ond checquered)
         {
-            Black = 1 << 1,
-            BlackAndWhite = 1 << 2,
-            Blue = 1 << 3,
-            Checkered = 1 << 4,
-            Green = 1 << 5,
-            White = 1 << 6,
-            Yellow = 1 << 7
+            Black         = 1 << 0,
+            BlackAndWhite = 1 << 1,
+            Blue          = 1 << 2,
+            Checkered     = 1 << 3,
+            Green         = 1 << 4,
+            White         = 1 << 5,
+            Yellow        = 1 << 6
         }
 
         [Flags]
         public enum Penalties
         {
-            DriveThrough = 1 << 1,
-            PitStop = 1 << 2, // ?
-            SlowDown = 1 << 3,
-            StopAndGo = 1 << 4,
-            TimeDeduction = 1 << 5
+            DriveThrough  = 1 << 0,
+            PitStop       = 1 << 1, // ?
+            SlowDown      = 1 << 2,
+            StopAndGo     = 1 << 3,
+            TimeDeduction = 1 << 4
         }
     }
 

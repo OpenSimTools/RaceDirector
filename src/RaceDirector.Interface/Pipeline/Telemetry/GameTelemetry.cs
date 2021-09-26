@@ -111,9 +111,8 @@ namespace RaceDirector.Pipeline.Telemetry
     public record VehiclePit(
         UInt32 StopsDone,
         UInt32 MandatoryStopsDone,
-        Boolean InPitLane,
+        PitLaneState? PitLaneState,
         TimeSpan? PitLaneTime,
-        Boolean InPitStall,
         TimeSpan? PitStallTime
     ) : IVehiclePit;
 
@@ -135,7 +134,7 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan? PersonalBestDelta,
         ActivationToggled? Drs,
         WaitTimeToggled? PushToPass,
-        PlayerPit? Pit,
+        PlayerPitStop PitStop,
         Flags GameFlags,
         Penalties Penalties
     ) : IPlayer
@@ -152,7 +151,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ISectors? IPlayer.PersonalBestSectors => PersonalBestSectors;
         IActivationToggled? IPlayer.Drs => Drs;
         IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
-        IPlayerPit? IPlayer.Pit => Pit;
+        PlayerPitStop IPlayer.PitStop => PitStop;
     }
 
     public record RawInputs
@@ -239,14 +238,6 @@ namespace RaceDirector.Pipeline.Telemetry
         IAngularSpeed UpshiftSpeed,
         IAngularSpeed MaxSpeed
     ) : IEngine;
-
-    public record PlayerPit
-    (
-        PitState State,
-        PitAction Action,
-        TimeSpan DurationTotal,
-        TimeSpan DurationLeft
-    ) : IPlayerPit;
 
     public record LapTime(
         TimeSpan Overall,
