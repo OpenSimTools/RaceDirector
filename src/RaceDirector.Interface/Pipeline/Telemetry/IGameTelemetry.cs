@@ -171,10 +171,11 @@ namespace RaceDirector.Pipeline.Telemetry
         [Flags]
         public enum MandatoryPitRequirements
         {
-            Fuel = 1 << 0,
+            None       = 0,
+            Fuel       = 1 << 0,
             DriverSwap = 1 << 1,
-            TwoTyres = 1 << 2,
-            FourTyres = 1 << 3
+            TwoTyres   = 1 << 2,
+            FourTyres  = 1 << 3
         }
 
         public interface IPitWindowBoundary { }
@@ -263,6 +264,12 @@ namespace RaceDirector.Pipeline.Telemetry
             // IDriver Drivers { get; } // Only one per vehicle in R3E
 
             IVehiclePit Pit { get; }
+
+            // TODO: Replace along with flags. Missing information:
+            //  - how much slow down
+            //  - stop and go times
+            //  - how much time deduction
+            Penalties Penalties { get; }
         }
 
         public enum EngineType
@@ -385,13 +392,10 @@ namespace RaceDirector.Pipeline.Telemetry
             //  - full course and sector yellows
             //  - yellow distance
             //  - caused yellow?
+            /// <summary>
+            /// Flags as displayed by the game. In some games they don't match reality.
+            /// </summary>
             Flags GameFlags { get; }
-
-            // TODO: Replace along with flags. Missing information:
-            //  - how much slow down
-            //  - stop and go times
-            //  - how much time deduction
-            Penalties Penalties { get; }
         }
 
         // FIXME
@@ -548,6 +552,7 @@ namespace RaceDirector.Pipeline.Telemetry
         [Flags]
         public enum PlayerPitStop
         {
+            None             = 0,
             Requested        = 1 << 0,
             Preparing        = 1 << 1,
             ServingPenalty   = 1 << 2,
@@ -564,6 +569,7 @@ namespace RaceDirector.Pipeline.Telemetry
         [Flags]
         public enum Flags // r3e not all available during replay (only black ond checquered)
         {
+            None          = 0,
             Black         = 1 << 0,
             BlackAndWhite = 1 << 1,
             Blue          = 1 << 2,
@@ -576,6 +582,7 @@ namespace RaceDirector.Pipeline.Telemetry
         [Flags]
         public enum Penalties
         {
+            None          = 0,
             DriveThrough  = 1 << 0,
             PitStop       = 1 << 1, // ?
             SlowDown      = 1 << 2,
@@ -587,21 +594,6 @@ namespace RaceDirector.Pipeline.Telemetry
     public interface IFraction<T> : IBoundedValue<T>
     {
         Double Fraction { get; }
-    }
-
-    public static class IFraction
-    {
-        public static IFraction<IDistance> Of(IDistance total, Double fraction) => new DistanceFraction(total, fraction);
-
-        public static IFraction<IDistance>[] Of(IDistance total, params Double[] fractions) =>
-            fractions.Select(f => new DistanceFraction(total, f)).ToArray();
-
-        private record DistanceFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
-        {
-            private Lazy<IDistance> _LazyValue = new Lazy<IDistance>(() => Total * Fraction);
-
-            public IDistance Value => _LazyValue.Value;
-        }
     }
 
     public interface IBoundedValue<T>

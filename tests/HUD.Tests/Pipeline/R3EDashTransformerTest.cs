@@ -16,7 +16,14 @@ namespace HUD.Tests.Pipeline
     [UnitTest]
     public class R3EDashTransformerTest
     {
-        private GameTelemetry gt = AutoFaker.Generate<GameTelemetry>(b => b.WithBinder<MoqBinder>());
+        private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
+            .Configure(b => b
+                .WithBinder<MoqBinder>()
+                // For some reason AutoBogus/Moq can't generate IDistance
+                .WithOverride<IDistance>(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+            );
+
+        private GameTelemetry gt = gtFaker.Generate();
 
         [Fact]
         public void VersionInformation()
@@ -85,7 +92,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__Empty()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(new IFraction<IDistance>[0]));
+            var result = ToR3EDash(gt.WithSectorsEnd(new DistanceFraction[0]));
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -96,7 +103,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__NotAllSectors()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(IFraction.Of(IDistance.FromM(100), 0.10, 0.20)));
+            var result = ToR3EDash(gt.WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -107,7 +114,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__AllSectors()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(IFraction.Of(IDistance.FromM(100), 0.10, 0.20, 0.30)));
+            var result = ToR3EDash(gt.WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20, 0.30)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -413,6 +420,12 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PitState").GetInt32());
             Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
             Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
+            Assert.Equal(-1, result.Path("PositionClass").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "DriveThrough").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "StopAndGo").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "PitStop").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "TimeDeduction").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "SlowDown").GetInt32());
         }
 
         [Fact]
@@ -500,6 +513,44 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
+        public void CurrentVehicle_PositionClass()
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        PositionClass = 4
+                    })
+                );
+
+            Assert.Equal(4, result.Path("PositionClass").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(Penalties.None,                              0, 0, 0, 0, 0)]
+        [InlineData(Penalties.DriveThrough,                      1, 0, 0, 0, 0)]
+        [InlineData(Penalties.StopAndGo,                         0, 1, 0, 0, 0)]
+        [InlineData(Penalties.PitStop,                           0, 0, 1, 0, 0)]
+        [InlineData(Penalties.TimeDeduction,                     0, 0, 0, 1, 0)]
+        [InlineData(Penalties.SlowDown,                          0, 0, 0, 0, 1)]
+        [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
+        public void CurrentVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
+            Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
+        {
+            var result = ToR3EDash(gt
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Penalties = penalties
+                    })
+                );
+
+            Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
+            Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
+            Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
+            Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
+            Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
+        }
+
+        [Fact]
         public void Player__Null()
         {
             var result = ToR3EDash(gt with { Player = null });
@@ -514,6 +565,13 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
             Assert.Equal(-1, result.Path("PitAction").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "BlackAndWhite").GetInt32());
         }
 
         [Fact]
@@ -565,6 +623,7 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
+        [InlineData(PlayerPitStop.None, 0, 0)]
         [InlineData(PlayerPitStop.Requested, 1, 0)]
         [InlineData(PlayerPitStop.Preparing, 0, 1)]
         [InlineData(PlayerPitStop.ServingPenalty, 0, 2)]
@@ -585,6 +644,32 @@ namespace HUD.Tests.Pipeline
 
             Assert.Equal(pitState, result.Path("PitState").GetInt32());
             Assert.Equal(pitAction, result.Path("PitAction").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(Flags.None,               0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(Flags.Yellow,             1, 0, 0, 0, 0, 0, 0)]
+        [InlineData(Flags.Blue,               0, 1, 0, 0, 0, 0, 0)]
+        [InlineData(Flags.Black,              0, 0, 1, 0, 0, 0, 0)]
+        [InlineData(Flags.Green,              0, 0, 0, 1, 0, 0, 0)]
+        [InlineData(Flags.Checkered,          0, 0, 0, 0, 1, 0, 0)]
+        [InlineData(Flags.White,              0, 0, 0, 0, 0, 1, 0)]
+        [InlineData(Flags.BlackAndWhite,      0, 0, 0, 0, 0, 0, 1)]
+        [InlineData(Flags.Blue | Flags.White, 0, 1, 0, 0, 0, 1, 0)]
+        public void Player_GameFlags(Flags gameFlags, Int32 yellow, Int32 blue, Int32 black,
+            Int32 green, Int32 checkered, Int32 white, Int32 blackAndWhite)
+        {
+            var result = ToR3EDash(gt
+                .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
+                .WithPlayer(p => p with { GameFlags = gameFlags }));
+
+            Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(checkered, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(white, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
         }
 
         #region Test setup
@@ -614,7 +699,7 @@ static class GameTelemetryExensions
         return gt.WithEvent(e => e with { Track = f( e.Track) });
     }
 
-    public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, IFraction<IDistance>[] sectorsEnd)
+    public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, DistanceFraction[] sectorsEnd)
     {
         return gt.WithTrack(track => track with { SectorsEnd = sectorsEnd });
     }

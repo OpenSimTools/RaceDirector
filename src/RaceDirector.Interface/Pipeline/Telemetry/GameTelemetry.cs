@@ -1,6 +1,7 @@
 ﻿using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using System;
+using System.Linq;
 
 // TODO this is in the interface project to make testing easier, but it might be abused
 namespace RaceDirector.Pipeline.Telemetry
@@ -36,8 +37,11 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record TrackLayout
     (
-        IFraction<IDistance>[] SectorsEnd
-    ) : ITrackLayout;
+        DistanceFraction[] SectorsEnd
+    ) : ITrackLayout
+    {
+        IFraction<IDistance>[] ITrackLayout.SectorsEnd => SectorsEnd;
+    }
 
     public record Session
     (
@@ -89,17 +93,19 @@ namespace RaceDirector.Pipeline.Telemetry
         LapTime? CurrentLapTime,
         LapTime? PreviousLapTime,
         LapTime? PersonalBestLapTime,
-        IFraction<IDistance> CurrentLapDistance,
+        DistanceFraction CurrentLapDistance,
         Vector3<IDistance> Location,
         ISpeed Speed,
         Driver CurrentDriver,
-        VehiclePit Pit
+        VehiclePit Pit,
+        Penalties Penalties
     ) : IVehicle
     {
         ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
         ILapTime? IVehicle.PreviousLapTime => PreviousLapTime;
         ILapTime? IVehicle.PersonalBestLapTime => PersonalBestLapTime;
         ISectors? IVehicle.BestSectors => BestSectors;
+        IFraction<IDistance> IVehicle.CurrentLapDistance => CurrentLapDistance;
         IDriver IVehicle.CurrentDriver => CurrentDriver;
         IVehiclePit IVehicle.Pit => Pit;
     }
@@ -135,8 +141,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ActivationToggled? Drs,
         WaitTimeToggled? PushToPass,
         PlayerPitStop PitStop,
-        Flags GameFlags,
-        Penalties Penalties
+        Flags GameFlags
     ) : IPlayer
     {
         IRawInputs IPlayer.RawInputs => RawInputs;
@@ -267,6 +272,18 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan EngagedTimeLeft,
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;
+
+    public record DistanceFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
+    {
+        private Lazy<IDistance> _LazyValue = new Lazy<IDistance>(() => Total * Fraction);
+
+        public IDistance Value => _LazyValue.Value;
+
+        public static DistanceFraction Of(IDistance total, Double fraction) => new DistanceFraction(total, fraction);
+
+        public static DistanceFraction[] Of(IDistance total, params Double[] fractions) =>
+            fractions.Select(f => new DistanceFraction(total, f)).ToArray();
+    }
 
     public record BoundedValue<T>(T Value, T Total) : IBoundedValue<T>;
 }

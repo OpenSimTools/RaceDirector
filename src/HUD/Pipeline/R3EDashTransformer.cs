@@ -38,10 +38,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // DriverDataSize
                 // GamePaused
 
-                w.WriteNumber("GameInMenus", MatchToInteger(gt.GameState, GameState.Menu));
-                w.WriteNumber("GameInReplay", MatchToInteger(gt.GameState, GameState.Replay));
+                w.WriteNumber("GameInMenus", MatchAsNumber(gt.GameState, GameState.Menu));
+                w.WriteNumber("GameInReplay", MatchAsNumber(gt.GameState, GameState.Replay));
 
-                w.WriteNumber("GameUsingVr", BooleanToInteger(gt.UsingVR));
+                w.WriteNumber("GameUsingVr", BooleanAsNumber(gt.UsingVR));
 
                 w.WriteObject("Player", _ =>
                 {
@@ -245,7 +245,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("Flags", _ =>
                 {
-                    w.WriteNumber("Yellow", -42);
+                    w.WriteNumber("Yellow", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Yellow)));
 
                     // Flags.YellowCausedIt
                     // Flags.YellowOvertake
@@ -255,25 +255,47 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    // TODO
-                    // Flags.Blue
-                    // Flags.Black
-                    // Flags.Green
-                    // Flags.Checkered
-                    // Flags.White
-                    // Flags.BlackAndWhite
+                    w.WriteNumber("Blue", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Blue)));
+                    w.WriteNumber("Black", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Black)));
+                    w.WriteNumber("Green", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Green)));
+                    w.WriteNumber("Checkered", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Checkered)));
+                    w.WriteNumber("White", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.White)));
+                    w.WriteNumber("BlackAndWhite", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite)));
                 });
 
-                // PositionClass
-                // Penalties.DriveThrough
-                // Penalties.StopAndGo
-                // Penalties.PitStop
-                // Penalties.TimeDeduction
-                // Penalties.SlowDown
-                // CompletedLaps
-                // CurrentLapValid
-                // LapDistance
-                // LapDistanceFraction
+                // Position
+
+                w.WriteNumber("PositionClass", UInt32AsNumber(gt.CurrentVehicle?.PositionClass));
+
+                // FinishStatus
+                // CutTrackWarnings
+
+                w.WriteObject("Penalties", _ =>
+                {
+                    w.WriteNumber("DriveThrough", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.DriveThrough)));
+                    w.WriteNumber("StopAndGo", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.StopAndGo)));
+                    w.WriteNumber("PitStop", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.PitStop)));
+                    w.WriteNumber("TimeDeduction", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.TimeDeduction)));
+                    w.WriteNumber("SlowDown", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.SlowDown)));
+                });
+
+                // NumPenalties
+
+                w.WriteNumber("CompletedLaps", UInt32AsNumber(gt.CurrentVehicle?.CompletedLaps));
+                w.WriteNumber("CurrentLapValid", BooleanAsNumber(gt.CurrentVehicle?.CurrentLapValid));
+
+                // TrackSector
+
+                w.WriteNumber("LapDistance", gt.CurrentVehicle?.CurrentLapDistance.Value.M ?? -1.0);
+                w.WriteNumber("LapDistanceFraction", gt.CurrentVehicle?.CurrentLapDistance.Fraction ?? -1.0);
+
+                // LapTimeBestLeader
+                // LapTimeBestLeaderClass
+                // SectorTimesSessionBestLap.Sector1
+                // SectorTimesSessionBestLap.Sector2
+                // SectorTimesSessionBestLap.Sector3
+
+                // TODO
                 // LapTimeBestSelf
                 // SectorTimesBestSelf.Sector1
                 // SectorTimesBestSelf.Sector2
@@ -402,12 +424,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static Int32 BooleanToInteger(Boolean? value)
+        private static Int32 UInt32AsNumber(UInt32? value)
         {
-            return MatchToInteger(value, true);
+            if (value is null || value > Int32.MaxValue)
+                return -1;
+            return Convert.ToInt32(value);
         }
 
-        private static Int32 MatchToInteger<T>(T? value, T constant) // FIXME!
+        private static Int32 BooleanAsNumber(Boolean? value)
+        {
+            return MatchAsNumber(value, true);
+        }
+
+        private static Int32 MatchAsNumber<T>(T? value, T constant)
         {
             if (value is null)
                 return -1;
