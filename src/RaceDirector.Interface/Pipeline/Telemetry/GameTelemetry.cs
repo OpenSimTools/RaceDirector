@@ -84,15 +84,16 @@ namespace RaceDirector.Pipeline.Telemetry
         Int32 ClassPerformanceIndex,
         EngineType EngineType,
         ControlType ControlType,
+        UInt32 Position,
         UInt32 PositionClass,
         TimeSpan GapAhead,
         TimeSpan GapBehind,
-        Sectors? BestSectors,
         UInt32 CompletedLaps,
         Boolean CurrentLapValid,
         LapTime? CurrentLapTime,
         LapTime? PreviousLapTime,
-        LapTime? PersonalBestLapTime,
+        LapTime? BestLapTime,
+        Sectors? BestSectors,
         DistanceFraction CurrentLapDistance,
         Vector3<IDistance> Location,
         ISpeed Speed,
@@ -103,7 +104,7 @@ namespace RaceDirector.Pipeline.Telemetry
     {
         ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
         ILapTime? IVehicle.PreviousLapTime => PreviousLapTime;
-        ILapTime? IVehicle.PersonalBestLapTime => PersonalBestLapTime;
+        ILapTime? IVehicle.BestLapTime => BestLapTime;
         ISectors? IVehicle.BestSectors => BestSectors;
         IFraction<IDistance> IVehicle.CurrentLapDistance => CurrentLapDistance;
         IDriver IVehicle.CurrentDriver => CurrentDriver;

@@ -5,6 +5,7 @@ using System;
 using RaceDirector.Plugin.HUD.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Telemetry.Physics;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -12,6 +13,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     {
         private static readonly UInt32 MajorVersion = 2;
         private static readonly UInt32 MinorVersion = 11;
+
+        private static readonly UInt32 NumSectors = 3;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -50,9 +53,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("Position", _ =>
                     {
-                        w.WriteNumber("X", (gt.Player?.CgLocation.X.M) ?? 0.0);
-                        w.WriteNumber("Y", (gt.Player?.CgLocation.Y.M) ?? 0.0);
-                        w.WriteNumber("Z", (gt.Player?.CgLocation.Z.M) ?? 0.0);
+                        w.WriteCoords(gt.Player?.CgLocation, p => p.M);
                     });
 
                     // Player.Velocity.X
@@ -67,9 +68,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("LocalAcceleration", _ =>
                     {
-                        w.WriteNumber("X", (gt.Player?.LocalAcceleration.X.MPS2) ?? 0.0);
-                        w.WriteNumber("Y", (gt.Player?.LocalAcceleration.Y.MPS2) ?? 0.0);
-                        w.WriteNumber("Z", (gt.Player?.LocalAcceleration.Z.MPS2) ?? 0.0);
+                        w.WriteCoords(gt.Player?.LocalAcceleration, a => a.MPS2);
                     });
 
                     // Player.Orientation.X
@@ -90,9 +89,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("LocalGforce", _ =>
                     {
-                        w.WriteNumber("X", (gt.Player?.LocalAcceleration.X.G) ?? 0.0);
-                        w.WriteNumber("Y", (gt.Player?.LocalAcceleration.Y.G) ?? 0.0);
-                        w.WriteNumber("Z", (gt.Player?.LocalAcceleration.Z.G) ?? 0.0);
+                        w.WriteCoords(gt.Player?.LocalAcceleration, a => a.G);
                     });
 
                     // Player.SteeringForce
@@ -138,11 +135,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("SectorStartFactors", _ =>
                 {
-                    var sectorsEnd = gt.Event?.Track.SectorsEnd;
-                    for (int i = 0; i < 3; i++)
-                    {
-                        w.WriteNumber("Sector" + (i + 1), sectorsEnd?.Length > i ? sectorsEnd[i].Fraction : -1.0);
-                    }
+                    w.WriteSectors(gt.Event?.Track.SectorsEnd, st => st.Fraction);
                 });
 
                 // RaceSessionLaps.Race1
@@ -295,22 +288,55 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesSessionBestLap.Sector2
                 // SectorTimesSessionBestLap.Sector3
 
+                w.WriteNumber("LapTimeBestSelf", gt.CurrentVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteObject("SectorTimesBestSelf", _ =>
+                {
+                    w.WriteSectors(gt.CurrentVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
+                });
+
+                // LapTimePreviousSelf
+                // SectorTimesPreviousSelf.Sector1
+                // SectorTimesPreviousSelf.Sector2
+                // SectorTimesPreviousSelf.Sector3
+
+                w.WriteNumber("LapTimeCurrentSelf", gt.CurrentVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteObject("SectorTimesCurrentSelf", _ =>
+                {
+                    w.WriteSectors(gt.CurrentVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
+                });
+
+                // LapTimeDeltaLeader
+                // LapTimeDeltaLeaderClass
+                // TimeDeltaFront => Player or -1.0
+                // TimeDeltaBehind => Player or -1.0
+
+                w.WriteNumber("TimeDeltaBestSelf", gt.Player?.PersonalBestDelta?.TotalSeconds ?? -1000.0);
+
+                w.WriteObject("BestIndividualSectorTimeSelf", _ =>
+                {
+                    w.WriteSectors(gt.Player?.PersonalBestSectors?.Individual, st => st.TotalSeconds);
+                });
+
+                // BestIndividualSectorTimeLeader.Sector1
+                // BestIndividualSectorTimeLeader.Sector2
+                // BestIndividualSectorTimeLeader.Sector3
+
+                w.WriteObject("BestIndividualSectorTimeLeaderClass", _ =>
+                {
+                    w.WriteSectors(gt.Player?.ClassBestSectors?.Individual, st => st.TotalSeconds);
+                });
+
+                // IncidentPoints
+                // VehicleInfo.Name
+                // VehicleInfo.CarNumber
+                // VehicleInfo.ClassId
+                // VehicleInfo.ModelId
+                // VehicleInfo.TeamId
+                // VehicleInfo.LiveryId
+                // VehicleInfo.ManufacturerId
+                // VehicleInfo.UserId
+
                 // TODO
-                // LapTimeBestSelf
-                // SectorTimesBestSelf.Sector1
-                // SectorTimesBestSelf.Sector2
-                // SectorTimesBestSelf.Sector3
-                // LapTimeCurrentSelf
-                // SectorTimesCurrentSelf.Sector1
-                // SectorTimesCurrentSelf.Sector2
-                // SectorTimesCurrentSelf.Sector3
-                // TimeDeltaBestSelf
-                // BestIndividualSectorTimeSelf.Sector1
-                // BestIndividualSectorTimeSelf.Sector2
-                // BestIndividualSectorTimeSelf.Sector3
-                // BestIndividualSectorTimeLeaderClass.Sector1
-                // BestIndividualSectorTimeLeaderClass.Sector2
-                // BestIndividualSectorTimeLeaderClass.Sector3
                 // VehicleInfo.SlotId
                 // VehicleInfo.ClassPerformanceIndex
                 // VehicleInfo.EngineType
@@ -422,6 +448,26 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // DriverData[].TimeDeltaFront
                 // DriverData[].TimeDeltaBehind
             });
+        }
+
+        //public static void WriteVector3<T, V>(this Utf8JsonWriter writer, Vector3<T> v, Func<T, V> f)
+        //{
+
+        //}
+
+        public static void WriteSectors<T>(this Utf8JsonWriter writer, T[]? v, Func<T, Double> f)
+        {
+            for (int i = 0; i < NumSectors; i++)
+            {
+                writer.WriteNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
+            }
+        }
+
+        public static void WriteCoords<T>(this Utf8JsonWriter writer, Vector3<T>? v, Func<T, Double> f)
+        {
+            writer.WriteNumber("X", v is not null ? f(v.X) : 0.0);
+            writer.WriteNumber("Y", v is not null ? f(v.Y) : 0.0);
+            writer.WriteNumber("Z", v is not null ? f(v.Z) : 0.0);
         }
 
         private static Int32 UInt32AsNumber(UInt32? value)
@@ -536,6 +582,5 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 (PlayerPitStop.RepairRearWing,   1 << 8),
                 (PlayerPitStop.RepairSuspension, 1 << 9)
             };
-
     }
 }

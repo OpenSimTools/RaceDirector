@@ -228,14 +228,13 @@ namespace RaceDirector.Pipeline.Telemetry
 
             ControlType ControlType { get; }
 
+            UInt32 Position { get; }      // R3E DriverData[].Place or Position
             UInt32 PositionClass { get; } // R3E DriverData[].PlaceClass or PositionClass
 
             TimeSpan GapAhead { get; } // R3E DriverData[].TimeDeltaAhead
             
             TimeSpan GapBehind { get; } // R3E DriverData[].TimeDeltaBehind
             // TODO Have Gap.{Ahead|Behind} and ClassGap.{Ahead|Behind}?
-
-            ISectors? BestSectors { get; } // R3E BestIndividualSectorTimeSelf.Sector* DriverData[].SectorTimeBestSelf.Sector*
 
             UInt32 CompletedLaps { get; } // R3E DriverData[].CompletedLaps
 
@@ -245,7 +244,9 @@ namespace RaceDirector.Pipeline.Telemetry
 
             ILapTime? PreviousLapTime { get; }
            
-            ILapTime? PersonalBestLapTime { get; }
+            ILapTime? BestLapTime { get; }
+
+            ISectors? BestSectors { get; } // R3E BestIndividualSectorTimeSelf.Sector* DriverData[].SectorTimeBestSelf.Sector*
 
             IFraction<IDistance> CurrentLapDistance { get; } // R3E LapDistance + LapDistanceFraction
 
@@ -368,9 +369,15 @@ namespace RaceDirector.Pipeline.Telemetry
 
             ISectors? ClassBestSectors { get; } // R3E BestIndividualSectorTimeLeaderClass
 
+            /// <summary>
+            /// Player's fastest sector times, not considering overall lap time.
+            /// </summary>
             ISectors? PersonalBestSectors { get; } // R3E BestIndividualSectorTimeSelf
 
-            TimeSpan? PersonalBestDelta { get; }   // R3E TimeDeltaBestSelf
+            /// <summary>
+            /// Delta between the current lap and the player's best lap.
+            /// </summary>
+            TimeSpan? PersonalBestDelta { get; }   // R3E TimeDeltaBestSelf (works also in monitor but only for player's car)
 
             /// <summary>
             /// DRS information, if available on the vehicle.

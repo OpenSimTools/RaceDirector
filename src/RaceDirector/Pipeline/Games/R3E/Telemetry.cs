@@ -47,11 +47,11 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (sharedData.LayoutLength < 0)
                 return null;
             var layoutLength = IDistance.FromM(sharedData.LayoutLength);
-            var sectors = new IFraction<IDistance>[]
+            var sectors = new []
             {
-                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector1),
-                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector2),
-                IFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector3)
+                DistanceFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector1),
+                DistanceFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector2),
+                DistanceFraction.Of(layoutLength, sharedData.SectorStartFactors.Sector3)
             };
             return new TrackLayout(sectors);
         }
@@ -267,7 +267,6 @@ namespace RaceDirector.Pipeline.Games.R3E
                 null, // TODO
                 null, // TODO
                 null, // TODO
-                0, // TODO
                 0, // TODO
                 0 // TODO
             );

@@ -23,12 +23,13 @@ namespace HUD.Tests.Pipeline
                 .WithOverride<IDistance>(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
             );
 
-        private GameTelemetry gt = gtFaker.Generate();
+        // Have to create one par test: concurrent access seems to confuse AutoBogus
+        private GameTelemetry NewGt() => gtFaker.Generate();
 
         [Fact]
         public void VersionInformation()
         {
-            var result = ToR3EDash(gt);
+            var result = ToR3EDash(NewGt());
 
             Assert.Equal(2, result.Path("VersionMajor").GetInt32());
             Assert.Equal(11, result.Path("VersionMinor").GetInt32());
@@ -37,7 +38,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Menu()
         {
-            var result = ToR3EDash(gt with { GameState = GameState.Menu });
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Menu });
 
             Assert.Equal(1, result.Path("GameInMenus").GetInt32());
             Assert.Equal(0, result.Path("GameInReplay").GetInt32());
@@ -46,7 +47,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Replay()
         {
-            var result = ToR3EDash(gt with { GameState = GameState.Replay });
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Replay });
 
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
             Assert.Equal(1, result.Path("GameInReplay").GetInt32());
@@ -55,7 +56,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Driving()
         {
-            var result = ToR3EDash(gt with { GameState = GameState.Driving });
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Driving });
 
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
             Assert.Equal(0, result.Path("GameInReplay").GetInt32());
@@ -64,7 +65,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void UsingVr__True()
         {
-            var result = ToR3EDash(gt with { UsingVR = true });
+            var result = ToR3EDash(NewGt() with { UsingVR = true });
 
             Assert.Equal(1, result.Path("GameUsingVr").GetInt32());
         }
@@ -72,7 +73,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void UsingVr__False()
         {
-            var result = ToR3EDash(gt with { UsingVR = false });
+            var result = ToR3EDash(NewGt() with { UsingVR = false });
 
             Assert.Equal(0, result.Path("GameUsingVr").GetInt32());
         }
@@ -80,7 +81,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event__Null()
         {
-            var result = ToR3EDash(gt with { Event = null });
+            var result = ToR3EDash(NewGt() with { Event = null });
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -92,7 +93,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__Empty()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(new DistanceFraction[0]));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(new DistanceFraction[0]));
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -103,7 +104,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__NotAllSectors()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20)));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -114,7 +115,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__AllSectors()
         {
-            var result = ToR3EDash(gt.WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20, 0.30)));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20, 0.30)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -125,7 +126,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_FuelRate()
         {
-            var result = ToR3EDash(gt.WithEvent(e => e with { FuelRate = 4.2 }));
+            var result = ToR3EDash(NewGt().WithEvent(e => e with { FuelRate = 4.2 }));
 
             Assert.Equal(4, result.Path("FuelUseActive").GetInt32());
         }
@@ -133,7 +134,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session__Null()
         {
-            var result = ToR3EDash(gt with { Session = null });
+            var result = ToR3EDash(NewGt() with { Session = null });
 
             Assert.Equal(-1, result.Path("SessionType").GetInt32());
             Assert.Equal(-1, result.Path("SessionLengthFormat").GetInt32());
@@ -161,7 +162,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionType.HotStintSuperPole, -1)]
         public void Session_Type(SessionType sessionType, Int32 code)
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Type = sessionType }));
+            var result = ToR3EDash(NewGt().WithSession(s => s with { Type = sessionType }));
 
             Assert.Equal(code, result.Path("SessionType").GetInt32());
         }
@@ -169,7 +170,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_PitSpeedLimit()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(1.0) }));
+            var result = ToR3EDash(NewGt().WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(1.0) }));
 
             Assert.Equal(1.0, result.Path("SessionPitSpeedLimit").GetInt32());
         }
@@ -185,7 +186,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionPhase.Over, 6)]
         public void Session_Phase(SessionPhase sessionPhase, Int32 code)
         {
-            var result = ToR3EDash(gt.WithSession(s => s with { Phase = sessionPhase }));
+            var result = ToR3EDash(NewGt().WithSession(s => s with { Phase = sessionPhase }));
 
             Assert.Equal(code, result.Path("SessionPhase").GetInt32());
         }
@@ -205,7 +206,7 @@ namespace HUD.Tests.Pipeline
         public void Session_StartLights(LightColour colour, UInt32 lit, UInt32 max, Int32 expected)
         {
             var startLights = new StartLights(colour, new BoundedValue<UInt32>(lit, max));
-            var result = ToR3EDash(gt.WithSession(s => s with { StartLights = startLights }));
+            var result = ToR3EDash(NewGt().WithSession(s => s with { StartLights = startLights }));
 
             Assert.Equal(expected, result.Path("StartLights").GetInt32());
         }
@@ -213,7 +214,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Laps()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with {
+            var result = ToR3EDash(NewGt().WithSession(s => s with {
                 ElapsedTime = TimeSpan.FromSeconds(1.2),
                 Length = new LapsDuration(3, TimeSpan.FromSeconds(4.5)),
             }));
@@ -227,7 +228,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Time()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with {
+            var result = ToR3EDash(NewGt().WithSession(s => s with {
                 ElapsedTime = TimeSpan.FromSeconds(1.2),
                 Length = new TimeDuration(TimeSpan.FromSeconds(3.4), 5),
             }));
@@ -241,7 +242,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__TimePlusLaps()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with {
+            var result = ToR3EDash(NewGt().WithSession(s => s with {
                 ElapsedTime = TimeSpan.FromSeconds(1.2),
                 Length = new TimePlusLapsDuration(TimeSpan.FromSeconds(3.4), 5, 6)
             }));
@@ -255,7 +256,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Requirements_PitWindow__Null()
         {
-            var result = ToR3EDash(gt.WithSession(s => s with {
+            var result = ToR3EDash(NewGt().WithSession(s => s with {
                 Requirements = s.Requirements with { PitWindow = null }
             }));
 
@@ -271,7 +272,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(3, 4, 5, 1)]
         public void Session_Requirements_PitWindow__Laps(UInt32 start, UInt32 end, UInt32 completedLaps, Int32 windowStatus)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         CompletedLaps = completedLaps,
@@ -305,7 +306,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(3, 4, 5, 1)]
         public void Session_Requirements_PitWindow__Time(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with
@@ -336,7 +337,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Requirements_PitWindow__Laps_NoVehicle()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithSession(s => s with
                     {
                         Requirements = s.Requirements with
@@ -359,7 +360,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(3, 5, 6, 1)]
         public void Session_Requirements_PitWindow__InPitStall(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with
@@ -390,7 +391,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(3, 5, 6)]
         public void Session_Requirements_PitWindow__MandatoryStopsDone(UInt32 start, UInt32 end, UInt32 elapsedTime)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { MandatoryStopsDone = 1 }
@@ -414,7 +415,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_Null()
         {
-            var result = ToR3EDash(gt with { CurrentVehicle = null });
+            var result = ToR3EDash(NewGt() with { CurrentVehicle = null });
 
             Assert.Equal(-1, result.Path("InPitLane").GetInt32());
             Assert.Equal(-1, result.Path("PitState").GetInt32());
@@ -426,12 +427,105 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("Penalties", "PitStop").GetInt32());
             Assert.Equal(-1, result.Path("Penalties", "TimeDeduction").GetInt32());
             Assert.Equal(-1, result.Path("Penalties", "SlowDown").GetInt32());
+            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
         }
+
+        [Fact]
+        public void CurrentVehicle_PersonalBestLapTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        BestLapTime = null
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_PersonalBestLapTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        BestLapTime = new LapTime(
+                            TimeSpan.FromSeconds(1.2),
+                            new Sectors(
+                                new TimeSpan[0],
+                                new [] {
+                                    TimeSpan.FromSeconds(3.4),
+                                    TimeSpan.FromSeconds(5.6),
+                                    TimeSpan.FromSeconds(7.8)
+                                }
+                            )
+                        )
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(3.4, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(5.6, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(7.8, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_CurrentLapTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        CurrentLapTime = null
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_CurrentLapTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        CurrentLapTime = new LapTime(
+                            TimeSpan.FromSeconds(1.2),
+                            new Sectors(
+                                new TimeSpan[0],
+                                new[] {
+                                    TimeSpan.FromSeconds(3.4),
+                                    TimeSpan.FromSeconds(5.6),
+                                    TimeSpan.FromSeconds(7.8)
+                                }
+                            )
+                        )
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(3.4, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(5.6, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(7.8, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+        }
+
 
         [Fact]
         public void CurrentVehicle_Pit_PitLaneState__Null()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitLaneState = null }
@@ -449,7 +543,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(PitLaneState.Exiting, 1, 4)]
         public void CurrentVehicle_Pit_PitLaneState(PitLaneState? pitLaneState, Int32 inPitLane, Int32 pitState)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitLaneState = pitLaneState }
@@ -463,7 +557,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_Pit_PitLaneTime__Null()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitLaneTime = null }
@@ -476,7 +570,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_Pit_PitLaneTime()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitLaneTime = TimeSpan.FromSeconds(1.2) }
@@ -489,7 +583,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_Pit_PitStallTime__Null()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitStallTime = null }
@@ -502,7 +596,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_Pit_PitStallTime()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Pit = cv.Pit with { PitStallTime = TimeSpan.FromSeconds(1.2) }
@@ -515,7 +609,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void CurrentVehicle_PositionClass()
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         PositionClass = 4
@@ -536,7 +630,7 @@ namespace HUD.Tests.Pipeline
         public void CurrentVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
             Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                     .WithCurrentVehicle(cv => cv with
                     {
                         Penalties = penalties
@@ -553,7 +647,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player__Null()
         {
-            var result = ToR3EDash(gt with { Player = null });
+            var result = ToR3EDash(NewGt() with { Player = null });
 
             Assert.Equal(0.0, result.Path("Player", "Position", "X").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "Position", "Y").GetDouble());
@@ -572,6 +666,13 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("Flags", "Checkered").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "White").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "BlackAndWhite").GetInt32());
+            Assert.Equal(-1000.0, result.Path("TimeDeltaBestSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector3").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector3").GetDouble());
         }
 
         [Fact]
@@ -583,11 +684,48 @@ namespace HUD.Tests.Pipeline
                 IDistance.FromM(2.0),
                 IDistance.FromM(3.0)
             );
-            var result = ToR3EDash(gt.WithPlayer(p => p with { CgLocation = distance }));
+            var result = ToR3EDash(NewGt().WithPlayer(p => p with { CgLocation = distance }));
 
             Assert.Equal(1.0, result.Path("Player", "Position", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "Position", "Y").GetDouble());
             Assert.Equal(3.0, result.Path("Player", "Position", "Z").GetDouble());
+        }
+
+        [Fact]
+        public void Player_ClassBestSectors__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    ClassBestSectors = null
+                })
+            );
+
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void Player_ClassBestSectors()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    ClassBestSectors = new Sectors(
+                        new[] {
+                            TimeSpan.FromSeconds(1.2),
+                            TimeSpan.FromSeconds(3.4),
+                            TimeSpan.FromSeconds(5.6)
+                        },
+                        new TimeSpan[0]
+                    )
+                })
+            );
+
+            Assert.Equal(1.2, result.Path("BestIndividualSectorTimeLeaderClass", "Sector1").GetDouble());
+            Assert.Equal(3.4, result.Path("BestIndividualSectorTimeLeaderClass", "Sector2").GetDouble());
+            Assert.Equal(5.6, result.Path("BestIndividualSectorTimeLeaderClass", "Sector3").GetDouble());
         }
 
         [Fact]
@@ -599,7 +737,7 @@ namespace HUD.Tests.Pipeline
                 IAcceleration.FromMPS2(2.0),
                 IAcceleration.FromMPS2(3.0)
             );
-            var result = ToR3EDash(gt.WithPlayer(p => p with { LocalAcceleration = acceleration }));
+            var result = ToR3EDash(NewGt().WithPlayer(p => p with { LocalAcceleration = acceleration }));
 
             Assert.Equal(1.0, result.Path("Player", "LocalAcceleration", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "LocalAcceleration", "Y").GetDouble());
@@ -615,11 +753,73 @@ namespace HUD.Tests.Pipeline
                 IAcceleration.FromG(2.0),
                 IAcceleration.FromG(3.0)
             );
-            var result = ToR3EDash(gt.WithPlayer(p => p with { LocalAcceleration = acceleration }));
+            var result = ToR3EDash(NewGt().WithPlayer(p => p with { LocalAcceleration = acceleration }));
 
             Assert.Equal(1.0, result.Path("Player", "LocalGforce", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(3.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
+        }
+
+        [Fact]
+        public void Player_PersonalBestDelta__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with {
+                    PersonalBestDelta = null
+                })
+            );
+
+            Assert.Equal(-1000.0, result.Path("TimeDeltaBestSelf").GetDouble());
+        }
+
+        [Fact]
+        public void Player_PersonalBestDelta()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    PersonalBestDelta = TimeSpan.FromSeconds(-1.2)
+                })
+            );
+
+            Assert.Equal(-1.2, result.Path("TimeDeltaBestSelf").GetDouble());
+        }
+
+        [Fact]
+        public void Player_PersonalBestSectors__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    PersonalBestSectors = null
+                })
+            );
+
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void Player_PersonalBestSectors()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    PersonalBestSectors = new Sectors(
+                        new[] {
+                            TimeSpan.FromSeconds(1.2),
+                            TimeSpan.FromSeconds(3.4),
+                            TimeSpan.FromSeconds(5.6)
+                        },
+                        new TimeSpan[0]
+                    )
+                })
+            );
+
+            Assert.Equal(1.2, result.Path("BestIndividualSectorTimeSelf", "Sector1").GetDouble());
+            Assert.Equal(3.4, result.Path("BestIndividualSectorTimeSelf", "Sector2").GetDouble());
+            Assert.Equal(5.6, result.Path("BestIndividualSectorTimeSelf", "Sector3").GetDouble());
         }
 
         [Theory]
@@ -638,7 +838,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(PlayerPitStop.Requested | PlayerPitStop.Preparing | PlayerPitStop.ServingPenalty, 1, 3)]
         public void Player_PitStop(PlayerPitStop pitStop, Int32 pitState, Int32 pitAction)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                 .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
                 .WithPlayer(p => p with { PitStop = pitStop }));
 
@@ -659,7 +859,7 @@ namespace HUD.Tests.Pipeline
         public void Player_GameFlags(Flags gameFlags, Int32 yellow, Int32 blue, Int32 black,
             Int32 green, Int32 checkered, Int32 white, Int32 blackAndWhite)
         {
-            var result = ToR3EDash(gt
+            var result = ToR3EDash(NewGt()
                 .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
                 .WithPlayer(p => p with { GameFlags = gameFlags }));
 
