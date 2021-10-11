@@ -413,7 +413,7 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void CurrentVehicle_Null()
+        public void CurrentVehicle__Null()
         {
             var result = ToR3EDash(NewGt() with { CurrentVehicle = null });
 
@@ -435,6 +435,35 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+            Assert.Equal(-1, result.Path("VehicleInfo", "SlotId").GetInt32());
+            Assert.Equal(-1, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
+            Assert.Equal(-1, result.Path("VehicleInfo", "EngineType").GetInt32());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Id()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Id = 42
+                    })
+                );
+
+            Assert.Equal(42, result.Path("VehicleInfo", "SlotId").GetInt32());
+        }
+
+        [Fact]
+        public void CurrentVehicle_ClassPerformanceIndex()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        ClassPerformanceIndex = 42
+                    })
+                );
+
+            Assert.Equal(42, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
         }
 
         [Fact]
@@ -521,6 +550,22 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(7.8, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
         }
 
+        [Theory]
+        [InlineData(EngineType.Combustion, 0)]
+        [InlineData(EngineType.Electric, 1)]
+        [InlineData(EngineType.Hybrid, 2)]
+        [InlineData(EngineType.Unknown, -1)]
+        public void CurrentVehicle_EngineType(EngineType engineType, Int32 engineTypeId)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        EngineType = engineType
+                    })
+                );
+
+            Assert.Equal(engineTypeId, result.Path("VehicleInfo", "EngineType").GetInt32());
+        }
 
         [Fact]
         public void CurrentVehicle_Pit_PitLaneState__Null()

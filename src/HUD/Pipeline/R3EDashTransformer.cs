@@ -336,25 +336,49 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // VehicleInfo.ManufacturerId
                 // VehicleInfo.UserId
 
+                w.WriteObject("VehicleInfo", _ =>
+                {
+                    w.WriteNumber("SlotId", UInt32AsNumber(gt.CurrentVehicle?.Id));
+                    w.WriteNumber("ClassPerformanceIndex", gt.CurrentVehicle?.ClassPerformanceIndex ?? -1);
+                    w.WriteNumber("EngineType", gt.CurrentVehicle?.EngineType switch {
+                        EngineType.Combustion => 0,
+                        EngineType.Electric => 1,
+                        EngineType.Hybrid => 2,
+                        _ => -1
+                    });
+                });
+
                 // TODO
-                // VehicleInfo.SlotId
-                // VehicleInfo.ClassPerformanceIndex
-                // VehicleInfo.EngineType
                 // PlayerName - NOTE it is the current vehicle's driver name rather than player name!
                 // ControlType
                 // CarSpeed
                 // EngineRps
                 // MaxEngineRps
                 // UpshiftRps
+
+                // Gear
+                // NumGears
+
+                // TODO
                 // CarCgLocation.X
                 // CarCgLocation.Y
                 // CarCgLocation.Z
                 // CarOrientation.Pitch
                 // CarOrientation.Yaw
                 // CarOrientation.Roll
+
+                // TODO
                 // FuelLeft
                 // FuelCapacity
                 // FuelPerLap
+
+                // EngineWaterTemp
+                // EngineOilTemp
+                // FuelPressure
+                // EngineOilPressure
+                // TurboPressure
+
+                // TODO
                 // Throttle
                 // ThrottleRaw
                 // Brake
@@ -362,6 +386,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // Clutch
                 // ClutchRaw
                 // SteerInputRaw
+
+                // SteerLockDegrees
+
+                // TODO
                 // SteerWheelRangeDegrees
                 // AidSettings.Abs
                 // AidSettings.Tc
@@ -372,11 +400,30 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // Drs.Available
                 // Drs.NumActivationsLeft
                 // Drs.Engaged
+
+                // PitLimiter
+
+                // TODO
                 // PushToPass.Available
                 // PushToPass.Engaged
                 // PushToPass.AmountLeft
                 // PushToPass.EngagedTimeLeft
                 // PushToPass.WaitTimeLeft
+
+                // BrakeBias
+                // DrsNumActivationsTotal
+                // PtPNumActivationsTotal
+                // TireType
+                // TireRps.FrontLeft
+                // TireRps.FrontRight
+                // TireRps.RearLeft
+                // TireRps.RearRight
+                // TireSpeed.FrontLeft
+                // TireSpeed.FrontRight
+                // TireSpeed.RearLeft
+                // TireSpeed.RearRight
+
+                // TODO
                 // TireGrip.FrontLeft
                 // TireGrip.FrontRight
                 // TireGrip.RearLeft
@@ -385,6 +432,18 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireWear.FrontRight
                 // TireWear.RearLeft
                 // TireWear.RearRight
+
+
+                // TireFlatspot.FrontLeft
+                // TireFlatspot.FrontRight
+                // TireFlatspot.RearLeft
+                // TireFlatspot.RearRight
+                // TirePressure.FrontLeft
+                // TirePressure.FrontRight
+                // TirePressure.RearLeft
+                // TirePressure.RearRight
+
+                // TODO
                 // TireDirt.FrontLeft
                 // TireDirt.FrontRight
                 // TireDirt.RearLeft
@@ -413,6 +472,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireTemp.RearRight.OptimalTemp
                 // TireTemp.RearRight.ColdTemp
                 // TireTemp.RearRight.HotTemp
+
+                // TireTypeFront
+                // TireTypeRear
+                // TireSubtypeFront
+                // TireSubtypeRear
+
+                // TODO
                 // BrakeTemp.FrontLeft.CurrentTemp
                 // BrakeTemp.FrontLeft.OptimalTemp
                 // BrakeTemp.FrontLeft.ColdTemp
@@ -429,24 +495,94 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // BrakeTemp.RearRight.OptimalTemp
                 // BrakeTemp.RearRight.ColdTemp
                 // BrakeTemp.RearRight.HotTemp
+
+                // BrakePressure.FrontLeft
+                // BrakePressure.FrontRight
+                // BrakePressure.RearLeft
+                // BrakePressure.RearRight
+                // TractionControlSetting
+                // EngineMapSetting
+                // EngineBrakeSetting
+                // TireLoad.FrontLeft
+                // TireLoad.FrontRight
+                // TireLoad.RearLeft
+                // TireLoad.RearRight
+
+                // TODO
                 // CarDamage.Engine
                 // CarDamage.Transmission
                 // CarDamage.Aerodynamics
                 // CarDamage.Suspension
+
+                // NumCars
+
+                // TODO
                 // DriverData[].DriverInfo.Name
+
+                // DriverData[].DriverInfo.CarNumber
+                // DriverData[].DriverInfo.ClassId
+                // DriverData[].DriverInfo.ModelId
+                // DriverData[].DriverInfo.TeamId
+                // DriverData[].DriverInfo.LiveryId
+                // DriverData[].DriverInfo.ManufacturerId
+                // DriverData[].DriverInfo.UserId
+
+                // TODO
                 // DriverData[].DriverInfo.SlotId
                 // DriverData[].DriverInfo.ClassPerformanceIndex
+
+                // DriverData[].DriverInfo.EngineType
+                // DriverData[].FinishStatus
+                // DriverData[].Place
+                // DriverData[].TrackSector
+
+                // TODO
                 // DriverData[].PlaceClass
                 // DriverData[].LapDistance
                 // DriverData[].Position.X
                 // DriverData[].Position.Y
                 // DriverData[].Position.Z
+
+                // DriverData[].TrackSector
+
+                // TODO
                 // DriverData[].CompletedLaps
+
+                // DriverData[].CurrentLapValid
+                // DriverData[].LapTimeCurrentSelf
+                // DriverData[].SectorTimeCurrentSelf.Sector1
+                // DriverData[].SectorTimeCurrentSelf.Sector2
+                // DriverData[].SectorTimeCurrentSelf.Sector3
+                // DriverData[].SectorTimePreviousSelf.Sector1
+                // DriverData[].SectorTimePreviousSelf.Sector2
+                // DriverData[].SectorTimePreviousSelf.Sector3
+
+                // TODO
                 // DriverData[].SectorTimeBestSelf.Sector1
                 // DriverData[].SectorTimeBestSelf.Sector2
                 // DriverData[].SectorTimeBestSelf.Sector3
                 // DriverData[].TimeDeltaFront
                 // DriverData[].TimeDeltaBehind
+
+                // DriverData[].PitStopStatus
+                // DriverData[].InPitlane
+                // DriverData[].NumPitstops
+                // DriverData[].Penalties.DriveThrough
+                // DriverData[].Penalties.StopAndGo
+                // DriverData[].Penalties.PitStop
+                // DriverData[].Penalties.TimeDeduction
+                // DriverData[].Penalties.SlowDown
+                // DriverData[].CarSpeed
+                // DriverData[].TireTypeFront
+                // DriverData[].TireTypeRear
+                // DriverData[].TireSubtypeFront
+                // DriverData[].TireSubtypeRear
+                // DriverData[].BasePenaltyWeight
+                // DriverData[].AidPenaltyWeight
+                // DriverData[].DrsState
+                // DriverData[].PtpState
+                // DriverData[].PenaltyType
+                // DriverData[].PenaltyReason
             });
         }
 
