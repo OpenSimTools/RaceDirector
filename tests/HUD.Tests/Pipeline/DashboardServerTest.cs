@@ -3,6 +3,7 @@ using AutoBogus.Moq;
 using HUD.Tests.Base;
 using HUD.Tests.TestUtils;
 using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Plugin.HUD.Pipeline;
 using System.Net;
 using Xunit;
@@ -11,6 +12,13 @@ namespace HUD.Tests.Pipeline
 {
     public class DashboardServerTest : IntegrationTestBase
     {
+        private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
+            .Configure(b => b
+                .WithBinder<MoqBinder>()
+                // For some reason AutoBogus/Moq can't generate IDistance
+                .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+            );
+
         [Fact]
         public void ServesR3ETelemetryEndpoint()
         {
@@ -19,7 +27,7 @@ namespace HUD.Tests.Pipeline
                 server.Start();
                 using (var client = new JsonWsClient(Timeout, _serverPort, "/r3e"))
                 {
-                    var telemetry = AutoFaker.Generate<GameTelemetry>(b => b.WithBinder<MoqBinder>());
+                    var telemetry = gtFaker.Generate();
 
                     Assert.True(client.ConnectAndWait());
                     server.Multicast(telemetry);

@@ -20,7 +20,7 @@ namespace HUD.Tests.Pipeline
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance
-                .WithOverride<IDistance>(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+                .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
             );
 
         // Have to create one par test: concurrent access seems to confuse AutoBogus
