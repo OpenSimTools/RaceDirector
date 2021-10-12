@@ -256,6 +256,10 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             Vector3<IDistance> Location { get; } // R3E DriverData[].Position.*
 
+            // R3E CarOrientation for the current vehicle only!
+            // High res of Player.Orientation in monitor is player is focused
+            Orientation? Orientation { get; }
+
             ISpeed Speed { get; }
 
             IDriver CurrentDriver { get; }

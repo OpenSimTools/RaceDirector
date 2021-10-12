@@ -10,6 +10,7 @@ using AutoBogus;
 using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
+using System.Text;
 
 namespace HUD.Tests.Pipeline
 {
@@ -61,6 +62,34 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("VehicleInfo", "SlotId").GetInt32());
             Assert.Equal(-1, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
             Assert.Equal(-1, result.Path("VehicleInfo", "EngineType").GetInt32());
+            Assert.Equal("AA==", result.Path("PlayerName").GetString());
+            Assert.Equal(-1, result.Path("ControlType").GetInt32());
+            Assert.Equal(-1.0, result.Path("CarSpeed").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "X").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "Y").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "Z").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Location()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Location = new Vector3<IDistance>(
+                            IDistance.FromM(1.2),
+                            IDistance.FromM(3.4),
+                            IDistance.FromM(5.6)
+                        )
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("CarCgLocation", "X").GetDouble());
+            Assert.Equal(3.4, result.Path("CarCgLocation", "Y").GetDouble());
+            Assert.Equal(5.6, result.Path("CarCgLocation", "Z").GetDouble());
         }
 
         [Fact]
@@ -74,6 +103,23 @@ namespace HUD.Tests.Pipeline
                 );
 
             Assert.Equal(42, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(ControlType.LocalPlayer, 0)]
+        [InlineData(ControlType.RemotePlayer, 2)]
+        [InlineData(ControlType.AI, 1)]
+        [InlineData(ControlType.Replay, 3)]
+        public void CurrentVehicle_ControlType(ControlType controlType, Int32 controlTypeId)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        ControlType = controlType
+                    })
+                );
+
+            Assert.Equal(controlTypeId, result.Path("ControlType").GetInt32());
         }
 
         [Fact]
@@ -118,6 +164,21 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
         }
 
+        [Fact]
+        public void CurrentVehicle_DriverName()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        DriverName = "Blues"
+                    })
+                );
+
+            var encodedName = result.Path("PlayerName").GetString();
+            Assert.NotNull(encodedName);
+            Assert.Equal("Blues", Encoding.UTF8.GetString(Convert.FromBase64String(encodedName!)));
+        }
+
         [Theory]
         [InlineData(EngineType.Combustion, 0)]
         [InlineData(EngineType.Electric, 1)]
@@ -146,6 +207,40 @@ namespace HUD.Tests.Pipeline
                 );
 
             Assert.Equal(42, result.Path("VehicleInfo", "SlotId").GetInt32());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Orientation__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Orientation = null
+                    })
+                );
+
+            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+        }
+
+        [Fact]
+        public void CurrentVehicle_Orientation()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Orientation = new Orientation(
+                            Yaw: IAngle.FromRad(1.2),
+                            Pitch: IAngle.FromRad(3.4),
+                            Roll: IAngle.FromRad(5.6)
+                        )
+                    })
+                );
+
+            Assert.Equal(3.4, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(1.2, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(5.6, result.Path("CarOrientation", "Roll").GetDouble());
         }
 
         [Theory]
@@ -314,6 +409,19 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
+        public void CurrentVehicle_Speed()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithCurrentVehicle(cv => cv with
+                    {
+                        Speed = ISpeed.FromMPS(1.2)
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
+        }
+
+        [Fact]
         public void Event__Null()
         {
             var result = ToR3EDash(NewGt() with { Event = null });
@@ -422,6 +530,12 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector1").GetDouble());
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector2").GetDouble());
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeLeaderClass", "Sector3").GetDouble());
+            Assert.Equal(-1.0, result.Path("EngineRps").GetDouble());
+            Assert.Equal(-1.0, result.Path("MaxEngineRps").GetDouble());
+            Assert.Equal(-1.0, result.Path("UpshiftRps").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
         }
 
         [Fact]
@@ -475,6 +589,25 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.2, result.Path("BestIndividualSectorTimeLeaderClass", "Sector1").GetDouble());
             Assert.Equal(3.4, result.Path("BestIndividualSectorTimeLeaderClass", "Sector2").GetDouble());
             Assert.Equal(5.6, result.Path("BestIndividualSectorTimeLeaderClass", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void Player_Engine()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Engine = new Engine(
+                        Speed: IAngularSpeed.FromRadPS(1.2),
+                        UpshiftSpeed: IAngularSpeed.FromRadPS(3.4),
+                        MaxSpeed: IAngularSpeed.FromRadPS(5.6)
+                    )
+                })
+            );
+
+            Assert.Equal(1.2, result.Path("EngineRps").GetDouble());
+            Assert.Equal(5.6, result.Path("MaxEngineRps").GetDouble());
+            Assert.Equal(3.4, result.Path("UpshiftRps").GetDouble());
         }
 
         [Theory]

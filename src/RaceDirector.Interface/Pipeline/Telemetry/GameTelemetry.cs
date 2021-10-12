@@ -96,6 +96,7 @@ namespace RaceDirector.Pipeline.Telemetry
         Sectors? BestSectors,
         DistanceFraction CurrentLapDistance,
         Vector3<IDistance> Location,
+        Orientation? Orientation,
         ISpeed Speed,
         Driver CurrentDriver,
         VehiclePit Pit,

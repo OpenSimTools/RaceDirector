@@ -6,6 +6,7 @@ using RaceDirector.Plugin.HUD.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
+using System.Text;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -13,8 +14,6 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     {
         private static readonly UInt32 MajorVersion = 2;
         private static readonly UInt32 MinorVersion = 11;
-
-        private static readonly UInt32 NumSectors = 3;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -53,7 +52,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("Position", _ =>
                     {
-                        w.WriteCoords(gt.Player?.CgLocation, p => p.M);
+                        w.WriteCoordinates(gt.Player?.CgLocation, d => d.M);
                     });
 
                     // Player.Velocity.X
@@ -68,7 +67,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("LocalAcceleration", _ =>
                     {
-                        w.WriteCoords(gt.Player?.LocalAcceleration, a => a.MPS2);
+                        w.WriteCoordinates(gt.Player?.LocalAcceleration, a => a.MPS2);
                     });
 
                     // Player.Orientation.X
@@ -89,7 +88,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteObject("LocalGforce", _ =>
                     {
-                        w.WriteCoords(gt.Player?.LocalAcceleration, a => a.G);
+                        w.WriteCoordinates(gt.Player?.LocalAcceleration, a => a.G);
                     });
 
                     // Player.SteeringForce
@@ -348,24 +347,41 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     });
                 });
 
-                // TODO
-                // PlayerName - NOTE it is the current vehicle's driver name rather than player name!
-                // ControlType
-                // CarSpeed
-                // EngineRps
-                // MaxEngineRps
-                // UpshiftRps
+                // NOTE it is the current vehicle's driver name rather than player name!
+                w.WriteString("PlayerName", Base64String(gt.CurrentVehicle?.DriverName));
+
+                w.WriteNumber("ControlType", gt.CurrentVehicle?.ControlType switch
+                {
+                    ControlType.LocalPlayer => 0,
+                    ControlType.AI => 1,
+                    ControlType.RemotePlayer => 2,
+                    ControlType.Replay => 3,
+                    _ => -1
+                });
+
+                w.WriteNumber("CarSpeed", gt.CurrentVehicle?.Speed.MPS ?? -1.0);
+                
+                w.WriteNumber("EngineRps", gt.Player?.Engine.Speed.RadPS ?? -1.0);
+                w.WriteNumber("MaxEngineRps", gt.Player?.Engine.MaxSpeed.RadPS ?? -1.0);
+                w.WriteNumber("UpshiftRps", gt.Player?.Engine.UpshiftSpeed.RadPS ?? -1.0);
 
                 // Gear
                 // NumGears
 
-                // TODO
-                // CarCgLocation.X
-                // CarCgLocation.Y
-                // CarCgLocation.Z
-                // CarOrientation.Pitch
-                // CarOrientation.Yaw
-                // CarOrientation.Roll
+                w.WriteObject("CarCgLocation", _ =>
+                {
+                    w.WriteCoordinates(gt.CurrentVehicle?.Location, d => d.M);
+                });
+
+                w.WriteObject("CarOrientation", _ =>
+                {
+                    w.WriteOrientationPYR(gt.CurrentVehicle?.Orientation, a => a.Rad);
+                });
+
+                // LocalAcceleration.X
+                // LocalAcceleration.Y
+                // LocalAcceleration.Z
+                // TotalMass
 
                 // TODO
                 // FuelLeft
@@ -591,19 +607,41 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         //}
 
-        public static void WriteSectors<T>(this Utf8JsonWriter writer, T[]? v, Func<T, Double> f)
+        private static void WriteSectors<T>(this Utf8JsonWriter writer, T[]? v, Func<T, Double> f)
         {
-            for (int i = 0; i < NumSectors; i++)
+            for (int i = 0; i < 3; i++)
             {
                 writer.WriteNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
             }
         }
 
-        public static void WriteCoords<T>(this Utf8JsonWriter writer, Vector3<T>? v, Func<T, Double> f)
+        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, Vector3<T>? v, Func<T, Double> f)
         {
             writer.WriteNumber("X", v is not null ? f(v.X) : 0.0);
             writer.WriteNumber("Y", v is not null ? f(v.Y) : 0.0);
             writer.WriteNumber("Z", v is not null ? f(v.Z) : 0.0);
+        }
+
+
+        private static void WriteOrientationPYR(this Utf8JsonWriter writer, Orientation? v, Func<IAngle, Double> f)
+        {
+            writer.WriteNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
+            writer.WriteNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
+            writer.WriteNumber("Roll", v is not null ? f(v.Roll) : 0.0);
+        }
+
+        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, Orientation? v, Func<IAngle, Double> f)
+        {
+            writer.WriteNumber("X", v is not null ? f(v.Pitch) : 0.0);
+            writer.WriteNumber("Y", v is not null ? f(v.Yaw) : 0.0);
+            writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
+        }
+
+        private static String Base64String(String? value)
+        {
+            if (value is null)
+                return "AA==";
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
         }
 
         private static Int32 UInt32AsNumber(UInt32? value)
