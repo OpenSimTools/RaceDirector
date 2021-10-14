@@ -40,10 +40,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // DriverDataSize
                 // GamePaused
 
-                w.WriteNumber("GameInMenus", MatchAsNumber(gt.GameState, GameState.Menu));
-                w.WriteNumber("GameInReplay", MatchAsNumber(gt.GameState, GameState.Replay));
+                w.WriteNumber("GameInMenus", MatchAsInt32(gt.GameState, GameState.Menu));
+                w.WriteNumber("GameInReplay", MatchAsInt32(gt.GameState, GameState.Replay));
 
-                w.WriteNumber("GameUsingVr", BooleanAsNumber(gt.UsingVR));
+                w.WriteNumber("GameUsingVr", ToInt32(gt.UsingVR));
 
                 w.WriteObject("Player", _ =>
                 {
@@ -175,7 +175,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     SessionPhase.Over => 6,
                     _ => -1
                 });
-                w.WriteNumber("StartLights", StartLightsAsNumber(gt.Session?.StartLights));
+                w.WriteNumber("StartLights", ToInt32(gt.Session?.StartLights));
 
                 // TireWearActive
                 w.WriteNumber("FuelUseActive", Convert.ToInt32(gt.Event?.FuelRate ?? -1));
@@ -199,7 +199,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 });
                 // MaxIncidentPoints
 
-                w.WriteNumber("PitWindowStatus", PitWindowStatusAsNumber(gt));
+                w.WriteNumber("PitWindowStatus", PitWindowStatusAsInt32(gt));
                 w.WriteNumber("PitWindowStart", gt.Session?.Requirements.PitWindow?.Start switch {
                     LapsDuration length => Convert.ToInt32(length.Laps),
                     TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
@@ -211,7 +211,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
                     _ => -1
                 });
-                w.WriteNumber("InPitLane", InPitLaneAsNumber(gt.CurrentVehicle));
+                w.WriteNumber("InPitLane", InPitLaneAsInt32(gt.FocusedVehicle));
 
                 // PitMenuSelection
                 // PitMenuState.Preset
@@ -226,10 +226,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // PitMenuState.ButtonTop
                 // PitMenuState.ButtonBottom
 
-                w.WriteNumber("PitState", PitStateAsNumber(gt));
-                w.WriteNumber("PitTotalDuration", gt.CurrentVehicle?.Pit.PitLaneTime?.TotalSeconds ?? -1.0);
-                w.WriteNumber("PitElapsedTime", gt.CurrentVehicle?.Pit.PitStallTime?.TotalSeconds ?? -1.0);
-                w.WriteNumber("PitAction", PitActionAsNumber(gt.Player));
+                w.WriteNumber("PitState", PitStateAsInt32(gt));
+                w.WriteNumber("PitTotalDuration", gt.FocusedVehicle?.Pit.PitLaneTime?.TotalSeconds ?? -1.0);
+                w.WriteNumber("PitElapsedTime", gt.FocusedVehicle?.Pit.PitStallTime?.TotalSeconds ?? -1.0);
+                w.WriteNumber("PitAction", PitActionAsInt32(gt.Player));
 
                 // NumPitstopsPerformed
                 // PitMinDurationTotal
@@ -237,7 +237,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("Flags", _ =>
                 {
-                    w.WriteNumber("Yellow", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Yellow)));
+                    w.WriteNumber("Yellow", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Yellow)));
 
                     // Flags.YellowCausedIt
                     // Flags.YellowOvertake
@@ -247,39 +247,39 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    w.WriteNumber("Blue", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Blue)));
-                    w.WriteNumber("Black", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Black)));
-                    w.WriteNumber("Green", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Green)));
-                    w.WriteNumber("Checkered", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.Checkered)));
-                    w.WriteNumber("White", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.White)));
-                    w.WriteNumber("BlackAndWhite", BooleanAsNumber(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite)));
+                    w.WriteNumber("Blue", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Blue)));
+                    w.WriteNumber("Black", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Black)));
+                    w.WriteNumber("Green", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Green)));
+                    w.WriteNumber("Checkered", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Checkered)));
+                    w.WriteNumber("White", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.White)));
+                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite)));
                 });
 
                 // Position
 
-                w.WriteNumber("PositionClass", UInt32AsNumber(gt.CurrentVehicle?.PositionClass));
+                w.WriteNumber("PositionClass", ToInt32(gt.FocusedVehicle?.PositionClass));
 
                 // FinishStatus
                 // CutTrackWarnings
 
                 w.WriteObject("Penalties", _ =>
                 {
-                    w.WriteNumber("DriveThrough", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.DriveThrough)));
-                    w.WriteNumber("StopAndGo", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.StopAndGo)));
-                    w.WriteNumber("PitStop", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.PitStop)));
-                    w.WriteNumber("TimeDeduction", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.TimeDeduction)));
-                    w.WriteNumber("SlowDown", BooleanAsNumber(gt.CurrentVehicle?.Penalties.HasFlag(Penalties.SlowDown)));
+                    w.WriteNumber("DriveThrough", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.DriveThrough)));
+                    w.WriteNumber("StopAndGo", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.StopAndGo)));
+                    w.WriteNumber("PitStop", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.PitStop)));
+                    w.WriteNumber("TimeDeduction", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.TimeDeduction)));
+                    w.WriteNumber("SlowDown", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.SlowDown)));
                 });
 
                 // NumPenalties
 
-                w.WriteNumber("CompletedLaps", UInt32AsNumber(gt.CurrentVehicle?.CompletedLaps));
-                w.WriteNumber("CurrentLapValid", BooleanAsNumber(gt.CurrentVehicle?.CurrentLapValid));
+                w.WriteNumber("CompletedLaps", ToInt32(gt.FocusedVehicle?.CompletedLaps));
+                w.WriteNumber("CurrentLapValid", ToInt32(gt.FocusedVehicle?.CurrentLapValid));
 
                 // TrackSector
 
-                w.WriteNumber("LapDistance", gt.CurrentVehicle?.CurrentLapDistance.Value.M ?? -1.0);
-                w.WriteNumber("LapDistanceFraction", gt.CurrentVehicle?.CurrentLapDistance.Fraction ?? -1.0);
+                w.WriteNumber("LapDistance", gt.FocusedVehicle?.CurrentLapDistance.Value.M ?? -1.0);
+                w.WriteNumber("LapDistanceFraction", gt.FocusedVehicle?.CurrentLapDistance.Fraction ?? -1.0);
 
                 // LapTimeBestLeader
                 // LapTimeBestLeaderClass
@@ -287,10 +287,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesSessionBestLap.Sector2
                 // SectorTimesSessionBestLap.Sector3
 
-                w.WriteNumber("LapTimeBestSelf", gt.CurrentVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteNumber("LapTimeBestSelf", gt.FocusedVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
                 w.WriteObject("SectorTimesBestSelf", _ =>
                 {
-                    w.WriteSectors(gt.CurrentVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
+                    w.WriteSectors(gt.FocusedVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
                 });
 
                 // LapTimePreviousSelf
@@ -298,10 +298,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesPreviousSelf.Sector2
                 // SectorTimesPreviousSelf.Sector3
 
-                w.WriteNumber("LapTimeCurrentSelf", gt.CurrentVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteNumber("LapTimeCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
                 w.WriteObject("SectorTimesCurrentSelf", _ =>
                 {
-                    w.WriteSectors(gt.CurrentVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
+                    w.WriteSectors(gt.FocusedVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
                 });
 
                 // LapTimeDeltaLeader
@@ -337,9 +337,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("VehicleInfo", _ =>
                 {
-                    w.WriteNumber("SlotId", UInt32AsNumber(gt.CurrentVehicle?.Id));
-                    w.WriteNumber("ClassPerformanceIndex", gt.CurrentVehicle?.ClassPerformanceIndex ?? -1);
-                    w.WriteNumber("EngineType", gt.CurrentVehicle?.EngineType switch {
+                    w.WriteNumber("SlotId", ToInt32(gt.FocusedVehicle?.Id));
+                    w.WriteNumber("ClassPerformanceIndex", gt.FocusedVehicle?.ClassPerformanceIndex ?? -1);
+                    w.WriteNumber("EngineType", gt.FocusedVehicle?.EngineType switch {
                         EngineType.Combustion => 0,
                         EngineType.Electric => 1,
                         EngineType.Hybrid => 2,
@@ -348,9 +348,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 });
 
                 // NOTE it is the current vehicle's driver name rather than player name!
-                w.WriteString("PlayerName", Base64String(gt.CurrentVehicle?.DriverName));
+                w.WriteString("PlayerName", ToBase64(gt.FocusedVehicle?.DriverName));
 
-                w.WriteNumber("ControlType", gt.CurrentVehicle?.ControlType switch
+                w.WriteNumber("ControlType", gt.FocusedVehicle?.ControlType switch
                 {
                     ControlType.LocalPlayer => 0,
                     ControlType.AI => 1,
@@ -359,7 +359,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     _ => -1
                 });
 
-                w.WriteNumber("CarSpeed", gt.CurrentVehicle?.Speed.MPS ?? -1.0);
+                w.WriteNumber("CarSpeed", gt.FocusedVehicle?.Speed.MPS ?? -1.0);
                 
                 w.WriteNumber("EngineRps", gt.Player?.Engine.Speed.RadPS ?? -1.0);
                 w.WriteNumber("MaxEngineRps", gt.Player?.Engine.MaxSpeed.RadPS ?? -1.0);
@@ -370,12 +370,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("CarCgLocation", _ =>
                 {
-                    w.WriteCoordinates(gt.CurrentVehicle?.Location, d => d.M);
+                    w.WriteCoordinates(gt.FocusedVehicle?.Location, d => d.M);
                 });
 
                 w.WriteObject("CarOrientation", _ =>
                 {
-                    w.WriteOrientationPYR(gt.CurrentVehicle?.Orientation, a => a.Rad);
+                    w.WriteOrientationPYR(gt.FocusedVehicle?.Orientation, a => a.Rad);
                 });
 
                 // LocalAcceleration.X
@@ -383,10 +383,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // LocalAcceleration.Z
                 // TotalMass
 
-                // TODO
-                // FuelLeft
-                // FuelCapacity
-                // FuelPerLap
+                w.WriteNumber("FuelLeft", gt.Player?.Fuel.Left ?? -1.0);
+                w.WriteNumber("FuelCapacity", gt.Player?.Fuel.Max ?? -1.0);
+                w.WriteNumber("FuelPerLap", gt.Player?.Fuel.PerLap ?? -1.0);
 
                 // EngineWaterTemp
                 // EngineOilTemp
@@ -394,19 +393,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // EngineOilPressure
                 // TurboPressure
 
-                // TODO
-                // Throttle
-                // ThrottleRaw
-                // Brake
-                // BrakeRaw
-                // Clutch
-                // ClutchRaw
-                // SteerInputRaw
+                w.WriteNumber("Throttle", gt.FocusedVehicle?.Inputs?.Throttle ?? -1.0);
+                w.WriteNumber("ThrottleRaw", gt.Player?.RawInputs.Throttle ?? -1.0);
+                w.WriteNumber("Brake", gt.FocusedVehicle?.Inputs?.Brake ?? -1.0);
+                w.WriteNumber("BrakeRaw", gt.Player?.RawInputs.Brake ?? -1.0);
+                w.WriteNumber("Clutch", gt.FocusedVehicle?.Inputs?.Clutch ?? -1.0);
+                w.WriteNumber("ClutchRaw", gt.Player?.RawInputs.Clutch ?? -1.0);
+                w.WriteNumber("SteerInputRaw", gt.Player?.RawInputs.Steering ?? 0.0);
 
                 // SteerLockDegrees
 
+                w.WriteNumber("SteerWheelRangeDegrees", ToUInt32(gt.Player?.RawInputs.SteerWheelRange.Deg));
+
                 // TODO
-                // SteerWheelRangeDegrees
                 // AidSettings.Abs
                 // AidSettings.Tc
                 // AidSettings.Esp
@@ -637,33 +636,44 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
         }
 
-        private static String Base64String(String? value)
+        private static String ToBase64(String? value)
         {
             if (value is null)
                 return "AA==";
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
         }
 
-        private static Int32 UInt32AsNumber(UInt32? value)
+        private static UInt32 ToUInt32(Double? value)
+        {
+            try
+            {
+                return Convert.ToUInt32(value);
+            } catch
+            {
+                return 0;
+            }
+        }
+
+        private static Int32 ToInt32(UInt32? value)
         {
             if (value is null || value > Int32.MaxValue)
                 return -1;
             return Convert.ToInt32(value);
         }
 
-        private static Int32 BooleanAsNumber(Boolean? value)
+        private static Int32 ToInt32(Boolean? value)
         {
-            return MatchAsNumber(value, true);
+            return MatchAsInt32(value, true);
         }
 
-        private static Int32 MatchAsNumber<T>(T? value, T constant)
+        private static Int32 MatchAsInt32<T>(T? value, T constant)
         {
             if (value is null)
                 return -1;
             return value.Equals(constant) ? 1 : 0;
         }
 
-        private static Int32 StartLightsAsNumber(IStartLights? startLights)
+        private static Int32 ToInt32(IStartLights? startLights)
         {
             if (startLights is null)
                 return -1;
@@ -674,14 +684,14 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         }
 
 
-        private static Int32 PitWindowStatusAsNumber(IGameTelemetry gt)
+        private static Int32 PitWindowStatusAsInt32(IGameTelemetry gt)
         {
             if (gt.Session is null)
                 return -1; // Unavailable
             var pitWindow = gt.Session.Requirements.PitWindow;
             if (pitWindow is null)
                 return 0; // Disabled
-            var vehicle = gt.CurrentVehicle;
+            var vehicle = gt.FocusedVehicle;
             if (vehicle?.Pit.MandatoryStopsDone > 0)
                 return 4; // Completed
 
@@ -707,7 +717,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 return 2; // Open
         }
 
-        private static Int32 InPitLaneAsNumber(IVehicle? vehicle)
+        private static Int32 InPitLaneAsInt32(IVehicle? vehicle)
         {
             if (vehicle is null)
                 return -1;
@@ -716,11 +726,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             return 1;
         }
 
-        private static decimal PitStateAsNumber(IGameTelemetry gt)
+        private static Int32 PitStateAsInt32(IGameTelemetry gt)
         {
-            if (gt.CurrentVehicle is null)
+            if (gt.FocusedVehicle is null)
                 return -1;
-            switch (gt.CurrentVehicle.Pit.PitLaneState)
+            switch (gt.FocusedVehicle?.Pit.PitLaneState)
             {
                 case PitLaneState.Entered:
                     return 2;
@@ -734,7 +744,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             return 0;
         }
 
-        private static Int32 PitActionAsNumber(IPlayer? player)
+        private static Int32 PitActionAsInt32(IPlayer? player)
         {
             if (player is null)
                 return -1;

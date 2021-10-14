@@ -47,7 +47,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// Usually available when driving, in monitor or replay.
             /// </remarks>
-            IVehicle? CurrentVehicle { get; }
+            IFocusedVehicle? FocusedVehicle { get; }
 
             /// <summary>
             /// Player information if available.
@@ -331,6 +331,11 @@ namespace RaceDirector.Pipeline.Telemetry
             Exiting    // Heading for pit exit
         }
 
+        public interface IFocusedVehicle : IVehicle
+        {
+            IInputs? Inputs { get; }
+        }
+
         public interface IPlayer
         {
             // R3E Player.Position
@@ -338,7 +343,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
             // R3E PitWindowStatus for Stopped and Completed
 
-            IRawInputs RawInputs { get; }
+            IRawInputs RawInputs { get; } // ACC physics.gas, physics.brake, ...
 
             // TODO driver
             // IInputs Inputs { get; } // R3E always zero???

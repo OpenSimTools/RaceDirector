@@ -37,389 +37,49 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void CurrentVehicle__Null()
+        public void GameState__Driving()
         {
-            var result = ToR3EDash(NewGt() with { CurrentVehicle = null });
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Driving });
 
-            Assert.Equal(-1, result.Path("InPitLane").GetInt32());
-            Assert.Equal(-1, result.Path("PitState").GetInt32());
-            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
-            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
-            Assert.Equal(-1, result.Path("PositionClass").GetInt32());
-            Assert.Equal(-1, result.Path("Penalties", "DriveThrough").GetInt32());
-            Assert.Equal(-1, result.Path("Penalties", "StopAndGo").GetInt32());
-            Assert.Equal(-1, result.Path("Penalties", "PitStop").GetInt32());
-            Assert.Equal(-1, result.Path("Penalties", "TimeDeduction").GetInt32());
-            Assert.Equal(-1, result.Path("Penalties", "SlowDown").GetInt32());
-            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
-            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
-            Assert.Equal(-1, result.Path("VehicleInfo", "SlotId").GetInt32());
-            Assert.Equal(-1, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
-            Assert.Equal(-1, result.Path("VehicleInfo", "EngineType").GetInt32());
-            Assert.Equal("AA==", result.Path("PlayerName").GetString());
-            Assert.Equal(-1, result.Path("ControlType").GetInt32());
-            Assert.Equal(-1.0, result.Path("CarSpeed").GetDouble());
-            Assert.Equal(0.0, result.Path("CarCgLocation", "X").GetDouble());
-            Assert.Equal(0.0, result.Path("CarCgLocation", "Y").GetDouble());
-            Assert.Equal(0.0, result.Path("CarCgLocation", "Z").GetDouble());
-            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
-            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
-            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+            Assert.Equal(0, result.Path("GameInMenus").GetInt32());
+            Assert.Equal(0, result.Path("GameInReplay").GetInt32());
         }
 
         [Fact]
-        public void CurrentVehicle_Location()
+        public void GameState__Menu()
         {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Location = new Vector3<IDistance>(
-                            IDistance.FromM(1.2),
-                            IDistance.FromM(3.4),
-                            IDistance.FromM(5.6)
-                        )
-                    })
-                );
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Menu });
 
-            Assert.Equal(1.2, result.Path("CarCgLocation", "X").GetDouble());
-            Assert.Equal(3.4, result.Path("CarCgLocation", "Y").GetDouble());
-            Assert.Equal(5.6, result.Path("CarCgLocation", "Z").GetDouble());
+            Assert.Equal(1, result.Path("GameInMenus").GetInt32());
+            Assert.Equal(0, result.Path("GameInReplay").GetInt32());
         }
 
         [Fact]
-        public void CurrentVehicle_ClassPerformanceIndex()
+        public void GameState__Replay()
         {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        ClassPerformanceIndex = 42
-                    })
-                );
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Replay });
 
-            Assert.Equal(42, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
-        }
-
-        [Theory]
-        [InlineData(ControlType.LocalPlayer, 0)]
-        [InlineData(ControlType.RemotePlayer, 2)]
-        [InlineData(ControlType.AI, 1)]
-        [InlineData(ControlType.Replay, 3)]
-        public void CurrentVehicle_ControlType(ControlType controlType, Int32 controlTypeId)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        ControlType = controlType
-                    })
-                );
-
-            Assert.Equal(controlTypeId, result.Path("ControlType").GetInt32());
+            Assert.Equal(0, result.Path("GameInMenus").GetInt32());
+            Assert.Equal(1, result.Path("GameInReplay").GetInt32());
         }
 
         [Fact]
-        public void CurrentVehicle_CurrentLapTime()
+        public void UsingVr__True()
         {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        CurrentLapTime = new LapTime(
-                            TimeSpan.FromSeconds(1.2),
-                            new Sectors(
-                                new TimeSpan[0],
-                                new[] {
-                                    TimeSpan.FromSeconds(3.4),
-                                    TimeSpan.FromSeconds(5.6),
-                                    TimeSpan.FromSeconds(7.8)
-                                }
-                            )
-                        )
-                    })
-                );
+            var result = ToR3EDash(NewGt() with { UsingVR = true });
 
-            Assert.Equal(1.2, result.Path("LapTimeCurrentSelf").GetDouble());
-            Assert.Equal(3.4, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
-            Assert.Equal(5.6, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
-            Assert.Equal(7.8, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+            Assert.Equal(1, result.Path("GameUsingVr").GetInt32());
         }
 
         [Fact]
-        public void CurrentVehicle_CurrentLapTime__Null()
+        public void UsingVr__False()
         {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        CurrentLapTime = null
-                    })
-                );
+            var result = ToR3EDash(NewGt() with { UsingVR = false });
 
-            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+            Assert.Equal(0, result.Path("GameUsingVr").GetInt32());
         }
 
-        [Fact]
-        public void CurrentVehicle_DriverName()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        DriverName = "Blues"
-                    })
-                );
-
-            var encodedName = result.Path("PlayerName").GetString();
-            Assert.NotNull(encodedName);
-            Assert.Equal("Blues", Encoding.UTF8.GetString(Convert.FromBase64String(encodedName!)));
-        }
-
-        [Theory]
-        [InlineData(EngineType.Combustion, 0)]
-        [InlineData(EngineType.Electric, 1)]
-        [InlineData(EngineType.Hybrid, 2)]
-        [InlineData(EngineType.Unknown, -1)]
-        public void CurrentVehicle_EngineType(EngineType engineType, Int32 engineTypeId)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        EngineType = engineType
-                    })
-                );
-
-            Assert.Equal(engineTypeId, result.Path("VehicleInfo", "EngineType").GetInt32());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Id()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Id = 42
-                    })
-                );
-
-            Assert.Equal(42, result.Path("VehicleInfo", "SlotId").GetInt32());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Orientation__Null()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Orientation = null
-                    })
-                );
-
-            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
-            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
-            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Orientation()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Orientation = new Orientation(
-                            Yaw: IAngle.FromRad(1.2),
-                            Pitch: IAngle.FromRad(3.4),
-                            Roll: IAngle.FromRad(5.6)
-                        )
-                    })
-                );
-
-            Assert.Equal(3.4, result.Path("CarOrientation", "Pitch").GetDouble());
-            Assert.Equal(1.2, result.Path("CarOrientation", "Yaw").GetDouble());
-            Assert.Equal(5.6, result.Path("CarOrientation", "Roll").GetDouble());
-        }
-
-        [Theory]
-        [InlineData(Penalties.None, 0, 0, 0, 0, 0)]
-        [InlineData(Penalties.DriveThrough, 1, 0, 0, 0, 0)]
-        [InlineData(Penalties.StopAndGo, 0, 1, 0, 0, 0)]
-        [InlineData(Penalties.PitStop, 0, 0, 1, 0, 0)]
-        [InlineData(Penalties.TimeDeduction, 0, 0, 0, 1, 0)]
-        [InlineData(Penalties.SlowDown, 0, 0, 0, 0, 1)]
-        [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
-        public void CurrentVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
-    Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Penalties = penalties
-                    })
-                );
-
-            Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
-            Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
-            Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
-            Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
-            Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
-        }
-
-
-        [Fact]
-        public void CurrentVehicle_PersonalBestLapTime__Null()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        BestLapTime = null
-                    })
-                );
-
-            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
-            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_PersonalBestLapTime()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        BestLapTime = new LapTime(
-                            TimeSpan.FromSeconds(1.2),
-                            new Sectors(
-                                new TimeSpan[0],
-                                new[] {
-                                    TimeSpan.FromSeconds(3.4),
-                                    TimeSpan.FromSeconds(5.6),
-                                    TimeSpan.FromSeconds(7.8)
-                                }
-                            )
-                        )
-                    })
-                );
-
-            Assert.Equal(1.2, result.Path("LapTimeBestSelf").GetDouble());
-            Assert.Equal(3.4, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
-            Assert.Equal(5.6, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
-            Assert.Equal(7.8, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Pit_PitLaneState__Null()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitLaneState = null }
-                    })
-                    .WithPlayer(p => p with { PitStop = 0 })
-                );
-
-            Assert.Equal(0, result.Path("InPitLane").GetInt32());
-            Assert.Equal(0, result.Path("PitState").GetInt32());
-        }
-
-        [Theory]
-        [InlineData(PitLaneState.Entered, 1, 2)]
-        [InlineData(PitLaneState.Stopped, 1, 3)]
-        [InlineData(PitLaneState.Exiting, 1, 4)]
-        public void CurrentVehicle_Pit_PitLaneState(PitLaneState? pitLaneState, Int32 inPitLane, Int32 pitState)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitLaneState = pitLaneState }
-                    })
-                );
-
-            Assert.Equal(inPitLane, result.Path("InPitLane").GetInt32());
-            Assert.Equal(pitState, result.Path("PitState").GetInt32());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Pit_PitLaneTime__Null()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitLaneTime = null }
-                    })
-                );
-
-            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Pit_PitLaneTime()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitLaneTime = TimeSpan.FromSeconds(1.2) }
-                    })
-                );
-
-            Assert.Equal(1.2, result.Path("PitTotalDuration").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Pit_PitStallTime__Null()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitStallTime = null }
-                    })
-                );
-
-            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Pit_PitStallTime()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Pit = cv.Pit with { PitStallTime = TimeSpan.FromSeconds(1.2) }
-                    })
-                );
-
-            Assert.Equal(1.2, result.Path("PitElapsedTime").GetDouble());
-        }
-
-        [Fact]
-        public void CurrentVehicle_PositionClass()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        PositionClass = 4
-                    })
-                );
-
-            Assert.Equal(4, result.Path("PositionClass").GetInt32());
-        }
-
-        [Fact]
-        public void CurrentVehicle_Speed()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
-                    {
-                        Speed = ISpeed.FromMPS(1.2)
-                    })
-                );
-
-            Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
-        }
+        #region Event
 
         [Fact]
         public void Event__Null()
@@ -474,32 +134,416 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.30, result.Path("SectorStartFactors", "Sector3").GetDouble());
         }
 
-        [Fact]
-        public void GameState__Driving()
-        {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Driving });
+        #endregion
 
-            Assert.Equal(0, result.Path("GameInMenus").GetInt32());
-            Assert.Equal(0, result.Path("GameInReplay").GetInt32());
+        #region FocusedVehicle
+
+        [Fact]
+        public void FocusedVehicle__Null()
+        {
+            var result = ToR3EDash(NewGt() with { FocusedVehicle = null });
+
+            Assert.Equal(-1, result.Path("InPitLane").GetInt32());
+            Assert.Equal(-1, result.Path("PitState").GetInt32());
+            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
+            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
+            Assert.Equal(-1, result.Path("PositionClass").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "DriveThrough").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "StopAndGo").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "PitStop").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "TimeDeduction").GetInt32());
+            Assert.Equal(-1, result.Path("Penalties", "SlowDown").GetInt32());
+            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+            Assert.Equal(-1, result.Path("VehicleInfo", "SlotId").GetInt32());
+            Assert.Equal(-1, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
+            Assert.Equal(-1, result.Path("VehicleInfo", "EngineType").GetInt32());
+            Assert.Equal("AA==", result.Path("PlayerName").GetString());
+            Assert.Equal(-1, result.Path("ControlType").GetInt32());
+            Assert.Equal(-1.0, result.Path("CarSpeed").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "X").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "Y").GetDouble());
+            Assert.Equal(0.0, result.Path("CarCgLocation", "Z").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+            Assert.Equal(-1.0, result.Path("Throttle").GetDouble());
+            Assert.Equal(-1.0, result.Path("Brake").GetDouble());
+            Assert.Equal(-1.0, result.Path("Clutch").GetDouble());
         }
 
         [Fact]
-        public void GameState__Menu()
+        public void FocusedVehicle_Location()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Menu });
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Location = new Vector3<IDistance>(
+                            IDistance.FromM(1.2),
+                            IDistance.FromM(3.4),
+                            IDistance.FromM(5.6)
+                        )
+                    })
+                );
 
-            Assert.Equal(1, result.Path("GameInMenus").GetInt32());
-            Assert.Equal(0, result.Path("GameInReplay").GetInt32());
+            Assert.Equal(1.2, result.Path("CarCgLocation", "X").GetDouble());
+            Assert.Equal(3.4, result.Path("CarCgLocation", "Y").GetDouble());
+            Assert.Equal(5.6, result.Path("CarCgLocation", "Z").GetDouble());
         }
 
         [Fact]
-        public void GameState__Replay()
+        public void FocusedVehicle_ClassPerformanceIndex()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Replay });
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        ClassPerformanceIndex = 42
+                    })
+                );
 
-            Assert.Equal(0, result.Path("GameInMenus").GetInt32());
-            Assert.Equal(1, result.Path("GameInReplay").GetInt32());
+            Assert.Equal(42, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
         }
+
+        [Theory]
+        [InlineData(ControlType.LocalPlayer, 0)]
+        [InlineData(ControlType.RemotePlayer, 2)]
+        [InlineData(ControlType.AI, 1)]
+        [InlineData(ControlType.Replay, 3)]
+        public void FocusedVehicle_ControlType(ControlType controlType, Int32 controlTypeId)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        ControlType = controlType
+                    })
+                );
+
+            Assert.Equal(controlTypeId, result.Path("ControlType").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_CurrentLapTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        CurrentLapTime = new LapTime(
+                            TimeSpan.FromSeconds(1.2),
+                            new Sectors(
+                                new TimeSpan[0],
+                                new[] {
+                                    TimeSpan.FromSeconds(3.4),
+                                    TimeSpan.FromSeconds(5.6),
+                                    TimeSpan.FromSeconds(7.8)
+                                }
+                            )
+                        )
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(3.4, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(5.6, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(7.8, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_CurrentLapTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        CurrentLapTime = null
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("LapTimeCurrentSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_DriverName()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        DriverName = "Blues"
+                    })
+                );
+
+            var encodedName = result.Path("PlayerName").GetString();
+            Assert.NotNull(encodedName);
+            Assert.Equal("Blues", Encoding.UTF8.GetString(Convert.FromBase64String(encodedName!)));
+        }
+
+        [Theory]
+        [InlineData(EngineType.Combustion, 0)]
+        [InlineData(EngineType.Electric, 1)]
+        [InlineData(EngineType.Hybrid, 2)]
+        [InlineData(EngineType.Unknown, -1)]
+        public void FocusedVehicle_EngineType(EngineType engineType, Int32 engineTypeId)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        EngineType = engineType
+                    })
+                );
+
+            Assert.Equal(engineTypeId, result.Path("VehicleInfo", "EngineType").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Id()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Id = 42
+                    })
+                );
+
+            Assert.Equal(42, result.Path("VehicleInfo", "SlotId").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Inputs__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithFocusedVehicle(v => v with
+                {
+                    Inputs = null
+                })
+            );
+
+            Assert.Equal(-1.0, result.Path("Throttle").GetDouble());
+            Assert.Equal(-1.0, result.Path("Brake").GetDouble());
+            Assert.Equal(-1.0, result.Path("Clutch").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Orientation__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Orientation = null
+                    })
+                );
+
+            Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Orientation()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Orientation = new Orientation(
+                            Yaw: IAngle.FromRad(1.2),
+                            Pitch: IAngle.FromRad(3.4),
+                            Roll: IAngle.FromRad(5.6)
+                        )
+                    })
+                );
+
+            Assert.Equal(3.4, result.Path("CarOrientation", "Pitch").GetDouble());
+            Assert.Equal(1.2, result.Path("CarOrientation", "Yaw").GetDouble());
+            Assert.Equal(5.6, result.Path("CarOrientation", "Roll").GetDouble());
+        }
+
+        [Theory]
+        [InlineData(Penalties.None, 0, 0, 0, 0, 0)]
+        [InlineData(Penalties.DriveThrough, 1, 0, 0, 0, 0)]
+        [InlineData(Penalties.StopAndGo, 0, 1, 0, 0, 0)]
+        [InlineData(Penalties.PitStop, 0, 0, 1, 0, 0)]
+        [InlineData(Penalties.TimeDeduction, 0, 0, 0, 1, 0)]
+        [InlineData(Penalties.SlowDown, 0, 0, 0, 0, 1)]
+        [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
+        public void FocusedVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
+    Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Penalties = penalties
+                    })
+                );
+
+            Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
+            Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
+            Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
+            Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
+            Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
+        }
+
+
+        [Fact]
+        public void FocusedVehicle_PersonalBestLapTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        BestLapTime = null
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_PersonalBestLapTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        BestLapTime = new LapTime(
+                            TimeSpan.FromSeconds(1.2),
+                            new Sectors(
+                                new TimeSpan[0],
+                                new[] {
+                                    TimeSpan.FromSeconds(3.4),
+                                    TimeSpan.FromSeconds(5.6),
+                                    TimeSpan.FromSeconds(7.8)
+                                }
+                            )
+                        )
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("LapTimeBestSelf").GetDouble());
+            Assert.Equal(3.4, result.Path("SectorTimesBestSelf", "Sector1").GetDouble());
+            Assert.Equal(5.6, result.Path("SectorTimesBestSelf", "Sector2").GetDouble());
+            Assert.Equal(7.8, result.Path("SectorTimesBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Pit_PitLaneState__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitLaneState = null }
+                    })
+                    .WithPlayer(p => p with { PitStop = 0 })
+                );
+
+            Assert.Equal(0, result.Path("InPitLane").GetInt32());
+            Assert.Equal(0, result.Path("PitState").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(PitLaneState.Entered, 1, 2)]
+        [InlineData(PitLaneState.Stopped, 1, 3)]
+        [InlineData(PitLaneState.Exiting, 1, 4)]
+        public void FocusedVehicle_Pit_PitLaneState(PitLaneState? pitLaneState, Int32 inPitLane, Int32 pitState)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitLaneState = pitLaneState }
+                    })
+                );
+
+            Assert.Equal(inPitLane, result.Path("InPitLane").GetInt32());
+            Assert.Equal(pitState, result.Path("PitState").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Pit_PitLaneTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitLaneTime = null }
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Pit_PitLaneTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitLaneTime = TimeSpan.FromSeconds(1.2) }
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("PitTotalDuration").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Pit_PitStallTime__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitStallTime = null }
+                    })
+                );
+
+            Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Pit_PitStallTime()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with { PitStallTime = TimeSpan.FromSeconds(1.2) }
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("PitElapsedTime").GetDouble());
+        }
+
+        [Fact]
+        public void FocusedVehicle_PositionClass()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        PositionClass = 4
+                    })
+                );
+
+            Assert.Equal(4, result.Path("PositionClass").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Speed()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Speed = ISpeed.FromMPS(1.2)
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
+        }
+
+        #endregion
+
+        #region Player
 
         [Fact]
         public void Player__Null()
@@ -536,6 +580,14 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.0, result.Path("CarOrientation", "Pitch").GetDouble());
             Assert.Equal(0.0, result.Path("CarOrientation", "Yaw").GetDouble());
             Assert.Equal(0.0, result.Path("CarOrientation", "Roll").GetDouble());
+            Assert.Equal(-1.0, result.Path("FuelLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("FuelCapacity").GetDouble());
+            Assert.Equal(-1.0, result.Path("FuelPerLap").GetDouble());
+            Assert.Equal(-1.0, result.Path("ThrottleRaw").GetDouble());
+            Assert.Equal(-1.0, result.Path("BrakeRaw").GetDouble());
+            Assert.Equal(-1.0, result.Path("ClutchRaw").GetDouble());
+            Assert.Equal(0.0, result.Path("SteerInputRaw").GetDouble());
+            Assert.Equal(0, result.Path("SteerWheelRangeDegrees").GetInt32());
         }
 
         [Fact]
@@ -610,6 +662,25 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(3.4, result.Path("UpshiftRps").GetDouble());
         }
 
+        [Fact]
+        public void Player_Fuel()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Fuel = new Fuel(
+                        Max: 5.6,
+                        Left: 3.4,
+                        PerLap: 1.2
+                    )
+                })
+            );
+
+            Assert.Equal(3.4, result.Path("FuelLeft").GetDouble());
+            Assert.Equal(5.6, result.Path("FuelCapacity").GetDouble());
+            Assert.Equal(1.2, result.Path("FuelPerLap").GetDouble());
+        }
+
         [Theory]
         [InlineData(Flags.None, 0, 0, 0, 0, 0, 0, 0)]
         [InlineData(Flags.Yellow, 1, 0, 0, 0, 0, 0, 0)]
@@ -625,7 +696,7 @@ namespace HUD.Tests.Pipeline
             Int32 checkered, Int32 white, Int32 blackAndWhite)
         {
             var result = ToR3EDash(NewGt()
-                .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
+                .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
                 .WithPlayer(p => p with { GameFlags = gameFlags }));
 
             Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
@@ -749,12 +820,39 @@ namespace HUD.Tests.Pipeline
         public void Player_PitStop(PlayerPitStop pitStop, Int32 pitState, Int32 pitAction)
         {
             var result = ToR3EDash(NewGt()
-                .WithCurrentVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
+                .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
                 .WithPlayer(p => p with { PitStop = pitStop }));
 
             Assert.Equal(pitState, result.Path("PitState").GetInt32());
             Assert.Equal(pitAction, result.Path("PitAction").GetInt32());
         }
+
+        [Fact]
+        public void Player_RawInputs()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    RawInputs = new RawInputs(
+                        Steering: 0.1,
+                        Throttle: 0.2,
+                        Brake: 0.3,
+                        Clutch: 0.4,
+                        SteerWheelRange: IAngle.FromDeg(56.7)
+                    )
+                })
+            );
+
+            Assert.Equal(0.2, result.Path("ThrottleRaw").GetDouble());
+            Assert.Equal(0.3, result.Path("BrakeRaw").GetDouble());
+            Assert.Equal(0.4, result.Path("ClutchRaw").GetDouble());
+            Assert.Equal(0.1, result.Path("SteerInputRaw").GetDouble());
+            Assert.Equal(57, result.Path("SteerWheelRangeDegrees").GetInt32());
+        }
+
+        #endregion
+
+        #region Session
 
         [Fact]
         public void Session__Null()
@@ -849,9 +947,9 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__InPitStall(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
         {
             var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
+                    .WithFocusedVehicle(v => v with
                     {
-                        Pit = cv.Pit with
+                        Pit = v.Pit with
                         {
                             MandatoryStopsDone = 0,
                             PitLaneState = PitLaneState.Stopped
@@ -881,10 +979,10 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__Laps(UInt32 start, UInt32 end, UInt32 completedLaps, Int32 windowStatus)
         {
             var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
+                    .WithFocusedVehicle(v => v with
                     {
                         CompletedLaps = completedLaps,
-                        Pit = cv.Pit with
+                        Pit = v.Pit with
                         {
                             MandatoryStopsDone = 0,
                             PitLaneState = null
@@ -921,7 +1019,7 @@ namespace HUD.Tests.Pipeline
                             )
                         }
                     })
-                    with { CurrentVehicle = null }
+                    with { FocusedVehicle = null }
                 );
 
             Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
@@ -934,9 +1032,9 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__MandatoryStopsDone(UInt32 start, UInt32 end, UInt32 elapsedTime)
         {
             var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
+                    .WithFocusedVehicle(v => v with
                     {
-                        Pit = cv.Pit with { MandatoryStopsDone = 1 }
+                        Pit = v.Pit with { MandatoryStopsDone = 1 }
                     })
                     .WithSession(s => s with
                     {
@@ -962,9 +1060,9 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__Time(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
         {
             var result = ToR3EDash(NewGt()
-                    .WithCurrentVehicle(cv => cv with
+                    .WithFocusedVehicle(v => v with
                     {
-                        Pit = cv.Pit with
+                        Pit = v.Pit with
                         {
                             MandatoryStopsDone = 0,
                             PitLaneState = null
@@ -1040,21 +1138,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(code, result.Path("SessionType").GetInt32());
         }
 
-        [Fact]
-        public void UsingVr__True()
-        {
-            var result = ToR3EDash(NewGt() with { UsingVR = true });
-
-            Assert.Equal(1, result.Path("GameUsingVr").GetInt32());
-        }
-
-        [Fact]
-        public void UsingVr__False()
-        {
-            var result = ToR3EDash(NewGt() with { UsingVR = false });
-
-            Assert.Equal(0, result.Path("GameUsingVr").GetInt32());
-        }
+        #endregion
 
         #region Test setup
 
@@ -1095,11 +1179,11 @@ static class GameTelemetryExensions
         return gt with { Session = f(gt.Session) };
     }
 
-    public static GameTelemetry WithCurrentVehicle(this GameTelemetry gt, Func<Vehicle, Vehicle> f)
+    public static GameTelemetry WithFocusedVehicle(this GameTelemetry gt, Func<Vehicle, Vehicle> f)
     {
-        if (gt.CurrentVehicle is null)
+        if (gt.FocusedVehicle is null)
             return gt;
-        return gt with { CurrentVehicle = f(gt.CurrentVehicle) };
+        return gt with { FocusedVehicle = f(gt.FocusedVehicle) };
     }
 
     public static GameTelemetry WithPlayer(this GameTelemetry gt, Func<Player, Player> f)

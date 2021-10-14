@@ -14,14 +14,14 @@ namespace RaceDirector.Pipeline.Telemetry
         Event? Event,
         Session? Session,
         Vehicle[] Vehicles,
-        Vehicle? CurrentVehicle,
+        Vehicle? FocusedVehicle,
         Player? Player
     ) : IGameTelemetry
     {
         IEvent? IGameTelemetry.Event => Event;
         ISession? IGameTelemetry.Session => Session;
         IVehicle[] IGameTelemetry.Vehicles => Vehicles;
-        IVehicle? IGameTelemetry.CurrentVehicle => CurrentVehicle;
+        IFocusedVehicle? IGameTelemetry.FocusedVehicle => FocusedVehicle;
         IPlayer? IGameTelemetry.Player => Player;
     }
 
@@ -100,8 +100,9 @@ namespace RaceDirector.Pipeline.Telemetry
         ISpeed Speed,
         Driver CurrentDriver,
         VehiclePit Pit,
-        Penalties Penalties
-    ) : IVehicle
+        Penalties Penalties,
+        Inputs? Inputs
+    ) : IFocusedVehicle
     {
         ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
         ILapTime? IVehicle.PreviousLapTime => PreviousLapTime;
@@ -110,19 +111,30 @@ namespace RaceDirector.Pipeline.Telemetry
         IFraction<IDistance> IVehicle.CurrentLapDistance => CurrentLapDistance;
         IDriver IVehicle.CurrentDriver => CurrentDriver;
         IVehiclePit IVehicle.Pit => Pit;
+        IInputs IFocusedVehicle.Inputs => Inputs;
     }
 
-    public record Driver(
+    public record Driver
+    (
         String Name
     ) : IDriver;
 
-    public record VehiclePit(
+    public record VehiclePit
+    (
         UInt32 StopsDone,
         UInt32 MandatoryStopsDone,
         PitLaneState? PitLaneState,
         TimeSpan? PitLaneTime,
         TimeSpan? PitStallTime
     ) : IVehiclePit;
+
+    public record Inputs
+    (
+        Double Steering,
+        Double Throttle,
+        Double Brake,
+        Double Clutch
+    ) : IInputs;
 
     public record Player
     (
