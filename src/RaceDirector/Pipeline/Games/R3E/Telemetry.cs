@@ -204,22 +204,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                     null, // TODO
                     null, // TODO
-                    false, // TODO
                     null, // TODO
                     null, // TODO
-                    false, // TODO
-                    null, // TODO
-                    null, // TODO
-                    false, // TODO
-                    null, // TODO
-                    false, // TODO
-                    null, // TODO
-                    false // TODO
+                    null  // TODO
                 ),
                 new VehicleSettings
                 (
-                    null, // TODO
-                    null, // TODO
                     null, // TODO
                     null // TODO
                 ),

@@ -440,51 +440,65 @@ namespace RaceDirector.Pipeline.Telemetry
         }
 
         /// <summary>
-        /// 
+        /// On-board electronic or game software assists.
         /// </summary>
         /// <remarks>
         /// Factory ABS and TC are considered driving aids. ESP could be as well for a road car.
         /// </remarks>
         public interface IDrivingAids
         {
-            // TODO add a class for raw, etc.?
-            UInt32? AbsLevelRaw { get; }           // R3E AidSettings.Abs (-1 = N/A, 0 = off, 1 = on)
+            // R3E AidSettings.Abs (-1 = N/A, 0 = off, 1 = on, 5 = currently active)
+            // rF2 mAntiLockBrakes (0 = off, 2 = high)
+            IAid? Abs { get; } // Null if not available
 
-            Double? AbsLevelPercent { get; }       // Normalised to [0,1]
+            // R3E
+            //     AidSettings.Tc (-1 = N/A, 0 = off, 1 = on, 5 = currently active)
+            //     TractionControlSetting (-1, 1 - 6)
+            //     TractionControlPercent (-1.0, 0.0 - 100.0)
+            // rF2 mTractionControl (0 = off, 3 = high)
+            ITractionControl? Tc { get; }
 
-            Boolean AbsActive { get; }             // R3E AidSettings.Abs (5 = currently active)
+            // R3E AidSettings.Esp (-1 = N/A, 0 = off, 1 = on low, 2 = on medium, 3 = on high, 5 = currently active)
+            IAid? Esp { get; }
 
-            UInt32? TcLevelRaw { get; }            // R3E AidSettings.Tc (-1 = N/A, 0 = off, 1 = on) + TractionControlSetting (1 = 100%, 2 = 80%, ... 6 = 0%)
+            // R3E AidSettings.Countersteer (-1 = N/A, 0 = off, 1 = on, 5 = currently active)
+            IAid? Countersteer { get; }
 
-            Double? TcLevelPercent { get; }        // Normalised to [0,1]
+            // R3E AidSettings.Cornering (-1 = N/A, 0 = off, 1 = on, 5 = currently active)
+            IAid? Cornering { get; }
 
-            Boolean TcActive { get; }              // R3E AidSettings.Tc (5 = currently active)
+            // rF2 has a lot more
+        }
 
-            UInt32? EspLevelRaw { get; }           // R3E AidSettings.Esp (-1 = N/A, 0 = off, 1 = on low, 2 = on medium, 3 = on high)
+        public interface ITractionControl : IAid
+        {
+             UInt32? Cut { get; }
+        }
 
-            Double? EspLevelPercent { get; }       // Normalised to [0,1]
+        public interface IAid
+        {
+            /// <summary>
+            /// Numeric setting.
+            /// </summary>
+            UInt32 Level { get; }
 
-            Boolean EspActive { get; }             // R3E AidSettings.Esp (5 = currently active)
-
-            Boolean? CountersteerEnabled { get; }  // R3E AidSettings.Countersteer (-1 = N/A, 0 = off, 1 = on)
-
-            Boolean CountersteerActive { get; }    // R3E AidSettings.Countersteer (5 = currently active)
-
-            Boolean? CorneringEnabled { get; }     // R3E AidSettings.Cornering (-1 = N/A, 0 = off, 1 = on)
-
-            Boolean CorneringActive { get; }       // R3E AidSettings.Cornering (5 = currently active)
+            /// <summary>
+            /// Aid is actively altering the driver's inputs.
+            /// </summary>
+            Boolean Active { get; }
         }
 
         public interface IVehicleSettings
         {
-            // TODO add a class for raw, etc.?
-            UInt32? EngineMapRaw { get; }       // R3E EngineMapSetting
+            /// <summary>
+            /// ECU (Engine control unit) or EM (Engine map).
+            /// </summary>
+            /// <remarks>
+            /// ACC comes with real ECU settings, not percentages https://www.assettocorsa.net/forum/index.php?threads/ecu-maps-implementation.54472/
+            /// </remarks>
+            UInt32? EngineMap { get; } // R3E EngineMapSetting
 
-            Double? EngineMapPercent { get; }   // Normalised to [0,1] if we can
-
-            UInt32? EngineBrakeRaw { get; }     // R3E EngineBrakeSetting
-
-            Double? EngineBrakePercent { get; } // Normalised to [0,1] if we can
+            UInt32? EngineBrakeReduction { get; } // R3E EngineBrakeSetting
 
             // MGU-K...
         }
@@ -639,17 +653,35 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public interface IActivationToggled
     {
+        /// <summary>
+        /// It can be activated.
+        /// </summary>
         Boolean Available { get; }
 
+        /// <summary>
+        /// Currently activated.
+        /// </summary>
         Boolean Engaged { get; }
 
+        /// <summary>
+        /// Number of activations left.
+        /// </summary>
         UInt32 ActivationsLeft { get; }
     }
 
     public interface IWaitTimeToggled : IActivationToggled
     {
+        /// <summary>
+        /// Time left on the activation.
+        /// </summary>
         TimeSpan EngagedTimeLeft { get; }
 
+        /// <summary>
+        /// Time left before it can be activated.
+        /// </summary>
+        /// <remarks>
+        /// It might not be available even if this is zero. Think of P2P during qualifying.
+        /// </remarks>
         TimeSpan WaitTimeLeft { get; }
     }
 }

@@ -405,12 +405,16 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteNumber("SteerWheelRangeDegrees", ToUInt32(gt.Player?.RawInputs.SteerWheelRange.Deg));
 
+                w.WriteObject("AidSettings", _ =>
+                {
+                    w.WriteNumber("Abs", ToInt32(gt.Player?.DrivingAids.Abs?.Level));
+                    w.WriteNumber("Tc", ToInt32(gt.Player?.DrivingAids.Tc?.Level));
+                    w.WriteNumber("Esp", ToInt32(gt.Player?.DrivingAids.Esp?.Level));
+                    w.WriteNumber("Countersteer", ToInt32(gt.Player?.DrivingAids.Countersteer?.Level));
+                    w.WriteNumber("Cornering", ToInt32(gt.Player?.DrivingAids.Cornering?.Level));
+                });
+
                 // TODO
-                // AidSettings.Abs
-                // AidSettings.Tc
-                // AidSettings.Esp
-                // AidSettings.Countersteer
-                // AidSettings.Cornering
                 // Drs.Equipped
                 // Drs.Available
                 // Drs.NumActivationsLeft

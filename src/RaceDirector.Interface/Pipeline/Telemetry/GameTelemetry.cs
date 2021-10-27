@@ -182,29 +182,38 @@ namespace RaceDirector.Pipeline.Telemetry
         IAngle SteerWheelRange
     ) : IRawInputs;
 
-    public record DrivingAids
+    public record DrivingAids(
+        Aid? Abs,
+        TractionControl? Tc,
+        Aid? Esp,
+        Aid? Countersteer,
+        Aid? Cornering
+    ) : IDrivingAids
+    {
+        IAid? IDrivingAids.Abs => Abs;
+        ITractionControl? IDrivingAids.Tc => Tc;
+        IAid? IDrivingAids.Esp => Esp;
+        IAid? IDrivingAids.Countersteer => Countersteer;
+        IAid? IDrivingAids.Cornering => Cornering;
+    }
+
+    public record TractionControl
     (
-        UInt32? AbsLevelRaw,
-        Double? AbsLevelPercent,
-        Boolean AbsActive,
-        UInt32? TcLevelRaw,
-        Double? TcLevelPercent,
-        Boolean TcActive,
-        UInt32? EspLevelRaw,
-        Double? EspLevelPercent,
-        Boolean EspActive,
-        Boolean? CountersteerEnabled,
-        Boolean CountersteerActive,
-        Boolean? CorneringEnabled,
-        Boolean CorneringActive
-    ) : IDrivingAids;
+        UInt32 Level,
+        Boolean Active,
+        UInt32? Cut
+    ) : ITractionControl;
+
+    public record Aid
+    (
+        UInt32 Level,
+        Boolean Active
+    ) : IAid;
 
     public record VehicleSettings
     (
-        UInt32? EngineMapRaw,
-        Double? EngineMapPercent,
-        UInt32? EngineBrakeRaw,
-        Double? EngineBrakePercent
+        UInt32? EngineMap,
+        UInt32? EngineBrakeReduction
     ) : IVehicleSettings;
 
     public record VehicleDamage
