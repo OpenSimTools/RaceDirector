@@ -597,10 +597,13 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("Drs", "Available").GetInt32());
             Assert.Equal(-1, result.Path("Drs", "NumActivationsLeft").GetInt32());
             Assert.Equal(-1, result.Path("Drs", "Engaged").GetInt32());
-
-
-
+            Assert.Equal(-1, result.Path("PushToPass", "Available").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "Engaged").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "AmountLeft").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "EngagedTimeLeft").GetDouble());
+            Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
             Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
+            Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
         }
 
         [Fact]
@@ -943,6 +946,48 @@ namespace HUD.Tests.Pipeline
 
             Assert.Equal(pitState, result.Path("PitState").GetInt32());
             Assert.Equal(pitAction, result.Path("PitAction").GetInt32());
+        }
+
+        [Fact]
+        public void Player_PushToPass__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    PushToPass = null
+                })
+            );
+
+            Assert.Equal(-1, result.Path("PushToPass", "Available").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "Engaged").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "AmountLeft").GetInt32());
+            Assert.Equal(-1, result.Path("PushToPass", "EngagedTimeLeft").GetDouble());
+            Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
+            Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
+        }
+
+        [Fact]
+        public void Player_PushToPass()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    PushToPass = new WaitTimeToggled(
+                        true,
+                        true,
+                        new BoundedValue<UInt32>(2, 3),
+                        TimeSpan.FromSeconds(4.5),
+                        TimeSpan.FromSeconds(6.7)
+                        )
+                })
+            );
+
+            Assert.Equal(1, result.Path("PushToPass", "Available").GetInt32());
+            Assert.Equal(1, result.Path("PushToPass", "Engaged").GetInt32());
+            Assert.Equal(2, result.Path("PushToPass", "AmountLeft").GetInt32());
+            Assert.Equal(4.5, result.Path("PushToPass", "EngagedTimeLeft").GetDouble());
+            Assert.Equal(6.7, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
+            Assert.Equal(3, result.Path("PtPNumActivationsTotal").GetInt32());
         }
 
         [Fact]

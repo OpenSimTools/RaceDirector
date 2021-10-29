@@ -441,17 +441,20 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 // PitLimiter
 
-                // TODO
-                // PushToPass.Available
-                // PushToPass.Engaged
-                // PushToPass.AmountLeft
-                // PushToPass.EngagedTimeLeft
-                // PushToPass.WaitTimeLeft
+                w.WriteObject("PushToPass", _ =>
+                {
+                    w.WriteNumber("Available", ToInt32(gt.Player?.PushToPass?.Available));
+                    w.WriteNumber("Engaged", ToInt32(gt.Player?.PushToPass?.Engaged));
+                    w.WriteNumber("AmountLeft", ToInt32(gt.Player?.PushToPass?.ActivationsLeft?.Value));
+                    w.WriteNumber("EngagedTimeLeft", gt.Player?.PushToPass?.EngagedTimeLeft.TotalSeconds ?? -1.0); // not sure
+                    w.WriteNumber("WaitTimeLeft", gt.Player?.PushToPass?.WaitTimeLeft.TotalSeconds ?? -1.0); // not sure
+                });
 
                 // BrakeBias
+
                 w.WriteNumber("DrsNumActivationsTotal", ToInt32(gt.Player?.Drs?.ActivationsLeft?.Total));
-                // DrsNumActivationsTotal
-                // PtPNumActivationsTotal
+                w.WriteNumber("PtPNumActivationsTotal", ToInt32(gt.Player?.PushToPass?.ActivationsLeft?.Total));
+
                 // TireType
                 // TireRps.FrontLeft
                 // TireRps.FrontRight
@@ -471,7 +474,6 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireWear.FrontRight
                 // TireWear.RearLeft
                 // TireWear.RearRight
-
 
                 // TireFlatspot.FrontLeft
                 // TireFlatspot.FrontRight
