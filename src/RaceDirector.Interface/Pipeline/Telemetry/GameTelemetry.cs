@@ -284,14 +284,14 @@ namespace RaceDirector.Pipeline.Telemetry
     (
         Boolean Available,
         Boolean Engaged,
-        UInt32 ActivationsLeft
+        IBoundedValue<UInt32>? ActivationsLeft
     ) : IActivationToggled;
 
     public record WaitTimeToggled
     (
         Boolean Available,
         Boolean Engaged,
-        UInt32 ActivationsLeft,
+        IBoundedValue<UInt32>? ActivationsLeft, // R3E Drs.NumActivationsLeft + DrsNumActivationsTotal
         TimeSpan EngagedTimeLeft,
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;

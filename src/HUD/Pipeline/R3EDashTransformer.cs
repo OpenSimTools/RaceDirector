@@ -414,11 +414,30 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Cornering", ToInt32(gt.Player?.DrivingAids.Cornering?.Level));
                 });
 
-                // TODO
-                // Drs.Equipped
-                // Drs.Available
-                // Drs.NumActivationsLeft
-                // Drs.Engaged
+                w.WriteObject("Drs", _ =>
+                {
+                    if (gt.Player is null)
+                    {
+                        w.WriteNumber("Equipped", -1);
+                        w.WriteNumber("Available", -1);
+                        w.WriteNumber("NumActivationsLeft", -1);
+                        w.WriteNumber("Engaged", -1);
+                    }
+                    else if (gt.Player.Drs is null)
+                    {
+                        w.WriteNumber("Equipped", 0);
+                        w.WriteNumber("Available", 0);
+                        w.WriteNumber("NumActivationsLeft", 0);
+                        w.WriteNumber("Engaged", 0);
+                    }
+                    else
+                    {
+                        w.WriteNumber("Equipped", 1);
+                        w.WriteNumber("Available", gt.Player.Drs.Available ? 1 : 0);
+                        w.WriteNumber("NumActivationsLeft", ToInt32(gt.Player.Drs.ActivationsLeft?.Value));
+                        w.WriteNumber("Engaged", gt.Player.Drs.Engaged ? 1 : 0);
+                    }
+                });
 
                 // PitLimiter
 
@@ -430,6 +449,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // PushToPass.WaitTimeLeft
 
                 // BrakeBias
+                w.WriteNumber("DrsNumActivationsTotal", ToInt32(gt.Player?.Drs?.ActivationsLeft?.Total));
                 // DrsNumActivationsTotal
                 // PtPNumActivationsTotal
                 // TireType

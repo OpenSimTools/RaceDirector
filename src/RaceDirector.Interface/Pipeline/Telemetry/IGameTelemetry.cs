@@ -666,7 +666,7 @@ namespace RaceDirector.Pipeline.Telemetry
         /// <summary>
         /// Number of activations left.
         /// </summary>
-        UInt32 ActivationsLeft { get; }
+        IBoundedValue<UInt32>? ActivationsLeft { get; }
     }
 
     public interface IWaitTimeToggled : IActivationToggled

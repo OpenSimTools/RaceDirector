@@ -588,6 +588,19 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("ClutchRaw").GetDouble());
             Assert.Equal(0.0, result.Path("SteerInputRaw").GetDouble());
             Assert.Equal(0, result.Path("SteerWheelRangeDegrees").GetInt32());
+            Assert.Equal(-1, result.Path("AidSettings", "Abs").GetInt32());
+            Assert.Equal(-1, result.Path("AidSettings", "Tc").GetInt32());
+            Assert.Equal(-1, result.Path("AidSettings", "Esp").GetInt32());
+            Assert.Equal(-1, result.Path("AidSettings", "Countersteer").GetInt32());
+            Assert.Equal(-1, result.Path("AidSettings", "Cornering").GetInt32());
+            Assert.Equal(-1, result.Path("Drs", "Equipped").GetInt32());
+            Assert.Equal(-1, result.Path("Drs", "Available").GetInt32());
+            Assert.Equal(-1, result.Path("Drs", "NumActivationsLeft").GetInt32());
+            Assert.Equal(-1, result.Path("Drs", "Engaged").GetInt32());
+
+
+
+            Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
         }
 
         [Fact]
@@ -687,6 +700,65 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(3, result.Path("AidSettings", "Esp").GetInt32());
             Assert.Equal(4, result.Path("AidSettings", "Countersteer").GetInt32());
             Assert.Equal(5, result.Path("AidSettings", "Cornering").GetInt32());
+        }
+
+        [Fact]
+        public void Player_Drs__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Drs = null
+                })
+            );
+
+            Assert.Equal(0, result.Path("Drs", "Equipped").GetInt32());
+            Assert.Equal(0, result.Path("Drs", "Available").GetInt32());
+            Assert.Equal(0, result.Path("Drs", "NumActivationsLeft").GetInt32());
+            Assert.Equal(0, result.Path("Drs", "Engaged").GetInt32());
+            Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
+        }
+
+        [Fact]
+        public void Player_Drs__NoneActive()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Drs = new ActivationToggled(
+                        false,
+                        false,
+                        null
+                    )
+                })
+            );
+
+            Assert.Equal(1, result.Path("Drs", "Equipped").GetInt32());
+            Assert.Equal(0, result.Path("Drs", "Available").GetInt32());
+            Assert.Equal(-1, result.Path("Drs", "NumActivationsLeft").GetInt32());
+            Assert.Equal(0, result.Path("Drs", "Engaged").GetInt32());
+            Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
+        }
+
+        [Fact]
+        public void Player_Drs__AllActive()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Drs = new ActivationToggled(
+                        true,
+                        true,
+                        new BoundedValue<UInt32>(2, 3)
+                    )
+                })
+            );
+
+            Assert.Equal(1, result.Path("Drs", "Equipped").GetInt32());
+            Assert.Equal(1, result.Path("Drs", "Available").GetInt32());
+            Assert.Equal(2, result.Path("Drs", "NumActivationsLeft").GetInt32());
+            Assert.Equal(1, result.Path("Drs", "Engaged").GetInt32());
+            Assert.Equal(3, result.Path("DrsNumActivationsTotal").GetInt32());
         }
 
         [Fact]
