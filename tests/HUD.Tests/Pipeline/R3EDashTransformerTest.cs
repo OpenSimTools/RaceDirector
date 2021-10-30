@@ -24,6 +24,9 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
             );
 
+        private static Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
+            .Configure(b => b.WithBinder<MoqBinder>());
+
         // Have to create one par test: concurrent access seems to confuse AutoBogus
         private GameTelemetry NewGt() => gtFaker.Generate();
 
@@ -604,6 +607,18 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
             Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
             Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
+            Assert.Equal(-1.0, result.Path("TireGrip", "FrontLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireGrip", "FrontRight").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireGrip", "RearLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireGrip", "RearRight").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireWear", "FrontLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireWear", "FrontRight").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireWear", "RearLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireWear", "RearRight").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireDirt", "FrontLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireDirt", "FrontRight").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireDirt", "RearLeft").GetDouble());
+            Assert.Equal(-1.0, result.Path("TireDirt", "RearRight").GetDouble());
         }
 
         [Fact]
@@ -1011,6 +1026,42 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.4, result.Path("ClutchRaw").GetDouble());
             Assert.Equal(0.1, result.Path("SteerInputRaw").GetDouble());
             Assert.Equal(57, result.Path("SteerWheelRangeDegrees").GetInt32());
+        }
+
+        [Fact]
+        public void Player_Tyres_BaseFields()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Tyres = new Tyre[][]
+                    {
+                        new Tyre[]
+                        {
+                            tyreFaker.Generate() with { Dirt = 1.00, Grip = 2.00, Wear = 3.00 },
+                            tyreFaker.Generate() with { Dirt = 1.01, Grip = 2.01, Wear = 3.01 },
+                        },
+                        new Tyre[]
+                        {
+                            tyreFaker.Generate() with { Dirt = 1.10, Grip = 2.10, Wear = 3.10 },
+                            tyreFaker.Generate() with { Dirt = 1.11, Grip = 2.11, Wear = 3.11 },
+                        }
+                    }
+                })
+            );
+
+            Assert.Equal(2.00, result.Path("TireGrip", "FrontLeft").GetDouble());
+            Assert.Equal(2.01, result.Path("TireGrip", "FrontRight").GetDouble());
+            Assert.Equal(2.10, result.Path("TireGrip", "RearLeft").GetDouble());
+            Assert.Equal(2.11, result.Path("TireGrip", "RearRight").GetDouble());
+            Assert.Equal(3.00, result.Path("TireWear", "FrontLeft").GetDouble());
+            Assert.Equal(3.01, result.Path("TireWear", "FrontRight").GetDouble());
+            Assert.Equal(3.10, result.Path("TireWear", "RearLeft").GetDouble());
+            Assert.Equal(3.11, result.Path("TireWear", "RearRight").GetDouble());
+            Assert.Equal(1.00, result.Path("TireDirt", "FrontLeft").GetDouble());
+            Assert.Equal(1.01, result.Path("TireDirt", "FrontRight").GetDouble());
+            Assert.Equal(1.10, result.Path("TireDirt", "RearLeft").GetDouble());
+            Assert.Equal(1.11, result.Path("TireDirt", "RearRight").GetDouble());
         }
 
         #endregion

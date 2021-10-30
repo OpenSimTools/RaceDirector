@@ -6,6 +6,7 @@ using RaceDirector.Plugin.HUD.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
+using System.Linq;
 using System.Text;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
@@ -465,15 +466,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireSpeed.RearLeft
                 // TireSpeed.RearRight
 
-                // TODO
-                // TireGrip.FrontLeft
-                // TireGrip.FrontRight
-                // TireGrip.RearLeft
-                // TireGrip.RearRight
-                // TireWear.FrontLeft
-                // TireWear.FrontRight
-                // TireWear.RearLeft
-                // TireWear.RearRight
+                w.WriteTyres("TireGrip", gt.Player?.Tyres, t => t.Grip, -1.0);
+                w.WriteTyres("TireWear", gt.Player?.Tyres, t => t.Wear, -1.0);
 
                 // TireFlatspot.FrontLeft
                 // TireFlatspot.FrontRight
@@ -484,11 +478,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TirePressure.RearLeft
                 // TirePressure.RearRight
 
+                w.WriteTyres("TireDirt", gt.Player?.Tyres, t => t.Dirt, -1.0);
+
                 // TODO
-                // TireDirt.FrontLeft
-                // TireDirt.FrontRight
-                // TireDirt.RearLeft
-                // TireDirt.RearRight
                 // TireTemp.FrontLeft.CurrentTemp.Left
                 // TireTemp.FrontLeft.CurrentTemp.Center
                 // TireTemp.FrontLeft.CurrentTemp.Right
@@ -661,6 +653,23 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             writer.WriteNumber("Y", v is not null ? f(v.Yaw) : 0.0);
             writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
         }
+
+        private static void WriteTyres(this Utf8JsonWriter writer, String key, ITyre[][]? maybeTyres, Func<ITyre, Double> f, Double defaultValue)
+        {
+            var tyres = maybeTyres ?? Array.Empty<ITyre[]>();
+            writer.WriteObject(key, _ => {
+                writer.WriteTyre("FrontLeft", tyres, 0, 0, f, defaultValue);
+                writer.WriteTyre("FrontRight", tyres, 0, 1, f, defaultValue);
+                writer.WriteTyre("RearLeft", tyres, 1, 0, f, defaultValue);
+                writer.WriteTyre("RearRight", tyres, 1, 1, f, defaultValue);
+            });
+        }
+
+        private static void WriteTyre(this Utf8JsonWriter writer, String tyreName, ITyre[][] tyres, int i, int j, Func<ITyre, Double> f, Double defaultValue)
+        {
+            writer.WriteNumber(tyreName, (i < tyres.Length && j < tyres[i].Length) ? f(tyres[i][j]) : defaultValue);
+        }
+
 
         private static String ToBase64(String? value)
         {
