@@ -25,6 +25,13 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
             );
 
+        private static Bogus.Faker<Vehicle> vehicleFaker = new AutoFaker<Vehicle>()
+            .Configure(b => b
+                .WithBinder<MoqBinder>()
+                // For some reason AutoBogus/Moq can't generate IDistance
+                .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+            );
+
         private static Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
             .Configure(b => b.WithBinder<MoqBinder>());
 
@@ -283,9 +290,7 @@ namespace HUD.Tests.Pipeline
                     })
                 );
 
-            var encodedName = result.Path("PlayerName").GetString();
-            Assert.NotNull(encodedName);
-            Assert.Equal("Blues", Encoding.UTF8.GetString(Convert.FromBase64String(encodedName!)));
+            Assert.Equal("Blues", result.Path("PlayerName").GetBase64String());
         }
 
         [Theory]
@@ -1470,6 +1475,65 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt().WithSession(s => s with { Type = sessionType }));
 
             Assert.Equal(code, result.Path("SessionType").GetInt32());
+        }
+
+        #endregion
+
+        #region Vehicles
+
+        [Fact]
+        public void Vehicles()
+        {
+            // TODO Split fields
+            var result = ToR3EDash(NewGt() with {
+                Vehicles = new[] {
+                    vehicleFaker.Generate() with
+                    {
+                        Id = 2,
+                        DriverName = "Blues",
+                        ClassPerformanceIndex = 3,
+                        PositionClass = 4,
+                        GapAhead = TimeSpan.FromSeconds(0.05),
+                        GapBehind = TimeSpan.FromSeconds(0.06),
+                        CompletedLaps = 7,
+                        BestLapTime = new LapTime(
+                            Overall: TimeSpan.FromSeconds(0), // <==
+                            Sectors: new Sectors(
+                                Individual: new TimeSpan[0], // <==
+                                Cumulative: new []
+                                {
+                                    TimeSpan.FromSeconds(0.08),
+                                    TimeSpan.FromSeconds(0.09),
+                                    TimeSpan.FromSeconds(0.10)
+                                }
+                            )
+                        ),
+                        CurrentLapDistance = DistanceFraction.Of(IDistance.FromM(0.11), 1.0),
+                        Location = new Vector3<IDistance>(
+                            X: IDistance.FromM(0.12),
+                            Y: IDistance.FromM(0.13),
+                            Z: IDistance.FromM(0.14)
+                        )
+                    }
+                }
+            });
+
+            var driverData = result.Path("DriverData").EnumerateArray().Single();
+
+            Assert.Equal("Blues", driverData.Path("DriverInfo", "Name").GetBase64String());
+            Assert.Equal(2, driverData.Path("DriverInfo", "SlotId").GetInt32());
+            Assert.Equal(3, driverData.Path("DriverInfo", "ClassPerformanceIndex").GetInt32());
+            Assert.Equal(4, driverData.Path("PlaceClass").GetInt32());
+            Assert.Equal(0.11, driverData.Path("LapDistance").GetDouble());
+            Assert.Equal(0.12, driverData.Path("Position", "X").GetDouble());
+            Assert.Equal(0.13, driverData.Path("Position", "Y").GetDouble());
+            Assert.Equal(0.14, driverData.Path("Position", "Z").GetDouble());
+            Assert.Equal(7, driverData.Path("CompletedLaps").GetInt32());
+            Assert.Equal(0.08, driverData.Path("SectorTimeBestSelf", "Sector1").GetDouble());
+            Assert.Equal(0.09, driverData.Path("SectorTimeBestSelf", "Sector2").GetDouble());
+            Assert.Equal(0.10, driverData.Path("SectorTimeBestSelf", "Sector3").GetDouble());
+            Assert.Equal(0.05, driverData.Path("TimeDeltaFront").GetDouble());
+            Assert.Equal(0.06, driverData.Path("TimeDeltaBehind").GetDouble());
         }
 
         #endregion

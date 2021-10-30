@@ -17,5 +17,12 @@ namespace RaceDirector.Plugin.HUD.Utils
             f(writer);
             writer.WriteEndObject();
         }
+
+        public static void WriteArray(this Utf8JsonWriter writer, String propertyName, Action<Utf8JsonWriter> f)
+        {
+            writer.WriteStartArray(propertyName);
+            f(writer);
+            writer.WriteEndArray();
+        }
     }
 }

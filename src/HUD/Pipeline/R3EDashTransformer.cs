@@ -51,10 +51,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Player.GameSimulationTicks
                     // Player.GameSimulationTime
 
-                    w.WriteObject("Position", _ =>
-                    {
-                        w.WriteCoordinates(gt.Player?.CgLocation, d => d.M);
-                    });
+                    w.WriteCoordinates("Position", gt.Player?.CgLocation, d => d.M);
 
                     // Player.Velocity.X
                     // Player.Velocity.Y
@@ -66,10 +63,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Player.Acceleration.Y
                     // Player.Acceleration.Z
 
-                    w.WriteObject("LocalAcceleration", _ =>
-                    {
-                        w.WriteCoordinates(gt.Player?.LocalAcceleration, a => a.MPS2);
-                    });
+                    w.WriteCoordinates("LocalAcceleration", gt.Player?.LocalAcceleration, a => a.MPS2);
 
                     // Player.Orientation.X
                     // Player.Orientation.Y
@@ -87,10 +81,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Player.LocalAngularVelocity.Y
                     // Player.LocalAngularVelocity.Z
 
-                    w.WriteObject("LocalGforce", _ =>
-                    {
-                        w.WriteCoordinates(gt.Player?.LocalAcceleration, a => a.G);
-                    });
+                    w.WriteCoordinates("LocalGforce", gt.Player?.LocalAcceleration, a => a.G);
 
                     // Player.SteeringForce
                     // Player.SteeringForcePercentage
@@ -133,10 +124,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteNumber("LayoutLength", (gt.Event?.Track.Length?.M) ?? -1.0);
 
-                w.WriteObject("SectorStartFactors", _ =>
-                {
-                    w.WriteSectors(gt.Event?.Track.SectorsEnd, st => st.Fraction);
-                });
+                w.WriteSectors("SectorStartFactors", gt.Event?.Track.SectorsEnd, st => st.Fraction);
 
                 // RaceSessionLaps.Race1
                 // RaceSessionLaps.Race2
@@ -289,10 +277,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesSessionBestLap.Sector3
 
                 w.WriteNumber("LapTimeBestSelf", gt.FocusedVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
-                w.WriteObject("SectorTimesBestSelf", _ =>
-                {
-                    w.WriteSectors(gt.FocusedVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
-                });
+                w.WriteSectors("SectorTimesBestSelf", gt.FocusedVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
 
                 // LapTimePreviousSelf
                 // SectorTimesPreviousSelf.Sector1
@@ -300,10 +285,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesPreviousSelf.Sector3
 
                 w.WriteNumber("LapTimeCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
-                w.WriteObject("SectorTimesCurrentSelf", _ =>
-                {
-                    w.WriteSectors(gt.FocusedVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
-                });
+                w.WriteSectors("SectorTimesCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
 
                 // LapTimeDeltaLeader
                 // LapTimeDeltaLeaderClass
@@ -312,19 +294,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteNumber("TimeDeltaBestSelf", gt.Player?.PersonalBestDelta?.TotalSeconds ?? -1000.0);
 
-                w.WriteObject("BestIndividualSectorTimeSelf", _ =>
-                {
-                    w.WriteSectors(gt.Player?.PersonalBestSectors?.Individual, st => st.TotalSeconds);
-                });
+                w.WriteSectors("BestIndividualSectorTimeSelf", gt.Player?.PersonalBestSectors?.Individual, st => st.TotalSeconds);
 
                 // BestIndividualSectorTimeLeader.Sector1
                 // BestIndividualSectorTimeLeader.Sector2
                 // BestIndividualSectorTimeLeader.Sector3
 
-                w.WriteObject("BestIndividualSectorTimeLeaderClass", _ =>
-                {
-                    w.WriteSectors(gt.Player?.ClassBestSectors?.Individual, st => st.TotalSeconds);
-                });
+                w.WriteSectors("BestIndividualSectorTimeLeaderClass", gt.Player?.ClassBestSectors?.Individual, st => st.TotalSeconds);
 
                 // IncidentPoints
                 // VehicleInfo.Name
@@ -369,15 +345,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // Gear
                 // NumGears
 
-                w.WriteObject("CarCgLocation", _ =>
-                {
-                    w.WriteCoordinates(gt.FocusedVehicle?.Location, d => d.M);
-                });
+                w.WriteCoordinates("CarCgLocation", gt.FocusedVehicle?.Location, d => d.M);
 
-                w.WriteObject("CarOrientation", _ =>
-                {
-                    w.WriteOrientationPYR(gt.FocusedVehicle?.Orientation, a => a.Rad);
-                });
+                w.WriteOrientationPYR("CarOrientation", gt.FocusedVehicle?.Orientation, a => a.Rad);
 
                 // LocalAcceleration.X
                 // LocalAcceleration.Y
@@ -561,109 +531,119 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 // NumCars
 
-                // TODO
-                // DriverData[].DriverInfo.Name
+                // Note: Sometimes there's a lot of "null" vehicles after NumCars, but we won't render them.
+                w.WriteArray("DriverData", _ =>
+                {
+                    foreach (var vehicle in gt.Vehicles)
+                    {
+                        w.WriteObject(_ =>
+                        {
+                            w.WriteObject("DriverInfo", _ =>
+                            {
+                                w.WriteString("Name", ToBase64(vehicle.DriverName));
 
-                // DriverData[].DriverInfo.CarNumber
-                // DriverData[].DriverInfo.ClassId
-                // DriverData[].DriverInfo.ModelId
-                // DriverData[].DriverInfo.TeamId
-                // DriverData[].DriverInfo.LiveryId
-                // DriverData[].DriverInfo.ManufacturerId
-                // DriverData[].DriverInfo.UserId
+                                // DriverData[].DriverInfo.CarNumber
+                                // DriverData[].DriverInfo.ClassId
+                                // DriverData[].DriverInfo.ModelId
+                                // DriverData[].DriverInfo.TeamId
+                                // DriverData[].DriverInfo.LiveryId
+                                // DriverData[].DriverInfo.ManufacturerId
+                                // DriverData[].DriverInfo.UserId
 
-                // TODO
-                // DriverData[].DriverInfo.SlotId
-                // DriverData[].DriverInfo.ClassPerformanceIndex
+                                w.WriteNumber("SlotId", vehicle.Id);
+                                w.WriteNumber("ClassPerformanceIndex", vehicle.ClassPerformanceIndex);
 
-                // DriverData[].DriverInfo.EngineType
-                // DriverData[].FinishStatus
-                // DriverData[].Place
-                // DriverData[].TrackSector
+                                // DriverData[].DriverInfo.EngineType
+                            });
 
-                // TODO
-                // DriverData[].PlaceClass
-                // DriverData[].LapDistance
-                // DriverData[].Position.X
-                // DriverData[].Position.Y
-                // DriverData[].Position.Z
+                            // DriverData[].FinishStatus
+                            // DriverData[].Place
 
-                // DriverData[].TrackSector
+                            w.WriteNumber("PlaceClass", vehicle.PositionClass);
+                            w.WriteNumber("LapDistance", vehicle.CurrentLapDistance.Value.M);
+                            w.WriteCoordinates("Position", vehicle.Location, d => d.M);
 
-                // TODO
-                // DriverData[].CompletedLaps
+                            // DriverData[].TrackSector
 
-                // DriverData[].CurrentLapValid
-                // DriverData[].LapTimeCurrentSelf
-                // DriverData[].SectorTimeCurrentSelf.Sector1
-                // DriverData[].SectorTimeCurrentSelf.Sector2
-                // DriverData[].SectorTimeCurrentSelf.Sector3
-                // DriverData[].SectorTimePreviousSelf.Sector1
-                // DriverData[].SectorTimePreviousSelf.Sector2
-                // DriverData[].SectorTimePreviousSelf.Sector3
+                            w.WriteNumber("CompletedLaps", vehicle.CompletedLaps);
 
-                // TODO
-                // DriverData[].SectorTimeBestSelf.Sector1
-                // DriverData[].SectorTimeBestSelf.Sector2
-                // DriverData[].SectorTimeBestSelf.Sector3
-                // DriverData[].TimeDeltaFront
-                // DriverData[].TimeDeltaBehind
+                            // DriverData[].CurrentLapValid
+                            // DriverData[].LapTimeCurrentSelf
+                            // DriverData[].SectorTimeCurrentSelf.Sector1
+                            // DriverData[].SectorTimeCurrentSelf.Sector2
+                            // DriverData[].SectorTimeCurrentSelf.Sector3
+                            // DriverData[].SectorTimePreviousSelf.Sector1
+                            // DriverData[].SectorTimePreviousSelf.Sector2
+                            // DriverData[].SectorTimePreviousSelf.Sector3
 
-                // DriverData[].PitStopStatus
-                // DriverData[].InPitlane
-                // DriverData[].NumPitstops
-                // DriverData[].Penalties.DriveThrough
-                // DriverData[].Penalties.StopAndGo
-                // DriverData[].Penalties.PitStop
-                // DriverData[].Penalties.TimeDeduction
-                // DriverData[].Penalties.SlowDown
-                // DriverData[].CarSpeed
-                // DriverData[].TireTypeFront
-                // DriverData[].TireTypeRear
-                // DriverData[].TireSubtypeFront
-                // DriverData[].TireSubtypeRear
-                // DriverData[].BasePenaltyWeight
-                // DriverData[].AidPenaltyWeight
-                // DriverData[].DrsState
-                // DriverData[].PtpState
-                // DriverData[].PenaltyType
-                // DriverData[].PenaltyReason
+                            w.WriteSectors("SectorTimeBestSelf", vehicle.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
+                            w.WriteNumber("TimeDeltaFront", vehicle.GapAhead?.TotalSeconds ?? -1.0);
+                            w.WriteNumber("TimeDeltaBehind", vehicle.GapBehind?.TotalSeconds ?? -1.0);
+
+                            // DriverData[].PitStopStatus
+                            // DriverData[].InPitlane
+                            // DriverData[].NumPitstops
+                            // DriverData[].Penalties.DriveThrough
+                            // DriverData[].Penalties.StopAndGo
+                            // DriverData[].Penalties.PitStop
+                            // DriverData[].Penalties.TimeDeduction
+                            // DriverData[].Penalties.SlowDown
+                            // DriverData[].CarSpeed
+                            // DriverData[].TireTypeFront
+                            // DriverData[].TireTypeRear
+                            // DriverData[].TireSubtypeFront
+                            // DriverData[].TireSubtypeRear
+                            // DriverData[].BasePenaltyWeight
+                            // DriverData[].AidPenaltyWeight
+                            // DriverData[].DrsState
+                            // DriverData[].PtpState
+                            // DriverData[].PenaltyType
+                            // DriverData[].PenaltyReason
+                        });
+                    }
+                });
             });
         }
 
-        //public static void WriteVector3<T, V>(this Utf8JsonWriter writer, Vector3<T> v, Func<T, V> f)
-        //{
-
-        //}
-
-        private static void WriteSectors<T>(this Utf8JsonWriter writer, T[]? v, Func<T, Double> f)
+        private static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, Double> f)
         {
-            for (int i = 0; i < 3; i++)
+            writer.WriteObject(propertyName, _ =>
             {
-                writer.WriteNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
-            }
+                for (int i = 0; i < 3; i++)
+                {
+                    writer.WriteNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
+                }
+            });
         }
 
-        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, Vector3<T>? v, Func<T, Double> f)
+        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, String propertyName, Vector3<T>? v, Func<T, Double> f)
         {
-            writer.WriteNumber("X", v is not null ? f(v.X) : 0.0);
-            writer.WriteNumber("Y", v is not null ? f(v.Y) : 0.0);
-            writer.WriteNumber("Z", v is not null ? f(v.Z) : 0.0);
+            writer.WriteObject(propertyName, _ =>
+            {
+                writer.WriteNumber("X", v is not null ? f(v.X) : 0.0);
+                writer.WriteNumber("Y", v is not null ? f(v.Y) : 0.0);
+                writer.WriteNumber("Z", v is not null ? f(v.Z) : 0.0);
+            });
         }
 
-
-        private static void WriteOrientationPYR(this Utf8JsonWriter writer, Orientation? v, Func<IAngle, Double> f)
+        private static void WriteOrientationPYR(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, Double> f)
         {
-            writer.WriteNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
-            writer.WriteNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
-            writer.WriteNumber("Roll", v is not null ? f(v.Roll) : 0.0);
+            writer.WriteObject(propertyName, _ =>
+            {
+                writer.WriteNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
+                writer.WriteNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
+                writer.WriteNumber("Roll", v is not null ? f(v.Roll) : 0.0);
+            });
         }
 
-        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, Orientation? v, Func<IAngle, Double> f)
+        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, Double> f)
         {
-            writer.WriteNumber("X", v is not null ? f(v.Pitch) : 0.0);
-            writer.WriteNumber("Y", v is not null ? f(v.Yaw) : 0.0);
-            writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
+            writer.WriteObject(propertyName, _ =>
+            {
+                writer.WriteNumber("X", v is not null ? f(v.Pitch) : 0.0);
+                writer.WriteNumber("Y", v is not null ? f(v.Yaw) : 0.0);
+                writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
+            });
         }
 
         private static void ForEachTyre(ITyre[][]? tyres, Action<String, ITyre?> action)

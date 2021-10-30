@@ -231,9 +231,9 @@ namespace RaceDirector.Pipeline.Telemetry
             UInt32 Position { get; }      // R3E DriverData[].Place or Position
             UInt32 PositionClass { get; } // R3E DriverData[].PlaceClass or PositionClass
 
-            TimeSpan GapAhead { get; } // R3E DriverData[].TimeDeltaAhead
+            TimeSpan? GapAhead { get; } // R3E DriverData[].TimeDeltaAhead
             
-            TimeSpan GapBehind { get; } // R3E DriverData[].TimeDeltaBehind
+            TimeSpan? GapBehind { get; } // R3E DriverData[].TimeDeltaBehind
             // TODO Have Gap.{Ahead|Behind} and ClassGap.{Ahead|Behind}?
 
             UInt32 CompletedLaps { get; } // R3E DriverData[].CompletedLaps

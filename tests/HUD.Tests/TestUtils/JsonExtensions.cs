@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text;
+using System.Text.Json;
 
 namespace HUD.Tests.TestUtils
 {
@@ -6,7 +8,11 @@ namespace HUD.Tests.TestUtils
     {
         public static JsonElement Path(this JsonDocument jsonDoc, params string[] segments)
         {
-            var jsonEl = jsonDoc.RootElement;
+            return jsonDoc.RootElement.Path(segments);
+        }
+
+        public static JsonElement Path(this JsonElement jsonEl, params string[] segments)
+        {
             foreach (var s in segments)
             {
                 jsonEl = jsonEl.GetProperty(s);
@@ -17,6 +23,14 @@ namespace HUD.Tests.TestUtils
         public static bool IsNull(this JsonElement jsonEl)
         {
             return jsonEl.ValueKind == JsonValueKind.Null;
+        }
+
+        public static String? GetBase64String(this JsonElement jsonEl)
+        {
+            var encodedName = jsonEl.GetString();
+            if (encodedName == null)
+                return null;
+            return Encoding.UTF8.GetString(Convert.FromBase64String(encodedName));
         }
     }
 }
