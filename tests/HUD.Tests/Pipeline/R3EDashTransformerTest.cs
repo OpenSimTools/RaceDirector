@@ -619,7 +619,15 @@ namespace HUD.Tests.Pipeline
                 Assert.Equal(-1.0, result.Path("TireTemp", tyre, "OptimalTemp").GetDouble());
                 Assert.Equal(-1.0, result.Path("TireTemp", tyre, "ColdTemp").GetDouble());
                 Assert.Equal(-1.0, result.Path("TireTemp", tyre, "HotTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "CurrentTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "OptimalTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "ColdTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "HotTemp").GetDouble());
             }
+            Assert.Equal(-1.0, result.Path("CarDamage", "Engine").GetDouble());
+            Assert.Equal(-1.0, result.Path("CarDamage", "Transmission").GetDouble());
+            Assert.Equal(-1.0, result.Path("CarDamage", "Aerodynamics").GetDouble());
+            Assert.Equal(-1.0, result.Path("CarDamage", "Suspension").GetDouble());
         }
 
         [Fact]
@@ -1055,6 +1063,12 @@ namespace HUD.Tests.Pipeline
                                     OptimalTemperature: ITemperature.FromC(2.1),
                                     ColdTemperature: ITemperature.FromC(2.2),
                                     HotTemperature: ITemperature.FromC(2.3)
+                                ),
+                                BrakeTemperatures = new TemperaturesSingle(
+                                    CurrentTemperature: ITemperature.FromC(4.1),
+                                    OptimalTemperature: ITemperature.FromC(4.2),
+                                    ColdTemperature: ITemperature.FromC(4.3),
+                                    HotTemperature: ITemperature.FromC(4.4)
                                 )
                             }
                         }
@@ -1071,6 +1085,10 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(2.1, result.Path("TireTemp", "FrontLeft", "OptimalTemp").GetDouble());
             Assert.Equal(2.2, result.Path("TireTemp", "FrontLeft", "ColdTemp").GetDouble());
             Assert.Equal(2.3, result.Path("TireTemp", "FrontLeft", "HotTemp").GetDouble());
+            Assert.Equal(4.1, result.Path("BrakeTemp", "FrontLeft", "CurrentTemp").GetDouble());
+            Assert.Equal(4.2, result.Path("BrakeTemp", "FrontLeft", "OptimalTemp").GetDouble());
+            Assert.Equal(4.3, result.Path("BrakeTemp", "FrontLeft", "ColdTemp").GetDouble());
+            Assert.Equal(4.4, result.Path("BrakeTemp", "FrontLeft", "HotTemp").GetDouble());
         }
 
         [Theory]
@@ -1078,8 +1096,8 @@ namespace HUD.Tests.Pipeline
         [InlineData(1, 2, true, false, true, true)]
         [InlineData(2, 1, true, true, true, false)]
         [InlineData(3, 0, true, true, false, false)]
-        public void Player_Tyres__Present(Int32 tyresFront, Int32 tyresRear,
-    Boolean frontLeftPresent, Boolean frontRightPresent, Boolean rearLeftPresent, Boolean rearRightPresent)
+        public void Player_Tyres__Present(Int32 tyresFront, Int32 tyresRear, Boolean frontLeftPresent,
+            Boolean frontRightPresent, Boolean rearLeftPresent, Boolean rearRightPresent)
         {
             var grip = 2.2;
             Func<Int32, Tyre[]> tyresWithGrip = (Int32 n) => Enumerable.Range(0, n).Select(_ =>
@@ -1143,6 +1161,27 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(leftPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Left").GetDouble());
             Assert.Equal(centrePresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());
             Assert.Equal(rightPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Right").GetDouble());
+        }
+
+        [Fact]
+        public void Player_VehicleDamage()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    VehicleDamage = new VehicleDamage(
+                        AerodynamicsPercent: 0.1,
+                        EnginePercent: 0.2,
+                        SuspensionPercent: 0.3,
+                        TransmissionPercent: 0.4
+                    )
+                })
+            );
+
+            Assert.Equal(0.2, result.Path("CarDamage", "Engine").GetDouble());
+            Assert.Equal(0.4, result.Path("CarDamage", "Transmission").GetDouble());
+            Assert.Equal(0.1, result.Path("CarDamage", "Aerodynamics").GetDouble());
+            Assert.Equal(0.3, result.Path("CarDamage", "Suspension").GetDouble());
         }
 
         #endregion

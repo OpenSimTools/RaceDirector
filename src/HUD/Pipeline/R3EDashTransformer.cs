@@ -525,23 +525,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireSubtypeFront
                 // TireSubtypeRear
 
-                // TODO
-                // BrakeTemp.FrontLeft.CurrentTemp
-                // BrakeTemp.FrontLeft.OptimalTemp
-                // BrakeTemp.FrontLeft.ColdTemp
-                // BrakeTemp.FrontLeft.HotTemp
-                // BrakeTemp.FrontRight.CurrentTemp
-                // BrakeTemp.FrontRight.OptimalTemp
-                // BrakeTemp.FrontRight.ColdTemp
-                // BrakeTemp.FrontRight.HotTemp
-                // BrakeTemp.RearLeft.CurrentTemp
-                // BrakeTemp.RearLeft.OptimalTemp
-                // BrakeTemp.RearLeft.ColdTemp
-                // BrakeTemp.RearLeft.HotTemp
-                // BrakeTemp.RearRight.CurrentTemp
-                // BrakeTemp.RearRight.OptimalTemp
-                // BrakeTemp.RearRight.ColdTemp
-                // BrakeTemp.RearRight.HotTemp
+                w.WriteObject("BrakeTemp", _ =>
+                {
+                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    {
+                        w.WriteObject(tyreName, _ =>
+                        {
+                            w.WriteNumber("CurrentTemp", tyre?.BrakeTemperatures.CurrentTemperature.C ?? -1.0);
+                            w.WriteNumber("OptimalTemp", tyre?.BrakeTemperatures.OptimalTemperature.C ?? - 1.0);
+                            w.WriteNumber("ColdTemp", tyre?.BrakeTemperatures.ColdTemperature.C ?? - 1.0);
+                            w.WriteNumber("HotTemp", tyre?.BrakeTemperatures.HotTemperature.C ?? - 1.0);
+                        });
+                    });
+                });
 
                 // BrakePressure.FrontLeft
                 // BrakePressure.FrontRight
@@ -555,11 +551,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireLoad.RearLeft
                 // TireLoad.RearRight
 
-                // TODO
-                // CarDamage.Engine
-                // CarDamage.Transmission
-                // CarDamage.Aerodynamics
-                // CarDamage.Suspension
+                w.WriteObject("CarDamage", _ =>
+                {
+                    w.WriteNumber("Engine", gt.Player?.VehicleDamage.EnginePercent ?? -1.0);
+                    w.WriteNumber("Transmission", gt.Player?.VehicleDamage.TransmissionPercent ?? -1.0);
+                    w.WriteNumber("Aerodynamics", gt.Player?.VehicleDamage.AerodynamicsPercent ?? -1.0);
+                    w.WriteNumber("Suspension", gt.Player?.VehicleDamage.SuspensionPercent ?? -1.0);
+                });
 
                 // NumCars
 
