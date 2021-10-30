@@ -466,8 +466,21 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TireSpeed.RearLeft
                 // TireSpeed.RearRight
 
-                w.WriteTyres("TireGrip", gt.Player?.Tyres, t => t.Grip, -1.0);
-                w.WriteTyres("TireWear", gt.Player?.Tyres, t => t.Wear, -1.0);
+                w.WriteObject("TireGrip", _ =>
+                {
+                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    {
+                        w.WriteNumber(tyreName, tyre?.Grip ?? -1.0);
+                    });
+                });
+
+                w.WriteObject("TireWear", _ =>
+                {
+                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    {
+                        w.WriteNumber(tyreName, tyre?.Wear ?? -1.0);
+                    });
+                });
 
                 // TireFlatspot.FrontLeft
                 // TireFlatspot.FrontRight
@@ -478,33 +491,34 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TirePressure.RearLeft
                 // TirePressure.RearRight
 
-                w.WriteTyres("TireDirt", gt.Player?.Tyres, t => t.Dirt, -1.0);
+                w.WriteObject("TireDirt", _ =>
+                {
+                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    {
+                        w.WriteNumber(tyreName, tyre?.Dirt ?? -1.0);
+                    });
+                });
 
-                // TODO
-                // TireTemp.FrontLeft.CurrentTemp.Left
-                // TireTemp.FrontLeft.CurrentTemp.Center
-                // TireTemp.FrontLeft.CurrentTemp.Right
-                // TireTemp.FrontLeft.OptimalTemp
-                // TireTemp.FrontLeft.ColdTemp
-                // TireTemp.FrontLeft.HotTemp
-                // TireTemp.FrontRight.CurrentTemp.Left
-                // TireTemp.FrontRight.CurrentTemp.Center
-                // TireTemp.FrontRight.CurrentTemp.Right
-                // TireTemp.FrontRight.OptimalTemp
-                // TireTemp.FrontRight.ColdTemp
-                // TireTemp.FrontRight.HotTemp
-                // TireTemp.RearLeft.CurrentTemp.Left
-                // TireTemp.RearLeft.CurrentTemp.Center
-                // TireTemp.RearLeft.CurrentTemp.Right
-                // TireTemp.RearLeft.OptimalTemp
-                // TireTemp.RearLeft.ColdTemp
-                // TireTemp.RearLeft.HotTemp
-                // TireTemp.RearRight.CurrentTemp.Left
-                // TireTemp.RearRight.CurrentTemp.Center
-                // TireTemp.RearRight.CurrentTemp.Right
-                // TireTemp.RearRight.OptimalTemp
-                // TireTemp.RearRight.ColdTemp
-                // TireTemp.RearRight.HotTemp
+                w.WriteObject("TireTemp", _ =>
+                {
+                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    {
+                        w.WriteObject(tyreName, _ =>
+                        {
+                            var temperatures = tyre?.Temperatures;
+                            w.WriteObject("CurrentTemp", _ =>
+                            {
+                                var currentTemperatures = temperatures?.CurrentTemperatures;
+                                w.WriteNumber("Left", currentTemperatures?.GetValueOrNull(0, 0)?.C ?? -1.0);
+                                w.WriteNumber("Center", currentTemperatures?.GetValueOrNull(0, 1)?.C ?? -1.0);
+                                w.WriteNumber("Right", currentTemperatures?.GetValueOrNull(0, 2)?.C ?? -1.0);
+                            });
+                            w.WriteNumber("OptimalTemp", temperatures?.OptimalTemperature.C ?? -1.0);
+                            w.WriteNumber("ColdTemp", temperatures?.ColdTemperature.C ?? -1.0);
+                            w.WriteNumber("HotTemp", temperatures?.HotTemperature.C ?? -1.0);
+                        });
+                    });
+                });
 
                 // TireTypeFront
                 // TireTypeRear
@@ -654,21 +668,16 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
         }
 
-        private static void WriteTyres(this Utf8JsonWriter writer, String key, ITyre[][]? maybeTyres, Func<ITyre, Double> f, Double defaultValue)
+        private static void ForEachTyre(ITyre[][]? tyres, Action<String, ITyre?> action)
         {
-            var tyres = maybeTyres ?? Array.Empty<ITyre[]>();
-            writer.WriteObject(key, _ => {
-                writer.WriteTyre("FrontLeft", tyres, 0, 0, f, defaultValue);
-                writer.WriteTyre("FrontRight", tyres, 0, 1, f, defaultValue);
-                writer.WriteTyre("RearLeft", tyres, 1, 0, f, defaultValue);
-                writer.WriteTyre("RearRight", tyres, 1, 1, f, defaultValue);
-            });
+            action("FrontLeft", tyres?.GetValueOrNull(0, 0));
+            action("FrontRight", tyres?.GetValueOrNull(0, 1));
+            action("RearLeft", tyres?.GetValueOrNull(1, 0));
+            action("RearRight", tyres?.GetValueOrNull(1, 1));
         }
 
-        private static void WriteTyre(this Utf8JsonWriter writer, String tyreName, ITyre[][] tyres, int i, int j, Func<ITyre, Double> f, Double defaultValue)
-        {
-            writer.WriteNumber(tyreName, (i < tyres.Length && j < tyres[i].Length) ? f(tyres[i][j]) : defaultValue);
-        }
+        private static T? GetValueOrNull<T>(this T[][] array, Int32 i, Int32 j) =>
+            (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
 
 
         private static String ToBase64(String? value)

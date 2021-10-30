@@ -11,6 +11,7 @@ using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using System.Text;
+using System.Linq;
 
 namespace HUD.Tests.Pipeline
 {
@@ -607,18 +608,18 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
             Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
             Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
-            Assert.Equal(-1.0, result.Path("TireGrip", "FrontLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireGrip", "FrontRight").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireGrip", "RearLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireGrip", "RearRight").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireWear", "FrontLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireWear", "FrontRight").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireWear", "RearLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireWear", "RearRight").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireDirt", "FrontLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireDirt", "FrontRight").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireDirt", "RearLeft").GetDouble());
-            Assert.Equal(-1.0, result.Path("TireDirt", "RearRight").GetDouble());
+            foreach (var tyre in new []{ "FrontLeft", "FrontRight", "RearLeft", "RearRight" })
+            {
+                Assert.Equal(-1.0, result.Path("TireGrip", tyre).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireWear", tyre).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireDirt", tyre).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Left").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Center").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Right").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "OptimalTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "ColdTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "HotTemp").GetDouble());
+            }
         }
 
         [Fact]
@@ -1029,39 +1030,119 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void Player_Tyres_BaseFields()
+        public void Player_Tyres()
         {
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new Tyre[][]
+                    Tyres = new []
                     {
-                        new Tyre[]
+                        new []
                         {
-                            tyreFaker.Generate() with { Dirt = 1.00, Grip = 2.00, Wear = 3.00 },
-                            tyreFaker.Generate() with { Dirt = 1.01, Grip = 2.01, Wear = 3.01 },
-                        },
-                        new Tyre[]
-                        {
-                            tyreFaker.Generate() with { Dirt = 1.10, Grip = 2.10, Wear = 3.10 },
-                            tyreFaker.Generate() with { Dirt = 1.11, Grip = 2.11, Wear = 3.11 },
+                            tyreFaker.Generate() with {
+                                Dirt = 1.1,
+                                Grip = 1.2,
+                                Wear = 1.3,
+                                Temperatures = new TemperaturesMatrix(
+                                    CurrentTemperatures: new []
+                                    {
+                                        new [] {
+                                            ITemperature.FromC(3.1),
+                                            ITemperature.FromC(3.2),
+                                            ITemperature.FromC(3.3)
+                                        }
+                                    },
+                                    OptimalTemperature: ITemperature.FromC(2.1),
+                                    ColdTemperature: ITemperature.FromC(2.2),
+                                    HotTemperature: ITemperature.FromC(2.3)
+                                )
+                            }
                         }
                     }
                 })
             );
 
-            Assert.Equal(2.00, result.Path("TireGrip", "FrontLeft").GetDouble());
-            Assert.Equal(2.01, result.Path("TireGrip", "FrontRight").GetDouble());
-            Assert.Equal(2.10, result.Path("TireGrip", "RearLeft").GetDouble());
-            Assert.Equal(2.11, result.Path("TireGrip", "RearRight").GetDouble());
-            Assert.Equal(3.00, result.Path("TireWear", "FrontLeft").GetDouble());
-            Assert.Equal(3.01, result.Path("TireWear", "FrontRight").GetDouble());
-            Assert.Equal(3.10, result.Path("TireWear", "RearLeft").GetDouble());
-            Assert.Equal(3.11, result.Path("TireWear", "RearRight").GetDouble());
-            Assert.Equal(1.00, result.Path("TireDirt", "FrontLeft").GetDouble());
-            Assert.Equal(1.01, result.Path("TireDirt", "FrontRight").GetDouble());
-            Assert.Equal(1.10, result.Path("TireDirt", "RearLeft").GetDouble());
-            Assert.Equal(1.11, result.Path("TireDirt", "RearRight").GetDouble());
+            Assert.Equal(1.2, result.Path("TireGrip", "FrontLeft").GetDouble());
+            Assert.Equal(1.3, result.Path("TireWear", "FrontLeft").GetDouble());
+            Assert.Equal(1.1, result.Path("TireDirt", "FrontLeft").GetDouble());
+            Assert.Equal(3.1, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Left").GetDouble());
+            Assert.Equal(3.2, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());
+            Assert.Equal(3.3, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Right").GetDouble());
+            Assert.Equal(2.1, result.Path("TireTemp", "FrontLeft", "OptimalTemp").GetDouble());
+            Assert.Equal(2.2, result.Path("TireTemp", "FrontLeft", "ColdTemp").GetDouble());
+            Assert.Equal(2.3, result.Path("TireTemp", "FrontLeft", "HotTemp").GetDouble());
+        }
+
+        [Theory]
+        [InlineData(0, 3, false, false, true, true)]
+        [InlineData(1, 2, true, false, true, true)]
+        [InlineData(2, 1, true, true, true, false)]
+        [InlineData(3, 0, true, true, false, false)]
+        public void Player_Tyres__Present(Int32 tyresFront, Int32 tyresRear,
+    Boolean frontLeftPresent, Boolean frontRightPresent, Boolean rearLeftPresent, Boolean rearRightPresent)
+        {
+            var grip = 2.2;
+            Func<Int32, Tyre[]> tyresWithGrip = (Int32 n) => Enumerable.Range(0, n).Select(_ =>
+                tyreFaker.Generate() with { Grip = grip }
+            ).ToArray();
+
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Tyres = new [] {
+                        tyresWithGrip(tyresFront),
+                        tyresWithGrip(tyresRear)
+                    }
+                })
+            );
+
+            Assert.Equal(frontLeftPresent ? grip : -1.0, result.Path("TireGrip", "FrontLeft").GetDouble());
+            Assert.Equal(frontRightPresent ? grip : -1.0, result.Path("TireGrip", "FrontRight").GetDouble());
+            Assert.Equal(rearLeftPresent ? grip : -1.0, result.Path("TireGrip", "RearLeft").GetDouble());
+            Assert.Equal(rearRightPresent ? grip : -1.0, result.Path("TireGrip", "RearRight").GetDouble());
+        }
+
+        [Theory]
+        [InlineData(0, false, false, false)]
+        [InlineData(1, true, false, false)]
+        [InlineData(2, true, true, false)]
+        [InlineData(3, true, true, true)]
+        [InlineData(4, true, true, true)]
+        public void Player_Tyres_Temperatures_CurrentTemperatures__Present(Int32 temperatures, Boolean leftPresent,
+            Boolean centrePresent, Boolean rightPresent)
+        {
+            var temp = 2.2;
+            Func<Int32, Tyre> tyreWithCurrentTemperatures = (Int32 n) =>
+            {
+                var t = tyreFaker.Generate();
+                var currentTemperatures = Enumerable.Range(0, n).Select(_ =>
+                    ITemperature.FromC(temp)
+                ).ToArray();
+                return t with
+                {
+                    Temperatures = t.Temperatures with
+                    {
+                        CurrentTemperatures = new[] {
+                            currentTemperatures
+                        }
+                    }
+                };
+            };
+
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    Tyres = new [] {
+                        new [] {
+                            tyreWithCurrentTemperatures(temperatures)
+                        }
+                    }
+                })
+            );
+
+            Assert.Equal(leftPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Left").GetDouble());
+            Assert.Equal(centrePresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());
+            Assert.Equal(rightPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Right").GetDouble());
         }
 
         #endregion
