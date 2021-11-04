@@ -231,8 +231,20 @@ namespace RaceDirector.Pipeline.Telemetry
             UInt32 Position { get; }      // R3E DriverData[].Place or Position
             UInt32 PositionClass { get; } // R3E DriverData[].PlaceClass or PositionClass
 
+            /// <summary>
+            /// Gap to the car in front, if any.
+            /// </summary>
+            /// <remarks>
+            /// Always positive.
+            /// </remarks>
             TimeSpan? GapAhead { get; } // R3E DriverData[].TimeDeltaAhead
-            
+
+            /// <summary>
+            /// Gap to the car in behind, if any.
+            /// </summary>
+            /// <remarks>
+            /// Always positive.
+            /// </remarks>
             TimeSpan? GapBehind { get; } // R3E DriverData[].TimeDeltaBehind
             // TODO Have Gap.{Ahead|Behind} and ClassGap.{Ahead|Behind}?
 

@@ -10,7 +10,6 @@ using AutoBogus;
 using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
-using System.Text;
 using System.Linq;
 
 namespace HUD.Tests.Pipeline
@@ -1484,8 +1483,63 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles()
         {
-            // TODO Split fields
             var result = ToR3EDash(NewGt() with {
+                Vehicles = new[] {
+                    vehicleFaker.Generate() with
+                    {
+                        Id = 2,
+                        DriverName = "Blues",
+                        ClassPerformanceIndex = 3,
+                        PositionClass = 4,
+                        CompletedLaps = 7,
+                        CurrentLapDistance = DistanceFraction.Of(IDistance.FromM(0.11), 1.0),
+                        Location = new Vector3<IDistance>(
+                            X: IDistance.FromM(0.12),
+                            Y: IDistance.FromM(0.13),
+                            Z: IDistance.FromM(0.14)
+                        )
+                    }
+                }
+            });
+
+            var driverData = result.Path("DriverData").EnumerateArray().Single();
+
+            Assert.Equal("Blues", driverData.Path("DriverInfo", "Name").GetBase64String());
+            Assert.Equal(2, driverData.Path("DriverInfo", "SlotId").GetInt32());
+            Assert.Equal(3, driverData.Path("DriverInfo", "ClassPerformanceIndex").GetInt32());
+            Assert.Equal(4, driverData.Path("PlaceClass").GetInt32());
+            Assert.Equal(0.11, driverData.Path("LapDistance").GetDouble());
+            Assert.Equal(0.12, driverData.Path("Position", "X").GetDouble());
+            Assert.Equal(0.13, driverData.Path("Position", "Y").GetDouble());
+            Assert.Equal(0.14, driverData.Path("Position", "Z").GetDouble());
+            Assert.Equal(7, driverData.Path("CompletedLaps").GetInt32());
+        }
+
+        [Fact]
+        public void Vehicles_BestLapTime__Null()
+        {
+            var result = ToR3EDash(NewGt() with
+            {
+                Vehicles = new[] {
+                    vehicleFaker.Generate() with
+                    {
+                        BestLapTime = null
+                    }
+                }
+            });
+
+            var driverData = result.Path("DriverData").EnumerateArray().Single();
+
+            Assert.Equal(-1.0, driverData.Path("SectorTimeBestSelf", "Sector1").GetDouble());
+            Assert.Equal(-1.0, driverData.Path("SectorTimeBestSelf", "Sector2").GetDouble());
+            Assert.Equal(-1.0, driverData.Path("SectorTimeBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void Vehicles_BestLapTime()
+        {
+            var result = ToR3EDash(NewGt() with
+            {
                 Vehicles = new[] {
                     vehicleFaker.Generate() with
                     {
@@ -1520,18 +1574,47 @@ namespace HUD.Tests.Pipeline
 
             var driverData = result.Path("DriverData").EnumerateArray().Single();
 
-            Assert.Equal("Blues", driverData.Path("DriverInfo", "Name").GetBase64String());
-            Assert.Equal(2, driverData.Path("DriverInfo", "SlotId").GetInt32());
-            Assert.Equal(3, driverData.Path("DriverInfo", "ClassPerformanceIndex").GetInt32());
-            Assert.Equal(4, driverData.Path("PlaceClass").GetInt32());
-            Assert.Equal(0.11, driverData.Path("LapDistance").GetDouble());
-            Assert.Equal(0.12, driverData.Path("Position", "X").GetDouble());
-            Assert.Equal(0.13, driverData.Path("Position", "Y").GetDouble());
-            Assert.Equal(0.14, driverData.Path("Position", "Z").GetDouble());
-            Assert.Equal(7, driverData.Path("CompletedLaps").GetInt32());
             Assert.Equal(0.08, driverData.Path("SectorTimeBestSelf", "Sector1").GetDouble());
             Assert.Equal(0.09, driverData.Path("SectorTimeBestSelf", "Sector2").GetDouble());
             Assert.Equal(0.10, driverData.Path("SectorTimeBestSelf", "Sector3").GetDouble());
+        }
+
+        [Fact]
+        public void Vehicles_Gaps__Null()
+        {
+            var result = ToR3EDash(NewGt() with
+            {
+                Vehicles = new[] {
+                    vehicleFaker.Generate() with
+                    {
+                        GapAhead = null,
+                        GapBehind = null
+                    }
+                }
+            });
+
+            var driverData = result.Path("DriverData").EnumerateArray().Single();
+
+            Assert.Equal(-1.0, driverData.Path("TimeDeltaFront").GetDouble());
+            Assert.Equal(-1.0, driverData.Path("TimeDeltaBehind").GetDouble());
+        }
+
+        [Fact]
+        public void Vehicles_Gaps()
+        {
+            var result = ToR3EDash(NewGt() with
+            {
+                Vehicles = new[] {
+                    vehicleFaker.Generate() with
+                    {
+                        GapAhead = TimeSpan.FromSeconds(0.05),
+                        GapBehind = TimeSpan.FromSeconds(0.06)
+                    }
+                }
+            });
+
+            var driverData = result.Path("DriverData").EnumerateArray().Single();
+
             Assert.Equal(0.05, driverData.Path("TimeDeltaFront").GetDouble());
             Assert.Equal(0.06, driverData.Path("TimeDeltaBehind").GetDouble());
         }
