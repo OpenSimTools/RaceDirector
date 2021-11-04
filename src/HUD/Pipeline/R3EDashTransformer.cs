@@ -6,7 +6,6 @@ using RaceDirector.Plugin.HUD.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
-using System.Linq;
 using System.Text;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
