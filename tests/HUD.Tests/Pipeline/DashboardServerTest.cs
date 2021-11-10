@@ -15,8 +15,9 @@ namespace HUD.Tests.Pipeline
         private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
-                // For some reason AutoBogus/Moq can't generate IDistance
+                // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
                 .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+                .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
         [Fact]

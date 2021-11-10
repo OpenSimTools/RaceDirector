@@ -20,15 +20,17 @@ namespace HUD.Tests.Pipeline
         private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
-                // For some reason AutoBogus/Moq can't generate IDistance
+                // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
                 .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+                .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
         private static Bogus.Faker<Vehicle> vehicleFaker = new AutoFaker<Vehicle>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
-                // For some reason AutoBogus/Moq can't generate IDistance
+                // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
                 .WithOverride(agoc => IDistance.FromM(agoc.Faker.Random.Int()))
+                .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
         private static Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
@@ -114,7 +116,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__Empty()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(new DistanceFraction[0]));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(new IFraction<IDistance>[0]));
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -125,7 +127,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__NotAllSectors()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20)));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -136,7 +138,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__AllSectors()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.Of(IDistance.FromM(100), 0.10, 0.20, 0.30)));
+            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20, 0.30)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -280,12 +282,14 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void FocusedVehicle_DriverName()
+        public void FocusedVehicle_CurrentDriver()
         {
             var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
-                        DriverName = "Blues"
+                        CurrentDriver = new Driver(
+                            Name: "Blues"
+                        )
                     })
                 );
 
@@ -1488,15 +1492,17 @@ namespace HUD.Tests.Pipeline
                     vehicleFaker.Generate() with
                     {
                         Id = 2,
-                        DriverName = "Blues",
                         ClassPerformanceIndex = 3,
                         PositionClass = 4,
                         CompletedLaps = 7,
-                        CurrentLapDistance = DistanceFraction.Of(IDistance.FromM(0.11), 1.0),
+                        CurrentLapDistance = DistanceFraction.FromTotal(IDistance.FromM(0.11), 1.0),
                         Location = new Vector3<IDistance>(
                             X: IDistance.FromM(0.12),
                             Y: IDistance.FromM(0.13),
                             Z: IDistance.FromM(0.14)
+                        ),
+                        CurrentDriver = new Driver(
+                            Name: "Blues"
                         )
                     }
                 }
@@ -1543,13 +1549,6 @@ namespace HUD.Tests.Pipeline
                 Vehicles = new[] {
                     vehicleFaker.Generate() with
                     {
-                        Id = 2,
-                        DriverName = "Blues",
-                        ClassPerformanceIndex = 3,
-                        PositionClass = 4,
-                        GapAhead = TimeSpan.FromSeconds(0.05),
-                        GapBehind = TimeSpan.FromSeconds(0.06),
-                        CompletedLaps = 7,
                         BestLapTime = new LapTime(
                             Overall: TimeSpan.FromSeconds(0), // <==
                             Sectors: new Sectors(
@@ -1561,12 +1560,6 @@ namespace HUD.Tests.Pipeline
                                     TimeSpan.FromSeconds(0.10)
                                 }
                             )
-                        ),
-                        CurrentLapDistance = DistanceFraction.Of(IDistance.FromM(0.11), 1.0),
-                        Location = new Vector3<IDistance>(
-                            X: IDistance.FromM(0.12),
-                            Y: IDistance.FromM(0.13),
-                            Z: IDistance.FromM(0.14)
                         )
                     }
                 }
@@ -1648,7 +1641,7 @@ static class GameTelemetryExensions
         return gt.WithEvent(e => e with { Track = f( e.Track) });
     }
 
-    public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, DistanceFraction[] sectorsEnd)
+    public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, IFraction<IDistance>[] sectorsEnd)
     {
         return gt.WithTrack(track => track with { SectorsEnd = sectorsEnd });
     }

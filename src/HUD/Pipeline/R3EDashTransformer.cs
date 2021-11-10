@@ -324,7 +324,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 });
 
                 // NOTE it is the current vehicle's driver name rather than player name!
-                w.WriteString("PlayerName", ToBase64(gt.FocusedVehicle?.DriverName));
+                w.WriteString("PlayerName", ToBase64(gt.FocusedVehicle?.CurrentDriver.Name));
 
                 w.WriteNumber("ControlType", gt.FocusedVehicle?.ControlType switch
                 {
@@ -539,7 +539,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                         {
                             w.WriteObject("DriverInfo", _ =>
                             {
-                                w.WriteString("Name", ToBase64(vehicle.DriverName));
+                                w.WriteString("Name", ToBase64(vehicle.CurrentDriver.Name));
 
                                 // DriverData[].DriverInfo.CarNumber
                                 // DriverData[].DriverInfo.ClassId
@@ -712,17 +712,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             var pitWindow = gt.Session.Requirements.PitWindow;
             if (pitWindow is null)
                 return 0; // Disabled
-            var vehicle = gt.FocusedVehicle;
-            if (vehicle?.Pit.MandatoryStopsDone > 0)
+            var focusedVehicle = gt.FocusedVehicle;
+            if (focusedVehicle?.Pit.MandatoryStopsDone > 0)
                 return 4; // Completed
 
             switch (pitWindow)
             {
                 case Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish):
-                    if (vehicle is null)
+                    if (focusedVehicle is null)
                         return -1; // Unavailable
-                    if (start.Laps.CompareTo(vehicle.CompletedLaps) > 0
-                        || 0 > finish.Laps.CompareTo(vehicle.CompletedLaps))
+                    if (start.Laps.CompareTo(focusedVehicle.CompletedLaps) > 0
+                        || 0 > finish.Laps.CompareTo(focusedVehicle.CompletedLaps))
                         return 1; // Closed
                     break;
                 case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish):
@@ -732,7 +732,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     break;
             }
 
-            if (vehicle?.Pit.PitLaneState == PitLaneState.Stopped)
+            if (focusedVehicle?.Pit.PitLaneState == PitLaneState.Stopped)
                 return 3; // Stopped
             else
                 return 2; // Open
@@ -770,7 +770,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             if (player is null)
                 return -1;
             Int32 pitAction = 0;
-            foreach ((PlayerPitStop playerPitstopFlag, Int32 pitActionFlag) in pitActionMapping)
+            foreach (var (playerPitstopFlag, pitActionFlag) in pitActionMapping)
                 if (player.PitStop.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
             return pitAction;
         }

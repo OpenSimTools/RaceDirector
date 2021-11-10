@@ -46,6 +46,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             /// <remarks>
             /// Usually available when driving, in monitor or replay.
+            /// It may contain higher resolution telemetry in some games.
             /// </remarks>
             IFocusedVehicle? FocusedVehicle { get; }
 
@@ -220,8 +221,6 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             UInt32 Id { get; } // R3E DriverData[].DriverInfo.SlotId
 
-            String DriverName { get; } // R3E DriverData[].DriverInfo.Name
-
             Int32 ClassPerformanceIndex { get; } // R3E DriverData[].DriverInfo.ClassPerformanceIndex
 
             EngineType EngineType { get; }
@@ -307,7 +306,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IDriver
         {
-            String Name { get; }
+            String Name { get; } // R3E DriverData[].DriverInfo.Name
             // TODO ranking, ...
         }
 
@@ -437,12 +436,14 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IRawInputs : IInputs
         {
+            Double Steering { get; }
+
             IAngle SteerWheelRange { get; } // R3E SteerWheelRangeDegrees
         }
 
         public interface IInputs
         {
-            Double Steering { get; }
+            // TODO Add nullable steering? R3E doesn't show it but RF2 and AMS2 do.
 
             Double Throttle { get; }
 
@@ -564,6 +565,7 @@ namespace RaceDirector.Pipeline.Telemetry
             ITemperature HotTemperature { get; }
         }
 
+        // TODO define quantities (litres, gallons, etc.)
         public interface IFuel
         {
             Double Max { get; } // R3E FuelCapacity

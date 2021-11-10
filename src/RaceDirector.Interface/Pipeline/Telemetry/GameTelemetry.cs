@@ -37,7 +37,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record TrackLayout
     (
-        DistanceFraction[] SectorsEnd
+        IFraction<IDistance>[] SectorsEnd
     ) : ITrackLayout
     {
         IFraction<IDistance>[] ITrackLayout.SectorsEnd => SectorsEnd;
@@ -80,7 +80,6 @@ namespace RaceDirector.Pipeline.Telemetry
     public record Vehicle
     (
         UInt32 Id,
-        String DriverName,
         Int32 ClassPerformanceIndex,
         EngineType EngineType,
         ControlType ControlType,
@@ -94,7 +93,7 @@ namespace RaceDirector.Pipeline.Telemetry
         LapTime? PreviousLapTime,
         LapTime? BestLapTime,
         Sectors? BestSectors,
-        DistanceFraction CurrentLapDistance,
+        IFraction<IDistance> CurrentLapDistance,
         Vector3<IDistance> Location,
         Orientation? Orientation,
         ISpeed Speed,
@@ -108,10 +107,9 @@ namespace RaceDirector.Pipeline.Telemetry
         ILapTime? IVehicle.PreviousLapTime => PreviousLapTime;
         ILapTime? IVehicle.BestLapTime => BestLapTime;
         ISectors? IVehicle.BestSectors => BestSectors;
-        IFraction<IDistance> IVehicle.CurrentLapDistance => CurrentLapDistance;
         IDriver IVehicle.CurrentDriver => CurrentDriver;
         IVehiclePit IVehicle.Pit => Pit;
-        IInputs IFocusedVehicle.Inputs => Inputs;
+        IInputs? IFocusedVehicle.Inputs => Inputs;
     }
 
     public record Driver
@@ -130,7 +128,6 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record Inputs
     (
-        Double Steering,
         Double Throttle,
         Double Brake,
         Double Clutch
@@ -175,10 +172,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record RawInputs
     (
-        Double Steering,
         Double Throttle,
         Double Brake,
         Double Clutch,
+        Double Steering,
         IAngle SteerWheelRange
     ) : IRawInputs;
 
@@ -296,16 +293,40 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;
 
-    public record DistanceFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
+    public static class DistanceFraction
     {
-        private Lazy<IDistance> _LazyValue = new Lazy<IDistance>(() => Total * Fraction);
+        public static IFraction<IDistance> Of(IDistance value, Double fraction) =>
+            new OfFraction(value, fraction);
 
-        public IDistance Value => _LazyValue.Value;
+        public static IFraction<IDistance> FromTotal(IDistance total, IDistance value) =>
+            new OfTotalValue(total, value);
 
-        public static DistanceFraction Of(IDistance total, Double fraction) => new DistanceFraction(total, fraction);
+        public static IFraction<IDistance> FromTotal(IDistance total, Double fraction) =>
+            new OfTotalFraction(total, fraction);
 
-        public static DistanceFraction[] Of(IDistance total, params Double[] fractions) =>
-            fractions.Select(f => new DistanceFraction(total, f)).ToArray();
+        public static IFraction<IDistance>[] FromTotal(IDistance total, params Double[] fractions) =>
+            fractions.Select(f => new OfTotalFraction(total, f)).ToArray();
+
+        private record OfFraction(IDistance Value, Double Fraction) : IFraction<IDistance>
+        {
+            private Lazy<IDistance> _LazyTotal = new Lazy<IDistance>(() => Value / Fraction);
+
+            public IDistance Total => _LazyTotal.Value;
+        }
+
+        private record OfTotalFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
+        {
+            private Lazy<IDistance> _LazyValue = new Lazy<IDistance>(() => Total * Fraction);
+
+            public IDistance Value => _LazyValue.Value;
+        }
+
+        private record OfTotalValue(IDistance Total, IDistance Value) : IFraction<IDistance>
+        {
+            private Lazy<Double> _LazyValue = new Lazy<Double>(() => Value / Total);
+
+            public Double Fraction => _LazyValue.Value;
+        }
     }
 
     public record BoundedValue<T>(T Value, T Total) : IBoundedValue<T>;
