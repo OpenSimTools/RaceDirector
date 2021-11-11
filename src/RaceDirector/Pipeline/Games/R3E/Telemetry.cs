@@ -18,7 +18,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 UsingVR: sharedData.GameUsingVr > 0,
                 Event: Event(sharedData),
                 Session: Session(sharedData),
-                Vehicles: new Vehicle[0],
+                Vehicles: Vehicles(sharedData),
                 FocusedVehicle: FocusedVehicle(sharedData),
                 Player: Player(sharedData)
             );
@@ -578,7 +578,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private static String? FromNullTerminatedByteArray(byte[] nullTerminated)
         {
-            var nullIndex = Array.IndexOf(nullTerminated, '\0');
+            var nullIndex = Array.IndexOf<byte>(nullTerminated, 0);
             if (nullIndex <= 0)
                 return null;
             return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
