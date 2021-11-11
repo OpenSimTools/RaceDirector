@@ -11,7 +11,8 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         public static GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
-            // TODO check major version
+            if (sharedData.VersionMajor != (Int32)Contrib.Constant.VersionMajor.R3E_VERSION_MAJOR)
+                throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
                 GameState: GameState(sharedData),
                 UsingVR: sharedData.GameUsingVr > 0,

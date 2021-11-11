@@ -1,6 +1,4 @@
-﻿using RaceDirector.Pipeline.Telemetry;
-using RaceDirector.Pipeline.Telemetry.Physics;
-using RaceDirector.Pipeline.Utils;
+﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks.Dataflow;
