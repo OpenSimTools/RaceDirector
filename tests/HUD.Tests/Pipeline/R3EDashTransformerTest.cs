@@ -293,7 +293,7 @@ namespace HUD.Tests.Pipeline
                     })
                 );
 
-            Assert.Equal("Blues", result.Path("PlayerName").GetBase64String());
+            Assert.Equal("Blues\0", result.Path("PlayerName").GetBase64String());
         }
 
         [Theory]
@@ -1510,7 +1510,7 @@ namespace HUD.Tests.Pipeline
 
             var driverData = result.Path("DriverData").EnumerateArray().Single();
 
-            Assert.Equal("Blues", driverData.Path("DriverInfo", "Name").GetBase64String());
+            Assert.Equal("Blues\0", driverData.Path("DriverInfo", "Name").GetBase64String());
             Assert.Equal(2, driverData.Path("DriverInfo", "SlotId").GetInt32());
             Assert.Equal(3, driverData.Path("DriverInfo", "ClassPerformanceIndex").GetInt32());
             Assert.Equal(4, driverData.Path("PlaceClass").GetInt32());

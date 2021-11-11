@@ -233,7 +233,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
                 CurrentDriver: new Driver(
-                    Name: FromBase64(driverData.DriverInfo.Name) ?? "TODO"
+                    Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name) ?? "TODO"
                 ),
                 Pit: new VehiclePit(
                     StopsDone: 42, // TODO
@@ -257,7 +257,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (driverDataIndex < 0)
                 return null;
             var currentDriverData = sharedData.DriverData[driverDataIndex];
-            var driverName = FromBase64(sharedData.PlayerName);
+            var driverName = FromNullTerminatedByteArray(sharedData.PlayerName);
             if (driverName == null)
                 return null;
 
@@ -576,12 +576,12 @@ namespace RaceDirector.Pipeline.Games.R3E
             }
         }
 
-        private static String? FromBase64(byte[] encodedValue)
+        private static String? FromNullTerminatedByteArray(byte[] nullTerminated)
         {
-            var encodedString = Encoding.UTF8.GetString(encodedValue);
-            if ("AA==".Equals(encodedString))
+            var nullIndex = Array.IndexOf(nullTerminated, '\0');
+            if (nullIndex <= 0)
                 return null;
-            return Encoding.UTF8.GetString(Convert.FromBase64String(encodedString));
+            return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
         }
 
         private static Vector3<O> Vector3<I, O>(Contrib.Data.Vector3<I> value, Func<I, O> f) =>

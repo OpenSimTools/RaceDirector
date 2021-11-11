@@ -659,9 +659,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static String ToBase64(String? value)
         {
-            if (value is null)
-                return "AA==";
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            var valueToEncode = $"{value ?? ""}\0";
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(valueToEncode));
         }
 
         private static UInt32 ToUInt32(Double? value)
