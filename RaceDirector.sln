@@ -21,7 +21,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD", "src\Plugins\HUD\HUD.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD.Tests", "tests\Plugins\HUD.Tests\HUD.Tests.csproj", "{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceDirector.Plugin", "src\RaceDirector.Plugin\RaceDirector.Plugin.csproj", "{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Plugin", "src\RaceDirector.Plugin\RaceDirector.Plugin.csproj", "{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E2ETest", "E2ETest\E2ETest.csproj", "{81F13736-B3F0-44DA-AD5F-3E548606D17A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6E4A9171-ACDF-4777-886F-2324C7F600F0} = {6E4A9171-ACDF-4777-886F-2324C7F600F0}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +62,10 @@ Global
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81F13736-B3F0-44DA-AD5F-3E548606D17A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81F13736-B3F0-44DA-AD5F-3E548606D17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81F13736-B3F0-44DA-AD5F-3E548606D17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81F13736-B3F0-44DA-AD5F-3E548606D17A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

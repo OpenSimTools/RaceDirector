@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RaceDirector.Pipeline.Games.R3E
 {
-    internal class Telemetry
+    public class Telemetry
     {
         private const uint MaxLights = 5;
 
@@ -18,7 +18,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private StatefulAid<Aid> statefulCornering = StatefulAid.Generic();
         private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? pitWindowState = null;
 
-        internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
+        public GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
             if (sharedData.VersionMajor != Contrib.Constant.VersionMajor)
                 throw new ArgumentException("Incompatible major version");
