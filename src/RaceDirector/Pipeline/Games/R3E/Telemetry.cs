@@ -197,6 +197,8 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private static Vehicle[] Vehicles(Contrib.Data.Shared sharedData)
         {
+            if (sharedData.NumCars <= 0)
+                return Array.Empty<Vehicle>();
             var vehicles = new Vehicle[sharedData.NumCars];
             for (var i = 0; i < sharedData.NumCars; i++)
             {
