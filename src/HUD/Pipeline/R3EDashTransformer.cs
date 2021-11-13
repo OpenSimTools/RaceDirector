@@ -324,7 +324,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 });
 
                 // NOTE it is the current vehicle's driver name rather than player name!
-                w.WriteString("PlayerName", ToBase64(gt.FocusedVehicle?.CurrentDriver.Name));
+                w.WriteBase64String("PlayerName", NullTerminated(gt.FocusedVehicle?.CurrentDriver.Name));
 
                 w.WriteNumber("ControlType", gt.FocusedVehicle?.ControlType switch
                 {
@@ -539,7 +539,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                         {
                             w.WriteObject("DriverInfo", _ =>
                             {
-                                w.WriteString("Name", ToBase64(vehicle.CurrentDriver.Name));
+                                w.WriteBase64String("Name", NullTerminated(vehicle.CurrentDriver.Name));
 
                                 // DriverData[].DriverInfo.CarNumber
                                 // DriverData[].DriverInfo.ClassId
@@ -657,11 +657,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
 
 
-        private static String ToBase64(String? value)
-        {
-            var valueToEncode = $"{value ?? ""}\0";
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(valueToEncode));
-        }
+        private static byte[] NullTerminated(String? value) => Encoding.UTF8.GetBytes($"{value ?? ""}\0");
 
         private static UInt32 ToUInt32(Double? value)
         {
