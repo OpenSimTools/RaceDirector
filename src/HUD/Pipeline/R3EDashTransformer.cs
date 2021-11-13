@@ -302,17 +302,18 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 w.WriteSectors("BestIndividualSectorTimeLeaderClass", gt.Player?.ClassBestSectors?.Individual, st => st.TotalSeconds);
 
                 // IncidentPoints
-                // VehicleInfo.Name
-                // VehicleInfo.CarNumber
-                // VehicleInfo.ClassId
-                // VehicleInfo.ModelId
-                // VehicleInfo.TeamId
-                // VehicleInfo.LiveryId
-                // VehicleInfo.ManufacturerId
-                // VehicleInfo.UserId
 
                 w.WriteObject("VehicleInfo", _ =>
                 {
+                    // VehicleInfo.Name
+                    // VehicleInfo.CarNumber
+                    // VehicleInfo.ClassId
+                    // VehicleInfo.ModelId
+                    // VehicleInfo.TeamId
+                    // VehicleInfo.LiveryId
+                    // VehicleInfo.ManufacturerId
+                    // VehicleInfo.UserId
+
                     w.WriteNumber("SlotId", ToInt32(gt.FocusedVehicle?.Id));
                     w.WriteNumber("ClassPerformanceIndex", gt.FocusedVehicle?.ClassPerformanceIndex ?? -1);
                     w.WriteNumber("EngineType", gt.FocusedVehicle?.EngineType switch {
