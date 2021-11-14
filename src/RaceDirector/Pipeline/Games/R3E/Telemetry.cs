@@ -230,7 +230,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     )
                 ),
                 BestSectors: null, // TODO
-                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(driverData.LapDistance), IDistance.FromM(sharedData.LayoutLength)),
+                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LayoutLength), IDistance.FromM(driverData.LapDistance)),
                 Location: Vector3(driverData.Position, i => IDistance.FromM(i)),
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
@@ -290,7 +290,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     )
                 ),
                 BestSectors: null, // TODO
-                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
+                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
                 Location: Vector3(sharedData.CarCgLocation, i => IDistance.FromM(i)),
                 Orientation: Orientation(sharedData.CarOrientation, i => IAngle.FromRad(i)),
                 Speed: ISpeed.FromMPS(sharedData.CarSpeed),
@@ -397,9 +397,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 Engine: new Engine
                 (
-                    Speed: IAngularSpeed.FromRevPS(sharedData.EngineRps),
-                    UpshiftSpeed: IAngularSpeed.FromRevPS(sharedData.UpshiftRps),
-                    MaxSpeed: IAngularSpeed.FromRevPS(sharedData.MaxEngineRps)
+                    Speed: IAngularSpeed.FromRadPS(sharedData.EngineRps),
+                    UpshiftSpeed: IAngularSpeed.FromRadPS(sharedData.UpshiftRps),
+                    MaxSpeed: IAngularSpeed.FromRadPS(sharedData.MaxEngineRps)
                 ),
                 CgLocation: Vector3(sharedData.Player.Position, i => IDistance.FromM(i)),
                 Orientation: new Orientation
@@ -535,11 +535,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Grip: extract.CurrentTyre(sharedData.TireGrip),
                 Wear: extract.CurrentTyre(sharedData.TireWear),
                 Temperatures: new TemperaturesMatrix(
-                    CurrentTemperatures: new ITemperature[][] {
-                        new ITemperature[] { ITemperature.FromC(tyreTemps.CurrentTemp.Left) },
-                        new ITemperature[] { ITemperature.FromC(tyreTemps.CurrentTemp.Center) },
-                        new ITemperature[] { ITemperature.FromC(tyreTemps.CurrentTemp.Right) }
-                    },
+                    CurrentTemperatures: new ITemperature[][] { new ITemperature[] {
+                        ITemperature.FromC(tyreTemps.CurrentTemp.Left),
+                        ITemperature.FromC(tyreTemps.CurrentTemp.Center),
+                        ITemperature.FromC(tyreTemps.CurrentTemp.Right)
+                    }},
                     OptimalTemperature: ITemperature.FromC(tyreTemps.OptimalTemp),
                     ColdTemperature: ITemperature.FromC(tyreTemps.ColdTemp),
                     HotTemperature: ITemperature.FromC(tyreTemps.HotTemp)
