@@ -24,5 +24,11 @@ namespace RaceDirector.Plugin.HUD.Utils
             f(writer);
             writer.WriteEndArray();
         }
+
+        public static void WriteNumber(this Utf8JsonWriter writer, String propertyName, Double value, Int32 decimals)
+        {
+            var roundedValue = Decimal.Round(new Decimal(value), decimals);
+            writer.WriteNumber(propertyName, roundedValue);
+        }
     }
 }

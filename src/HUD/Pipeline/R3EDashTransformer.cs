@@ -12,8 +12,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
-        private static readonly UInt32 MajorVersion = 2;
-        private static readonly UInt32 MinorVersion = 11;
+        public static readonly UInt32 MajorVersion = 2;
+        public static readonly UInt32 MinorVersion = 11;
+
+        public static readonly Int32 DecimalDigits = 3;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -121,7 +123,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TrackId
                 // LayoutId
 
-                w.WriteNumber("LayoutLength", (gt.Event?.Track.Length?.M) ?? -1.0);
+                w.WriteRoundedNumber("LayoutLength", (gt.Event?.Track.Length?.M) ?? -1.0);
 
                 w.WriteSectors("SectorStartFactors", gt.Event?.Track.SectorsEnd, st => st.Fraction);
 
@@ -152,7 +154,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     RaceDuration.TimePlusLapsDuration => 2,
                     _ => -1
                 });
-                w.WriteNumber("SessionPitSpeedLimit", gt.Session?.PitSpeedLimit.MPS ?? -1.0);
+                w.WriteRoundedNumber("SessionPitSpeedLimit", gt.Session?.PitSpeedLimit.MPS ?? -1.0);
                 w.WriteNumber("SessionPhase", gt.Session?.Phase switch
                 {
                     SessionPhase.Garage => 1,
@@ -173,13 +175,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     LapsDuration length => length.Laps,
                     _ => -1
                 });
-                w.WriteNumber("SessionTimeDuration", gt.Session?.Length switch
+                w.WriteRoundedNumber("SessionTimeDuration", gt.Session?.Length switch
                 {
                     TimeDuration length => length.Time.TotalSeconds,
                     TimePlusLapsDuration length => length.Time.TotalSeconds,
                     _ => -1.0
                 });
-                w.WriteNumber("SessionTimeRemaining", gt.Session?.Length switch
+                w.WriteRoundedNumber("SessionTimeRemaining", gt.Session?.Length switch
                 {
                     TimeDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
                     TimePlusLapsDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
@@ -215,8 +217,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // PitMenuState.ButtonBottom
 
                 w.WriteNumber("PitState", PitStateAsInt32(gt));
-                w.WriteNumber("PitTotalDuration", gt.FocusedVehicle?.Pit.PitLaneTime?.TotalSeconds ?? -1.0);
-                w.WriteNumber("PitElapsedTime", gt.FocusedVehicle?.Pit.PitStallTime?.TotalSeconds ?? -1.0);
+                w.WriteRoundedNumber("PitTotalDuration", gt.FocusedVehicle?.Pit.PitLaneTime?.TotalSeconds ?? -1.0);
+                w.WriteRoundedNumber("PitElapsedTime", gt.FocusedVehicle?.Pit.PitStallTime?.TotalSeconds ?? -1.0);
                 w.WriteNumber("PitAction", PitActionAsInt32(gt.Player));
 
                 // NumPitstopsPerformed
@@ -266,8 +268,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 // TrackSector
 
-                w.WriteNumber("LapDistance", gt.FocusedVehicle?.CurrentLapDistance.Value.M ?? -1.0);
-                w.WriteNumber("LapDistanceFraction", gt.FocusedVehicle?.CurrentLapDistance.Fraction ?? -1.0);
+                w.WriteRoundedNumber("LapDistance", gt.FocusedVehicle?.CurrentLapDistance.Value.M ?? -1.0);
+                w.WriteRoundedNumber("LapDistanceFraction", gt.FocusedVehicle?.CurrentLapDistance.Fraction ?? -1.0);
 
                 // LapTimeBestLeader
                 // LapTimeBestLeaderClass
@@ -275,7 +277,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesSessionBestLap.Sector2
                 // SectorTimesSessionBestLap.Sector3
 
-                w.WriteNumber("LapTimeBestSelf", gt.FocusedVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteRoundedNumber("LapTimeBestSelf", gt.FocusedVehicle?.BestLapTime?.Overall.TotalSeconds ?? -1.0);
                 w.WriteSectors("SectorTimesBestSelf", gt.FocusedVehicle?.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
 
                 // LapTimePreviousSelf
@@ -283,7 +285,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // SectorTimesPreviousSelf.Sector2
                 // SectorTimesPreviousSelf.Sector3
 
-                w.WriteNumber("LapTimeCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
+                w.WriteRoundedNumber("LapTimeCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Overall.TotalSeconds ?? -1.0);
                 w.WriteSectors("SectorTimesCurrentSelf", gt.FocusedVehicle?.CurrentLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
 
                 // LapTimeDeltaLeader
@@ -291,7 +293,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TimeDeltaFront => Player or -1.0
                 // TimeDeltaBehind => Player or -1.0
 
-                w.WriteNumber("TimeDeltaBestSelf", gt.Player?.PersonalBestDelta?.TotalSeconds ?? -1000.0);
+                w.WriteRoundedNumber("TimeDeltaBestSelf", gt.Player?.PersonalBestDelta?.TotalSeconds ?? -1000.0);
 
                 w.WriteSectors("BestIndividualSectorTimeSelf", gt.Player?.PersonalBestSectors?.Individual, st => st.TotalSeconds);
 
@@ -336,11 +338,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     _ => -1
                 });
 
-                w.WriteNumber("CarSpeed", gt.FocusedVehicle?.Speed.MPS ?? -1.0);
+                w.WriteRoundedNumber("CarSpeed", gt.FocusedVehicle?.Speed.MPS ?? -1.0);
                 
-                w.WriteNumber("EngineRps", gt.Player?.Engine.Speed.RadPS ?? -1.0);
-                w.WriteNumber("MaxEngineRps", gt.Player?.Engine.MaxSpeed.RadPS ?? -1.0);
-                w.WriteNumber("UpshiftRps", gt.Player?.Engine.UpshiftSpeed.RadPS ?? -1.0);
+                w.WriteRoundedNumber("EngineRps", gt.Player?.Engine.Speed.RadPS ?? -1.0);
+                w.WriteRoundedNumber("MaxEngineRps", gt.Player?.Engine.MaxSpeed.RadPS ?? -1.0);
+                w.WriteRoundedNumber("UpshiftRps", gt.Player?.Engine.UpshiftSpeed.RadPS ?? -1.0);
 
                 // Gear
                 // NumGears
@@ -354,9 +356,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // LocalAcceleration.Z
                 // TotalMass
 
-                w.WriteNumber("FuelLeft", gt.Player?.Fuel.Left ?? -1.0);
-                w.WriteNumber("FuelCapacity", gt.Player?.Fuel.Max ?? -1.0);
-                w.WriteNumber("FuelPerLap", gt.Player?.Fuel.PerLap ?? -1.0);
+                w.WriteRoundedNumber("FuelLeft", gt.Player?.Fuel.Left ?? -1.0);
+                w.WriteRoundedNumber("FuelCapacity", gt.Player?.Fuel.Max ?? -1.0);
+                w.WriteRoundedNumber("FuelPerLap", gt.Player?.Fuel.PerLap ?? -1.0);
 
                 // EngineWaterTemp
                 // EngineOilTemp
@@ -364,13 +366,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // EngineOilPressure
                 // TurboPressure
 
-                w.WriteNumber("Throttle", gt.FocusedVehicle?.Inputs?.Throttle ?? -1.0);
-                w.WriteNumber("ThrottleRaw", gt.Player?.RawInputs.Throttle ?? -1.0);
-                w.WriteNumber("Brake", gt.FocusedVehicle?.Inputs?.Brake ?? -1.0);
-                w.WriteNumber("BrakeRaw", gt.Player?.RawInputs.Brake ?? -1.0);
-                w.WriteNumber("Clutch", gt.FocusedVehicle?.Inputs?.Clutch ?? -1.0);
-                w.WriteNumber("ClutchRaw", gt.Player?.RawInputs.Clutch ?? -1.0);
-                w.WriteNumber("SteerInputRaw", gt.Player?.RawInputs.Steering ?? 0.0);
+                w.WriteRoundedNumber("Throttle", gt.FocusedVehicle?.Inputs?.Throttle ?? -1.0);
+                w.WriteRoundedNumber("ThrottleRaw", gt.Player?.RawInputs.Throttle ?? -1.0);
+                w.WriteRoundedNumber("Brake", gt.FocusedVehicle?.Inputs?.Brake ?? -1.0);
+                w.WriteRoundedNumber("BrakeRaw", gt.Player?.RawInputs.Brake ?? -1.0);
+                w.WriteRoundedNumber("Clutch", gt.FocusedVehicle?.Inputs?.Clutch ?? -1.0);
+                w.WriteRoundedNumber("ClutchRaw", gt.Player?.RawInputs.Clutch ?? -1.0);
+                w.WriteRoundedNumber("SteerInputRaw", gt.Player?.RawInputs.Steering ?? 0.0);
 
                 // SteerLockDegrees
 
@@ -417,8 +419,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Available", ToInt32(gt.Player?.PushToPass?.Available));
                     w.WriteNumber("Engaged", ToInt32(gt.Player?.PushToPass?.Engaged));
                     w.WriteNumber("AmountLeft", ToInt32(gt.Player?.PushToPass?.ActivationsLeft?.Value));
-                    w.WriteNumber("EngagedTimeLeft", gt.Player?.PushToPass?.EngagedTimeLeft.TotalSeconds ?? -1.0); // not sure
-                    w.WriteNumber("WaitTimeLeft", gt.Player?.PushToPass?.WaitTimeLeft.TotalSeconds ?? -1.0); // not sure
+                    w.WriteRoundedNumber("EngagedTimeLeft", gt.Player?.PushToPass?.EngagedTimeLeft.TotalSeconds ?? -1.0); // not sure
+                    w.WriteRoundedNumber("WaitTimeLeft", gt.Player?.PushToPass?.WaitTimeLeft.TotalSeconds ?? -1.0); // not sure
                 });
 
                 // BrakeBias
@@ -440,7 +442,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 {
                     ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
                     {
-                        w.WriteNumber(tyreName, tyre?.Grip ?? -1.0);
+                        w.WriteRoundedNumber(tyreName, tyre?.Grip ?? -1.0);
                     });
                 });
 
@@ -448,7 +450,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 {
                     ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
                     {
-                        w.WriteNumber(tyreName, tyre?.Wear ?? -1.0);
+                        w.WriteRoundedNumber(tyreName, tyre?.Wear ?? -1.0);
                     });
                 });
 
@@ -465,7 +467,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 {
                     ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
                     {
-                        w.WriteNumber(tyreName, tyre?.Dirt ?? -1.0);
+                        w.WriteRoundedNumber(tyreName, tyre?.Dirt ?? -1.0);
                     });
                 });
 
@@ -479,13 +481,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                             w.WriteObject("CurrentTemp", _ =>
                             {
                                 var currentTemperatures = temperatures?.CurrentTemperatures;
-                                w.WriteNumber("Left", currentTemperatures?.GetValueOrNull(0, 0)?.C ?? -1.0);
-                                w.WriteNumber("Center", currentTemperatures?.GetValueOrNull(0, 1)?.C ?? -1.0);
-                                w.WriteNumber("Right", currentTemperatures?.GetValueOrNull(0, 2)?.C ?? -1.0);
+                                w.WriteRoundedNumber("Left", currentTemperatures?.GetValueOrNull(0, 0)?.C ?? -1.0);
+                                w.WriteRoundedNumber("Center", currentTemperatures?.GetValueOrNull(0, 1)?.C ?? -1.0);
+                                w.WriteRoundedNumber("Right", currentTemperatures?.GetValueOrNull(0, 2)?.C ?? -1.0);
                             });
-                            w.WriteNumber("OptimalTemp", temperatures?.OptimalTemperature.C ?? -1.0);
-                            w.WriteNumber("ColdTemp", temperatures?.ColdTemperature.C ?? -1.0);
-                            w.WriteNumber("HotTemp", temperatures?.HotTemperature.C ?? -1.0);
+                            w.WriteRoundedNumber("OptimalTemp", temperatures?.OptimalTemperature.C ?? -1.0);
+                            w.WriteRoundedNumber("ColdTemp", temperatures?.ColdTemperature.C ?? -1.0);
+                            w.WriteRoundedNumber("HotTemp", temperatures?.HotTemperature.C ?? -1.0);
                         });
                     });
                 });
@@ -501,10 +503,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     {
                         w.WriteObject(tyreName, _ =>
                         {
-                            w.WriteNumber("CurrentTemp", tyre?.BrakeTemperatures.CurrentTemperature.C ?? -1.0);
-                            w.WriteNumber("OptimalTemp", tyre?.BrakeTemperatures.OptimalTemperature.C ?? - 1.0);
-                            w.WriteNumber("ColdTemp", tyre?.BrakeTemperatures.ColdTemperature.C ?? - 1.0);
-                            w.WriteNumber("HotTemp", tyre?.BrakeTemperatures.HotTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("CurrentTemp", tyre?.BrakeTemperatures.CurrentTemperature.C ?? -1.0);
+                            w.WriteRoundedNumber("OptimalTemp", tyre?.BrakeTemperatures.OptimalTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("ColdTemp", tyre?.BrakeTemperatures.ColdTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("HotTemp", tyre?.BrakeTemperatures.HotTemperature.C ?? - 1.0);
                         });
                     });
                 });
@@ -523,10 +525,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("CarDamage", _ =>
                 {
-                    w.WriteNumber("Engine", gt.Player?.VehicleDamage.EnginePercent ?? -1.0);
-                    w.WriteNumber("Transmission", gt.Player?.VehicleDamage.TransmissionPercent ?? -1.0);
-                    w.WriteNumber("Aerodynamics", gt.Player?.VehicleDamage.AerodynamicsPercent ?? -1.0);
-                    w.WriteNumber("Suspension", gt.Player?.VehicleDamage.SuspensionPercent ?? -1.0);
+                    w.WriteRoundedNumber("Engine", gt.Player?.VehicleDamage.EnginePercent ?? -1.0);
+                    w.WriteRoundedNumber("Transmission", gt.Player?.VehicleDamage.TransmissionPercent ?? -1.0);
+                    w.WriteRoundedNumber("Aerodynamics", gt.Player?.VehicleDamage.AerodynamicsPercent ?? -1.0);
+                    w.WriteRoundedNumber("Suspension", gt.Player?.VehicleDamage.SuspensionPercent ?? -1.0);
                 });
 
                 // NumCars
@@ -560,7 +562,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                             // DriverData[].Place
 
                             w.WriteNumber("PlaceClass", vehicle.PositionClass);
-                            w.WriteNumber("LapDistance", vehicle.CurrentLapDistance.Value.M);
+                            w.WriteRoundedNumber("LapDistance", vehicle.CurrentLapDistance.Value.M);
                             w.WriteCoordinates("Position", vehicle.Location, d => d.M);
 
                             // DriverData[].TrackSector
@@ -577,8 +579,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                             // DriverData[].SectorTimePreviousSelf.Sector3
 
                             w.WriteSectors("SectorTimeBestSelf", vehicle.BestLapTime?.Sectors.Cumulative, st => st.TotalSeconds);
-                            w.WriteNumber("TimeDeltaFront", vehicle.GapAhead?.TotalSeconds ?? -1.0);
-                            w.WriteNumber("TimeDeltaBehind", vehicle.GapBehind?.TotalSeconds ?? -1.0);
+                            w.WriteRoundedNumber("TimeDeltaFront", vehicle.GapAhead?.TotalSeconds ?? -1.0);
+                            w.WriteRoundedNumber("TimeDeltaBehind", vehicle.GapBehind?.TotalSeconds ?? -1.0);
 
                             // DriverData[].PitStopStatus
                             // DriverData[].InPitlane
@@ -605,13 +607,18 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
+        public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, Double value)
+        {
+            writer.WriteNumber(propertyName, value, DecimalDigits);
+        }
+
         private static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, Double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    writer.WriteNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
+                    writer.WriteRoundedNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
                 }
             });
         }
@@ -620,9 +627,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             writer.WriteObject(propertyName, _ =>
             {
-                writer.WriteNumber("X", v is not null ? f(v.X) : 0.0);
-                writer.WriteNumber("Y", v is not null ? f(v.Y) : 0.0);
-                writer.WriteNumber("Z", v is not null ? f(v.Z) : 0.0);
+                writer.WriteRoundedNumber("X", v is not null ? f(v.X) : 0.0);
+                writer.WriteRoundedNumber("Y", v is not null ? f(v.Y) : 0.0);
+                writer.WriteRoundedNumber("Z", v is not null ? f(v.Z) : 0.0);
             });
         }
 
@@ -630,9 +637,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             writer.WriteObject(propertyName, _ =>
             {
-                writer.WriteNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
-                writer.WriteNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
-                writer.WriteNumber("Roll", v is not null ? f(v.Roll) : 0.0);
+                writer.WriteRoundedNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
+                writer.WriteRoundedNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
+                writer.WriteRoundedNumber("Roll", v is not null ? f(v.Roll) : 0.0);
             });
         }
 
@@ -640,9 +647,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             writer.WriteObject(propertyName, _ =>
             {
-                writer.WriteNumber("X", v is not null ? f(v.Pitch) : 0.0);
-                writer.WriteNumber("Y", v is not null ? f(v.Yaw) : 0.0);
-                writer.WriteNumber("Z", v is not null ? f(v.Roll) : 0.0);
+                writer.WriteRoundedNumber("X", v is not null ? f(v.Pitch) : 0.0);
+                writer.WriteRoundedNumber("Y", v is not null ? f(v.Yaw) : 0.0);
+                writer.WriteRoundedNumber("Z", v is not null ? f(v.Roll) : 0.0);
             });
         }
 

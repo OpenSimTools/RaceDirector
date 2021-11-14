@@ -1277,9 +1277,9 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_PitSpeedLimit()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(1.0) }));
+            var result = ToR3EDash(NewGt().WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(0.1) }));
 
-            Assert.Equal(1.0, result.Path("SessionPitSpeedLimit").GetInt32());
+            Assert.Equal(0.1, result.Path("SessionPitSpeedLimit").GetDouble());
         }
 
         [Theory]
