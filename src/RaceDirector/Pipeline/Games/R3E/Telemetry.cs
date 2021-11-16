@@ -71,7 +71,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Length: maybeSessionLength,
                 Requirements: sessionRequirements,
                 PitSpeedLimit: ISpeed.FromMPS(sharedData.SessionPitSpeedLimit),
-                ElapsedTime: TimeSpan.FromSeconds(42), // TODO
+                ElapsedTime: TimeSpan.FromSeconds(sharedData.SessionTimeDuration - sharedData.SessionTimeRemaining), // TODO overtime? add both?
                 StartLights: StartLights(sharedData.StartLights),
                 BestLap: null, // TODO
                 BestSectors: null // TODO
@@ -109,10 +109,10 @@ namespace RaceDirector.Pipeline.Games.R3E
                 2 => (sharedData.RaceSessionLaps.Race2, sharedData.RaceSessionMinutes.Race2),
                 3 => (sharedData.RaceSessionLaps.Race3, sharedData.RaceSessionMinutes.Race3),
                 _ => (-1, -1)
-            };
-            if (laps >= 0)
+            }; // -1 no race, 0 not used, >0 used
+            if (laps > 0)
             {
-                if (minutes >= 0)
+                if (minutes > 0)
                     return new Pipeline.Telemetry.V0.RaceDuration.TimePlusLapsDuration
                     (
                         Time: TimeSpan.FromMinutes(minutes),
@@ -128,7 +128,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             }
             else
             {
-                if (minutes >= 0)
+                if (minutes > 0)
                     return new Pipeline.Telemetry.V0.RaceDuration.TimeDuration
                     (
                         Time: TimeSpan.FromMinutes(minutes),
@@ -216,10 +216,10 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
                 PositionClass: SafeUInt32(driverData.PlaceClass),
-                GapAhead: NullableTimeSpan(driverData.TimeDeltaFront),
-                GapBehind: NullableTimeSpan(driverData.TimeDeltaBehind),
+                GapAhead: NullableTimeSpan(driverData.TimeDeltaFront),   // TODO ********* check when close to a lapped car
+                GapBehind: NullableTimeSpan(driverData.TimeDeltaBehind), // TODO ********* check when being lapped
                 CompletedLaps: SafeUInt32(driverData.CompletedLaps),
-                CurrentLapValid: true, // TODO
+                CurrentLapValid: driverData.CurrentLapValid > 0,
                 CurrentLapTime: null, // TODO
                 PreviousLapTime: null, // TODO
                 BestLapTime: new LapTime(
@@ -273,7 +273,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 GapAhead: null, // TODO
                 GapBehind: null, // TODO
                 CompletedLaps: SafeUInt32(currentDriverData.CompletedLaps),
-                CurrentLapValid: currentDriverData.CurrentLapValid > 0,
+                CurrentLapValid: sharedData.CurrentLapValid > 0, // of course different from CurrentLapValid for the current vehicle!
                 CurrentLapTime: new LapTime(
                     Overall: TimeSpan.FromSeconds(sharedData.LapTimeCurrentSelf),
                     Sectors: new Sectors(
@@ -290,7 +290,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     )
                 ),
                 BestSectors: null, // TODO
-                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
+                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
                 Location: Vector3(sharedData.CarCgLocation, i => IDistance.FromM(i)),
                 Orientation: Orientation(sharedData.CarOrientation, i => IAngle.FromRad(i)),
                 Speed: ISpeed.FromMPS(sharedData.CarSpeed),
@@ -355,8 +355,8 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private static Player? Player(Contrib.Data.Shared sharedData)
         {
-            // TODO wrong! in monitor or replay simulation ticks is 0
-            if (sharedData.Player.GameSimulationTicks <= 0)
+            // TODO some of this is present in replay/monitor
+            if (sharedData.VehicleInfo.UserId < 0)
                 return null;
             return new Player
             (
@@ -420,7 +420,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 PersonalBestDelta: TimeSpan.FromSeconds(sharedData.TimeDeltaBestSelf),
                 Drs: ActivationToggled(sharedData.Drs, sharedData),
-                PushToPass: null, // TODO
+                PushToPass: WaitTimeToggled(sharedData.PushToPass, sharedData),
                 PitStop: PlayerPitStop(sharedData),
                 GameFlags: GameFlags(sharedData.Flags)
             );
@@ -452,13 +452,13 @@ namespace RaceDirector.Pipeline.Games.R3E
         private static Pipeline.Telemetry.V0.Flags GameFlags(Contrib.Data.Flags flags)
         {
             var gameFlags = Pipeline.Telemetry.V0.Flags.None;
-            if (flags.Yellow > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.Yellow;
-            if (flags.Blue > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.Blue;
-            if (flags.Black > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.Black;
-            if (flags.Green > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.Green;
-            if (flags.Checkered > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.Checkered;
-            if (flags.White > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.White;
-            if (flags.BlackAndWhite > 1) gameFlags |= Pipeline.Telemetry.V0.Flags.BlackAndWhite;
+            if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Yellow;
+            if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Blue;
+            if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Black;
+            if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Green;
+            if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Checkered;
+            if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.White;
+            if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.BlackAndWhite;
             return gameFlags;
         }
 

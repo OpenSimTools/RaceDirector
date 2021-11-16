@@ -40,12 +40,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 // AllDriversOffset
                 // DriverDataSize
+
                 // GamePaused
 
-                w.WriteNumber("GameInMenus", MatchAsInt32(gt.GameState, GameState.Menu));
-                w.WriteNumber("GameInReplay", MatchAsInt32(gt.GameState, GameState.Replay));
-
-                w.WriteNumber("GameUsingVr", ToInt32(gt.UsingVR));
+                w.WriteNumber("GameInMenus", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Menu));
+                w.WriteNumber("GameInReplay", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Replay));
+                w.WriteNumber("GameUsingVr", gt.Session is null ? -1 : ToInt32(gt.UsingVR));
 
                 w.WriteObject("Player", _ =>
                 {
@@ -227,6 +227,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("Flags", _ =>
                 {
+                    // TODO unset flags are creative changing from -1 to 0 depending on situation and flag colour
+
                     w.WriteNumber("Yellow", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Yellow)));
 
                     // Flags.YellowCausedIt
@@ -242,7 +244,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Green", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Green)));
                     w.WriteNumber("Checkered", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Checkered)));
                     w.WriteNumber("White", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.White)));
-                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite)));
+                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite))); // TODO ************ THIS IS NOT A FLAG
                 });
 
                 // Position
@@ -322,7 +324,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                         EngineType.Combustion => 0,
                         EngineType.Electric => 1,
                         EngineType.Hybrid => 2,
-                        _ => -1
+                        _ => 3 // !!!
                     });
                 });
 
@@ -426,7 +428,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // BrakeBias
 
                 w.WriteNumber("DrsNumActivationsTotal", ToInt32(gt.Player?.Drs?.ActivationsLeft?.Total));
-                w.WriteNumber("PtPNumActivationsTotal", ToInt32(gt.Player?.PushToPass?.ActivationsLeft?.Total));
+                w.WriteNumber("PtPNumActivationsTotal", ToInt32(gt.Player?.PushToPass?.ActivationsLeft?.Total)); // ********************** is this per lap?!?!?!?!?!?
 
                 // TireType
                 // TireRps.FrontLeft

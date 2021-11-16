@@ -175,7 +175,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("SectorTimesCurrentSelf", "Sector3").GetDouble());
             Assert.Equal(-1, result.Path("VehicleInfo", "SlotId").GetInt32());
             Assert.Equal(-1, result.Path("VehicleInfo", "ClassPerformanceIndex").GetInt32());
-            Assert.Equal(-1, result.Path("VehicleInfo", "EngineType").GetInt32());
+            Assert.Equal(3, result.Path("VehicleInfo", "EngineType").GetInt32());
             Assert.Equal("AA==", result.Path("PlayerName").GetString());
             Assert.Equal(-1, result.Path("ControlType").GetInt32());
             Assert.Equal(-1.0, result.Path("CarSpeed").GetDouble());
@@ -300,7 +300,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(EngineType.Combustion, 0)]
         [InlineData(EngineType.Electric, 1)]
         [InlineData(EngineType.Hybrid, 2)]
-        [InlineData(EngineType.Unknown, -1)]
+        [InlineData(EngineType.Unknown, 3)]
         public void FocusedVehicle_EngineType(EngineType engineType, Int32 engineTypeId)
         {
             var result = ToR3EDash(NewGt()
@@ -1200,6 +1200,10 @@ namespace HUD.Tests.Pipeline
         public void Session__Null()
         {
             var result = ToR3EDash(NewGt() with { Session = null });
+
+            Assert.Equal(-1, result.Path("GameInMenus").GetInt32());
+            Assert.Equal(-1, result.Path("GameInReplay").GetInt32());
+            Assert.Equal(-1, result.Path("GameUsingVr").GetInt32());
 
             Assert.Equal(-1, result.Path("SessionType").GetInt32());
             Assert.Equal(-1, result.Path("SessionLengthFormat").GetInt32());
