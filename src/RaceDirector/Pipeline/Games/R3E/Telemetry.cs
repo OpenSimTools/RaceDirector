@@ -345,11 +345,11 @@ namespace RaceDirector.Pipeline.Games.R3E
         private static Pipeline.Telemetry.V0.Penalties Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
         {
             var penalties = Pipeline.Telemetry.V0.Penalties.None;
-            if (cutTrackPenalties.DriveThrough > 1) penalties |= Pipeline.Telemetry.V0.Penalties.DriveThrough;
-            if (cutTrackPenalties.StopAndGo > 1) penalties |= Pipeline.Telemetry.V0.Penalties.StopAndGo;
-            if (cutTrackPenalties.PitStop > 1) penalties |= Pipeline.Telemetry.V0.Penalties.PitStop;
-            if (cutTrackPenalties.TimeDeduction > 1) penalties |= Pipeline.Telemetry.V0.Penalties.TimeDeduction;
-            if (cutTrackPenalties.SlowDown > 1) penalties |= Pipeline.Telemetry.V0.Penalties.SlowDown;
+            if (cutTrackPenalties.DriveThrough > 0) penalties |= Pipeline.Telemetry.V0.Penalties.DriveThrough;
+            if (cutTrackPenalties.StopAndGo > 0) penalties |= Pipeline.Telemetry.V0.Penalties.StopAndGo;
+            if (cutTrackPenalties.PitStop > 0) penalties |= Pipeline.Telemetry.V0.Penalties.PitStop;
+            if (cutTrackPenalties.TimeDeduction > 0) penalties |= Pipeline.Telemetry.V0.Penalties.TimeDeduction;
+            if (cutTrackPenalties.SlowDown > 0) penalties |= Pipeline.Telemetry.V0.Penalties.SlowDown;
             return penalties;
         }
 
