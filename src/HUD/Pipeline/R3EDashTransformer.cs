@@ -228,8 +228,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 w.WriteObject("Flags", _ =>
                 {
                     // TODO unset flags are creative changing from -1 to 0 depending on situation and flag colour
+                    //      not all flags available during replay (only black ond checquered)
+                    //      what about monitor and menus?
 
-                    w.WriteNumber("Yellow", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Yellow)));
+                    w.WriteNumber("Yellow", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Yellow))); // TODO **************************** 
 
                     // Flags.YellowCausedIt
                     // Flags.YellowOvertake
@@ -239,12 +241,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    w.WriteNumber("Blue", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Blue)));
-                    w.WriteNumber("Black", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Black)));
-                    w.WriteNumber("Green", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Green)));
-                    w.WriteNumber("Checkered", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.Checkered)));
-                    w.WriteNumber("White", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.White)));
-                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.GameFlags.HasFlag(Flags.BlackAndWhite))); // TODO ************ THIS IS NOT A FLAG
+                    w.WriteNumber("Blue", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Blue)));
+                    w.WriteNumber("Black", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Black)));
+                    w.WriteNumber("Green", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Green)));
+                    w.WriteNumber("Checkered", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Checkered)));
+                    w.WriteNumber("White", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.White)));
+                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.BlackAndWhite))); // TODO **************************** more than one kind!!!!
                 });
 
                 // Position

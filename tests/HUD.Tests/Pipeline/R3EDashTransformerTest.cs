@@ -835,22 +835,22 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
-        [InlineData(Flags.None, 0, 0, 0, 0, 0, 0, 0)]
-        [InlineData(Flags.Yellow, 1, 0, 0, 0, 0, 0, 0)]
-        [InlineData(Flags.Blue, 0, 1, 0, 0, 0, 0, 0)]
-        [InlineData(Flags.Black, 0, 0, 1, 0, 0, 0, 0)]
-        [InlineData(Flags.Green, 0, 0, 0, 1, 0, 0, 0)]
-        [InlineData(Flags.Checkered, 0, 0, 0, 0, 1, 0, 0)]
-        [InlineData(Flags.White, 0, 0, 0, 0, 0, 1, 0)]
-        [InlineData(Flags.BlackAndWhite, 0, 0, 0, 0, 0, 0, 1)]
-        [InlineData(Flags.Blue | Flags.White, 0, 1, 0, 0, 0, 1, 0)]
-        public void Player_GameFlags(Flags gameFlags,
+        [InlineData(IVehicleFlags.None, 0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(IVehicleFlags.Yellow, 1, 0, 0, 0, 0, 0, 0)]
+        [InlineData(IVehicleFlags.Blue, 0, 1, 0, 0, 0, 0, 0)]
+        [InlineData(IVehicleFlags.Black, 0, 0, 1, 0, 0, 0, 0)]
+        [InlineData(IVehicleFlags.Green, 0, 0, 0, 1, 0, 0, 0)]
+        [InlineData(IVehicleFlags.Checkered, 0, 0, 0, 0, 1, 0, 0)]
+        [InlineData(IVehicleFlags.White, 0, 0, 0, 0, 0, 1, 0)]
+        [InlineData(IVehicleFlags.BlackAndWhite, 0, 0, 0, 0, 0, 0, 1)]
+        [InlineData(IVehicleFlags.Blue | IVehicleFlags.White, 0, 1, 0, 0, 0, 1, 0)]
+        public void Player_GameFlags(IVehicleFlags gameFlags,
             Int32 yellow, Int32 blue, Int32 black, Int32 green,
             Int32 checkered, Int32 white, Int32 blackAndWhite)
         {
             var result = ToR3EDash(NewGt()
                 .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
-                .WithPlayer(p => p with { GameFlags = gameFlags }));
+                .WithPlayer(p => p with { Flags = gameFlags }));
 
             Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
             Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());

@@ -4,12 +4,6 @@ using RaceDirector.Pipeline.Telemetry.Physics;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
-    // Notes:
-    // - Sectors are a generic array. Oval racing doesn't have sectors, rally has more than 3.
-    // - Playing has Player that is/has also a Driver, replay has CurrentDriver, menu neither.
-    //   Menu might have a session time if it's in game menu vs main menu.
-    // - Sector times are often -1!
-
     // TODO
     // - What happens in rF2 or ACC before swapping driver?
     //   - rF2 procedure https://simracing-gp.net/topic-568/how_to_driver_swap_procedure
@@ -17,6 +11,14 @@ namespace RaceDirector.Pipeline.Telemetry
 
     namespace V0
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// Sectors are a mapped as a generic array. Oval racing doesn't have sectors, Rally usually has more than 3.
+        /// 
+        /// Playing has Player that is/has also a Driver, replay has CurrentDriver, menu neither.
+        /// </remarks>
         public interface IGameTelemetry
         {
             GameState GameState { get; }
@@ -117,6 +119,9 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <summary>
             /// Time since the session started.
             /// </summary>
+            /// <remarks>
+            /// Menu might have a session time if it's in game menu and the session has started, as opposed to the main menu.
+            /// </remarks>
             TimeSpan ElapsedTime { get; } // R3E Player.GameSimulationTime is 0.0 during replays but SessionTimeRemaining is present!
 
             IStartLights? StartLights { get; }
@@ -124,6 +129,8 @@ namespace RaceDirector.Pipeline.Telemetry
             ILapTime? BestLap { get; }
             
             ISectors? BestSectors { get; }
+
+            ISessionFlags Flags { get; }
         }
 
         public enum SessionType
@@ -155,22 +162,31 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ISessionRequirements
         {
-            UInt32 MandatoryPitStops { get; } // 0 to disable
-            MandatoryPitRequirements MandatoryPitRequirements { get;  }
-
             /// <summary>
             /// Mandatory pit window.
             /// </summary>
             Interval<IPitWindowBoundary>? PitWindow { get; } // R3E PitWindowEnd, PitWindowStart
 
+            /// <summary>
+            /// Mandatory pit stops to be performed (in the pit window if configured)
+            /// </summary>
+            /// <remarks>
+            /// Set to 0 to disable.
+            /// </remarks>
+            UInt32 MandatoryPitStops { get; }
+
+            /// <summary>
+            /// Minimum requirements for mandatory pit stops to count.
+            /// </summary>
+            MandatoryPitRequirements MandatoryPitRequirements { get; }
+
             // TODO
-            //  - driver swap, max stint, tyre change, refuel, ...
-            //    R3E PitStopStatus in DriverData tells if it's 2 or 4 wheels
+            //  - driver swap, max stint, ...
             //    ACC https://www.acc-wiki.info/wiki/Server_Configuration#eventRules.json
         }
 
         [Flags]
-        public enum MandatoryPitRequirements
+        public enum MandatoryPitRequirements // R3E PitStopStatus in DriverData tells if it's 2 or 4 wheels
         {
             None       = 0,
             Fuel       = 1 << 0,
@@ -197,7 +213,7 @@ namespace RaceDirector.Pipeline.Telemetry
             // public record TimeOrLapsDuration(TimeSpan Time, UInt32 Laps) : ISessionDuration;
         }
 
-        // TODO shall we have an array of Off/Red/Green? Or like for flags separate game and real (historic might be different)?
+        // TODO shall we have an array of Off/Red/Green? Or separate game and real (historic might be different)?
         // - F1 or Indycar (standing starts) doesn't show green light at the start
         //   https://www.fia.com/sites/default/files/regulation/file/03__Recommended_light_signals.pdf
         // - Indycar and NASCAR doesn't seem to have lights for rolling starts
@@ -215,6 +231,43 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             Red,
             Green
+        }
+
+        public interface ISessionFlags
+        {
+            TrackFlags Track { get; }
+            SectorFlags[] Sectors { get; }
+            LeaderFlags Leader { get; }
+        }
+
+        public enum TrackFlags
+        {
+            None = 0,
+            Green,
+            Red,
+            FCY,
+            SC,
+            VSC
+            //Code60
+        }
+
+        public enum SectorFlags
+        {
+            None = 0,
+            Yellow
+        }
+
+        public enum LeaderFlags
+        {
+            None = 0,
+            /// <summary>
+            /// Final lap.
+            /// </summary>
+            White,
+            /// <summary>
+            /// Finished the race.
+            /// </summary>
+            Chequered
         }
 
         public interface IVehicle
@@ -280,12 +333,6 @@ namespace RaceDirector.Pipeline.Telemetry
             // IDriver Drivers { get; } // Only one per vehicle in R3E
 
             IVehiclePit Pit { get; }
-
-            // TODO: Replace along with flags. Missing information:
-            //  - how much slow down
-            //  - stop and go times
-            //  - how much time deduction
-            Penalties Penalties { get; }
         }
 
         public enum EngineType
@@ -345,6 +392,177 @@ namespace RaceDirector.Pipeline.Telemetry
         public interface IFocusedVehicle : IVehicle
         {
             IInputs? Inputs { get; }
+
+            /// <summary>
+            /// Flags as displayed by the game.
+            /// </summary>
+            IVehicleFlags Flags { get; }
+        }
+
+        // r3e not all available during replay (only black ond checquered)
+        public interface IVehicleFlags
+        {
+            IGreen? Green { get; }
+            IBlue? Blue { get; }
+            IYellow? Yellow { get; }
+            // IYellowRedStriped { get; }
+            IWhite? White { get; }
+            IChequered Chequered { get; }
+            // IGreenWhiteChequered GreenWhiteChequered { get; }
+            IBlack Black { get; }
+
+            /// <summary>
+            /// Per-bend black and white for unsportsmanlike conduct.
+            /// </summary>
+            IBlackWhite BlackWhite { get; }
+
+            public interface IGreen
+            {
+                GreenReason Reason { get; }
+            }
+
+            public enum GreenReason
+            {
+                Unknown,
+                RaceStart,
+                EndOfYellowSection,
+                ResumeRace
+            }
+
+            public interface IBlue
+            {
+                BlueReason Reason { get; }
+            }
+
+            public enum BlueReason
+            {
+                Unknown,
+                GiveWay,         // NASCAR, IndyCar with yellow stripe
+                TrackObstruction // NASCAR road course
+            }
+
+            public interface IYellow
+            {
+                YellowReason Reason { get; }
+                Boolean OvertakeAllowed { get; }
+                // IDistance ClosestOnTrack { get; }
+                // Boolean? CausedIt { get; }
+            }
+
+            public enum YellowReason
+            {
+                Unknown,
+                SingleVehicle,
+                MultipleVehicles,
+                TrackObstruction // Double waved yellows?
+            }
+
+            public interface IWhite
+            {
+                WhiteReason Reason { get; }
+            }
+
+            public enum WhiteReason
+            {
+                Unknown,
+                /// <summary>
+                /// White flag on track: slow car ahead.
+                /// </summary>
+                /// <remarks>
+                /// <a href="https://forum.sector3studios.com/index.php?threads/flag-rules.7614/">RaceRoom</a> uses the white flag for slow car on track.
+                /// </remarks>
+                SlowCarAhead,
+                /// <summary>
+                /// White flag on the main straight: final lap.
+                /// </summary>
+                /// <remarks>
+                /// <a href="https://iracing.fandom.com/wiki/IRacing_Flags">iRacing</a> uses the white flag only for the final lap.
+                /// </remarks>
+                LastLap
+            }
+
+            public interface IChequered { }
+
+            public interface IBlack
+            {
+                //BlackPenaltyType PenaltyType { get; }
+                BlackReason Reason { get; }
+            }
+
+            //public enum BlackPenaltyType
+            //{
+            //    Unknown,
+            //    Disqualified, // FIA
+            //    ReturnToPits  // NASCAR, IndyCar
+            //}
+
+            public enum BlackReason
+            {
+                Unknown,
+                Cutting, // R3E, ACC
+                EnteringPitsUnderRed, // R3E, ACC PitEntry
+                ExceededDriverStintLimit, // ACC
+                ExitingPitsUnderRed, // R3E, ACC PitExit
+                FailedDriverChange, // R3E
+                FalseStart, // R3E
+                IgnoredBlueFlags, // R3E
+                IgnoredDriveThroughPenalty, // R3E
+                IgnoredDriverStint, // ACC
+                IgnoredPitstopPenalty, // R3E
+                IgnoredStopAndGoPenalty, // R3E
+                IgnoredTimePenalty, // R3E
+                LappedTooManyTimes, // R3E
+                IgnoredMandatoryPit, // R3E, ACC
+                PitlaneSpeeding, // R3E, ACC
+                ThreeDriveThroughsInLap, // R3E
+                WrongWay // R3E, ACC
+                // Trolling // ACC
+            }
+
+            public interface IBlackWhite
+            {
+                IBlackWhitePenalty[] Penalties { get; }
+            }
+
+            interface IBlackWhitePenalty
+            {
+                BlackWhitePenaltyType PenaltyType { get; }
+                BlackWhiteReason Reason { get; }
+            }
+
+            public enum BlackWhitePenaltyType
+            {
+                Unknown,
+                SlowDown,
+                TimePenalty, // ACC's PostRaceTime
+                DriveThrough,
+                PitStop,
+                StopAndGo10, // R3E?
+                StopAndGo20,
+                StopAndGo30,
+                GivePositionBack,
+                RemoveBestLaptime // ACC
+            }
+
+            public enum BlackWhiteReason
+            {
+                Unknown, // ACC TP
+                Cutting, // R3E DT, SG (single, mult), SD (single, mult), ACC DT, SG10, SG20, SG30, BL
+                DrivingTooSlow, // R3E DT
+                FalseStart, // R3E DT, ACC DT
+                IgnoredBlueFlags, // R3E DT
+                IgnoredDriverStint, // ACC DT
+                IgnoredMinimumPitstopDuration, // R3E TP
+                IgnoredPitstopPenalty, // R3E PS
+                IgnoredPitstopWindow, // R3E PS
+                IgnoredSlowDown, // R3E DT
+                IllegallyPassedBeforeFinish, // R3E DT
+                IllegallyPassedBeforeGreen, // R3E DT
+                IllegallyPassedBeforePitEntrance, // R3E DT
+                PitlaneSpeeding, // R3E DT, ACC DT, SG10, SG20, SG30, BL
+                ServedMandatoryPitstopLate, // R3E TP
+                YellowFlagOvertake // R3E SG
+            }
         }
 
         public interface IPlayer
@@ -411,18 +629,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
             PlayerPitStop PitStop { get; }
 
-            // TODO: Replace with something more realistic (see https://en.wikipedia.org/wiki/Racing_flags#Summary)
-            //   but still keeping the original flag information if one is shown.
-            //   iRacing uses the white flag for the final lap https://iracing.fandom.com/wiki/IRacing_Flags
-            //   RaceRoom uses the white flag for slow car on track https://forum.sector3studios.com/index.php?threads/flag-rules.7614/
-            // Missing information:
-            //  - full course and sector yellows
-            //  - yellow distance
-            //  - caused yellow?
-            /// <summary>
-            /// Flags as displayed by the game. In some games they don't match reality.
-            /// </summary>
-            Flags GameFlags { get; }
+            IPlayerWarnings Warnings { get; }
         }
 
         // FIXME
@@ -610,28 +817,14 @@ namespace RaceDirector.Pipeline.Telemetry
             RepairSuspension = 1 << 10
         }
 
-        [Flags]
-        public enum Flags // r3e not all available during replay (only black ond checquered)
+        public interface IPlayerWarnings
         {
-            None          = 0,
-            Black         = 1 << 0,
-            BlackAndWhite = 1 << 1,
-            Blue          = 1 << 2,
-            Checkered     = 1 << 3,
-            Green         = 1 << 4,
-            White         = 1 << 5,
-            Yellow        = 1 << 6
-        }
-
-        [Flags]
-        public enum Penalties
-        {
-            None          = 0,
-            DriveThrough  = 1 << 0,
-            PitStop       = 1 << 1, // ?
-            SlowDown      = 1 << 2,
-            StopAndGo     = 1 << 3,
-            TimeDeduction = 1 << 4
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
         }
     }
 

@@ -152,7 +152,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ActivationToggled? Drs,
         WaitTimeToggled? PushToPass,
         PlayerPitStop PitStop,
-        Flags GameFlags
+        IVehicleFlags Flags
     ) : IPlayer
     {
         IRawInputs IPlayer.RawInputs => RawInputs;

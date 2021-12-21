@@ -449,16 +449,19 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (512, Pipeline.Telemetry.V0.PlayerPitStop.RepairSuspension)
             };
 
-        private static Pipeline.Telemetry.V0.Flags GameFlags(Contrib.Data.Flags flags)
+        private static Pipeline.Telemetry.V0.IVehicleFlags GameFlags(Contrib.Data.Flags flags)
         {
-            var gameFlags = Pipeline.Telemetry.V0.Flags.None;
-            if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Yellow;
-            if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Blue;
-            if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Black;
-            if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Green;
-            if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.Checkered;
-            if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.White;
-            if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.Flags.BlackAndWhite;
+            // TODO return -1 or 0 depending on what state the game is on
+            // only black and checquered available during replay
+            // not sure when in menus
+            var gameFlags = Pipeline.Telemetry.V0.IVehicleFlags.None;
+            if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Yellow; // TODO ****************************
+            if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Blue;
+            if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Black;
+            if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Green;
+            if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Checkered;
+            if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.White;
+            if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.BlackAndWhite; // TODO ****************************
             return gameFlags;
         }
 
