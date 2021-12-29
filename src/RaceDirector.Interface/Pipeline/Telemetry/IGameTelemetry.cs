@@ -61,8 +61,6 @@ namespace RaceDirector.Pipeline.Telemetry
             IPlayer? Player { get; }
         }
 
-        // TODO TODO TODO TODO TODO TODO TODO Don't use enums! Can't extend them!
-        // https://docs.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/enumeration-classes-over-enum-types
         public enum GameState
         {
             Driving,
@@ -276,6 +274,8 @@ namespace RaceDirector.Pipeline.Telemetry
 
             Int32 ClassPerformanceIndex { get; } // R3E DriverData[].DriverInfo.ClassPerformanceIndex
 
+            IRacingStatus RacingStatus { get; } // R3E DriverData[].FinishStatus DriverData[].PenaltyReason ACC penalty
+
             EngineType EngineType { get; }
 
             ControlType ControlType { get; }
@@ -333,6 +333,45 @@ namespace RaceDirector.Pipeline.Telemetry
             // IDriver Drivers { get; } // Only one per vehicle in R3E
 
             IVehiclePit Pit { get; }
+
+            IPenalty[] Penalties { get; }
+        }
+
+        public interface IRacingStatus
+        {
+            public static IRacingStatus Unknown = new SimpleStatus();
+            public static IRacingStatus Racing = new SimpleStatus();
+            public static IRacingStatus Finished = new SimpleStatus();
+            public static IRacingStatus DNF = new SimpleStatus();
+            public static IRacingStatus DNQ = new SimpleStatus();
+            public static IRacingStatus DNS = new SimpleStatus();
+
+            private class SimpleStatus : IRacingStatus { };
+
+            public record DQ(DQReason Reason) : IRacingStatus;
+
+            public enum DQReason
+            {
+                Unknown,
+                Cutting, // R3E, ACC
+                EnteringPitsUnderRed, // R3E, ACC PitEntry
+                ExceededDriverStintLimit, // ACC
+                ExitingPitsUnderRed, // R3E, ACC PitExit
+                FailedDriverChange, // R3E
+                FalseStart, // R3E
+                IgnoredBlueFlags, // R3E
+                IgnoredDriveThroughPenalty, // R3E
+                IgnoredDriverStint, // ACC
+                IgnoredPitstopPenalty, // R3E
+                IgnoredStopAndGoPenalty, // R3E
+                IgnoredTimePenalty, // R3E 
+                LappedTooManyTimes, // R3E
+                IgnoredMandatoryPit, // R3E, ACC
+                PitlaneSpeeding, // R3E, ACC
+                ThreeDriveThroughsInLap, // R3E
+                WrongWay, // R3E, ACC
+                OffTrackBehaviour // ACC Trolling
+            }
         }
 
         public enum EngineType
@@ -389,6 +428,46 @@ namespace RaceDirector.Pipeline.Telemetry
             Exiting    // Heading for pit exit
         }
 
+        public interface IPenalty
+        {
+            PenaltyType Type { get; }
+            PenaltyReason Reason { get; }
+        }
+
+        public enum PenaltyType
+        {
+            Unknown,
+            SlowDown,
+            TimePenalty, // ACC's PostRaceTime
+            DriveThrough,
+            PitStop,
+            StopAndGo10, // R3E?
+            StopAndGo20,
+            StopAndGo30,
+            GivePositionBack,
+            RemoveBestLaptime // ACC
+        }
+
+        public enum PenaltyReason
+        {
+            Unknown, // ACC TP
+            Cutting, // R3E DT, SG (single, mult), SD (single, mult), ACC DT, SG10, SG20, SG30, BL
+            DrivingTooSlow, // R3E DT
+            FalseStart, // R3E DT, ACC DT
+            IgnoredBlueFlags, // R3E DT
+            IgnoredDriverStint, // ACC DT
+            IgnoredMinimumPitstopDuration, // R3E TP
+            IgnoredPitstopPenalty, // R3E PS
+            IgnoredPitstopWindow, // R3E PS
+            IgnoredSlowDown, // R3E DT
+            IllegallyPassedBeforeFinish, // R3E DT
+            IllegallyPassedBeforeGreen, // R3E DT
+            IllegallyPassedBeforePitEntrance, // R3E DT
+            PitlaneSpeeding, // R3E DT, ACC DT, SG10, SG20, SG30, BL
+            ServedMandatoryPitstopLate, // R3E TP
+            YellowFlagOvertake // R3E SG
+        }
+
         public interface IFocusedVehicle : IVehicle
         {
             IInputs? Inputs { get; }
@@ -407,14 +486,23 @@ namespace RaceDirector.Pipeline.Telemetry
             IYellow? Yellow { get; }
             // IYellowRedStriped { get; }
             IWhite? White { get; }
-            IChequered Chequered { get; }
+            IFlag Chequered { get; }
             // IGreenWhiteChequered GreenWhiteChequered { get; }
-            IBlack Black { get; }
+            /// <summary>
+            /// It can mean Disqualified (FIA, with white cross NASCAR and IndyCar) or ReturnToPits (NASCAR and IndyCar).
+            /// </summary>
+            /// <remarks>
+            /// iRacing uses black flag for penalties, other games use the per-bend black and white.
+            /// </remarks>
+            IFlag Black { get; }
 
             /// <summary>
             /// Per-bend black and white for unsportsmanlike conduct.
             /// </summary>
-            IBlackWhite BlackWhite { get; }
+            /// <remarks>
+            /// Most games use this flag for penalties.
+            /// </remarks>
+            IFlag BlackWhite { get; }
 
             public interface IGreen
             {
@@ -481,88 +569,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 LastLap
             }
 
-            public interface IChequered { }
-
-            public interface IBlack
-            {
-                //BlackPenaltyType PenaltyType { get; }
-                BlackReason Reason { get; }
-            }
-
-            //public enum BlackPenaltyType
-            //{
-            //    Unknown,
-            //    Disqualified, // FIA
-            //    ReturnToPits  // NASCAR, IndyCar
-            //}
-
-            public enum BlackReason
-            {
-                Unknown,
-                Cutting, // R3E, ACC
-                EnteringPitsUnderRed, // R3E, ACC PitEntry
-                ExceededDriverStintLimit, // ACC
-                ExitingPitsUnderRed, // R3E, ACC PitExit
-                FailedDriverChange, // R3E
-                FalseStart, // R3E
-                IgnoredBlueFlags, // R3E
-                IgnoredDriveThroughPenalty, // R3E
-                IgnoredDriverStint, // ACC
-                IgnoredPitstopPenalty, // R3E
-                IgnoredStopAndGoPenalty, // R3E
-                IgnoredTimePenalty, // R3E
-                LappedTooManyTimes, // R3E
-                IgnoredMandatoryPit, // R3E, ACC
-                PitlaneSpeeding, // R3E, ACC
-                ThreeDriveThroughsInLap, // R3E
-                WrongWay // R3E, ACC
-                // Trolling // ACC
-            }
-
-            public interface IBlackWhite
-            {
-                IBlackWhitePenalty[] Penalties { get; }
-            }
-
-            interface IBlackWhitePenalty
-            {
-                BlackWhitePenaltyType PenaltyType { get; }
-                BlackWhiteReason Reason { get; }
-            }
-
-            public enum BlackWhitePenaltyType
-            {
-                Unknown,
-                SlowDown,
-                TimePenalty, // ACC's PostRaceTime
-                DriveThrough,
-                PitStop,
-                StopAndGo10, // R3E?
-                StopAndGo20,
-                StopAndGo30,
-                GivePositionBack,
-                RemoveBestLaptime // ACC
-            }
-
-            public enum BlackWhiteReason
-            {
-                Unknown, // ACC TP
-                Cutting, // R3E DT, SG (single, mult), SD (single, mult), ACC DT, SG10, SG20, SG30, BL
-                DrivingTooSlow, // R3E DT
-                FalseStart, // R3E DT, ACC DT
-                IgnoredBlueFlags, // R3E DT
-                IgnoredDriverStint, // ACC DT
-                IgnoredMinimumPitstopDuration, // R3E TP
-                IgnoredPitstopPenalty, // R3E PS
-                IgnoredPitstopWindow, // R3E PS
-                IgnoredSlowDown, // R3E DT
-                IllegallyPassedBeforeFinish, // R3E DT
-                IllegallyPassedBeforeGreen, // R3E DT
-                IllegallyPassedBeforePitEntrance, // R3E DT
-                PitlaneSpeeding, // R3E DT, ACC DT, SG10, SG20, SG30, BL
-                ServedMandatoryPitstopLate, // R3E TP
-                YellowFlagOvertake // R3E SG
-            }
+            public interface IFlag { }
         }
 
         public interface IPlayer
@@ -601,9 +608,11 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             Vector3<IAcceleration> LocalAcceleration { get; } // R3E Player.LocalGforce.*, ACC/AC accG
 
+            LapValidState LapValid { get; }// R3E LapValidState
+
             // TODO player or current vehicle?
             // this is odd because it's related to the player's car class. we could extract it in the session if we compute it outselves
-            ILapTime? ClassBestLap { get; }        // R3E LapTimeBestLeaderClass
+            ILapTime? ClassBestLap { get; } // R3E LapTimeBestLeaderClass
 
             ISectors? ClassBestSectors { get; } // R3E BestIndividualSectorTimeLeaderClass
 
@@ -800,6 +809,13 @@ namespace RaceDirector.Pipeline.Telemetry
             IAngularSpeed MaxSpeed { get; } // R3E MaxEngineRps
         }
 
+        public enum LapValidState
+        {
+            Valid,
+            CurrentInvalid,
+            CurrentAndNextInvalid,
+        }
+
         [Flags]
         public enum PlayerPitStop
         {
@@ -819,12 +835,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IPlayerWarnings
         {
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            IBoundedValue<UInt32>? IncidentPoints { get; } // R3E IncidentPoints / MaxIncidentPoints
+            IBoundedValue<UInt32>? BlueFlagWarnings { get; } // R3E Flags.BlackAndWhite
+            // TrackLimitWarnings // ACC does not expose this in telemetry
+            UInt32 GiveBackPositions { get; } // R3E YellowPositionsGained
         }
     }
 
