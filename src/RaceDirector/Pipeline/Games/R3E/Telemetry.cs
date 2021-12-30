@@ -74,7 +74,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ElapsedTime: TimeSpan.FromSeconds(sharedData.SessionTimeDuration - sharedData.SessionTimeRemaining), // TODO overtime? add both?
                 StartLights: StartLights(sharedData.StartLights),
                 BestLap: null, // TODO
-                BestSectors: null // TODO
+                BestSectors: null, // TODO
+                Flags: new SessionFlags( // TODO
+                    Track: Pipeline.Telemetry.V0.TrackFlags.None,
+                    Sectors: new Pipeline.Telemetry.V0.SectorFlags[0],
+                    Leader: Pipeline.Telemetry.V0.LeaderFlags.None
+                )
             );
         }
 
@@ -212,6 +217,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
+                RacingStatus: Pipeline.Telemetry.V0.IRacingStatus.Unknown, // TODO
                 EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
@@ -244,9 +250,18 @@ namespace RaceDirector.Pipeline.Games.R3E
                     PitLaneTime: null, // TODO
                     PitStallTime: null // TODO
                 ),
-                Penalties: Pipeline.Telemetry.V0.Penalties.None, // TODO
+                Penalties: new Penalty[0], // TODO
                 // IFocusedVehicle only
-                Inputs: null
+                Inputs: null,
+                Flags: new VehicleFlags(
+                    Green: null,
+                    Blue: null,
+                    Yellow: null,
+                    White: null,
+                    Chequered: null,
+                    Black: null,
+                    BlackWhite: null
+                )
             );
         }
 
@@ -266,6 +281,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
+                RacingStatus: Pipeline.Telemetry.V0.IRacingStatus.Unknown, // TODO
                 EngineType: EngineType(sharedData),
                 ControlType: ControlType(sharedData),
                 Position: 42, // TODO
@@ -310,7 +326,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Throttle: sharedData.Throttle,
                     Brake: sharedData.Brake,
                     Clutch: sharedData.Clutch
-                )
+                ),
+                Flags: VehicleFlags(sharedData.Flags)
             );
         }
 
@@ -342,16 +359,45 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private static Pipeline.Telemetry.V0.Penalties Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
+        private static Penalty[] Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
         {
-            var penalties = Pipeline.Telemetry.V0.Penalties.None;
-            if (cutTrackPenalties.DriveThrough > 0) penalties |= Pipeline.Telemetry.V0.Penalties.DriveThrough;
-            if (cutTrackPenalties.StopAndGo > 0) penalties |= Pipeline.Telemetry.V0.Penalties.StopAndGo;
-            if (cutTrackPenalties.PitStop > 0) penalties |= Pipeline.Telemetry.V0.Penalties.PitStop;
-            if (cutTrackPenalties.TimeDeduction > 0) penalties |= Pipeline.Telemetry.V0.Penalties.TimeDeduction;
-            if (cutTrackPenalties.SlowDown > 0) penalties |= Pipeline.Telemetry.V0.Penalties.SlowDown;
-            return penalties;
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            //var penalties = Pipeline.Telemetry.V0.Penalties.None;
+            //if (cutTrackPenalties.DriveThrough > 0) penalties |= Pipeline.Telemetry.V0.Penalties.DriveThrough;
+            //if (cutTrackPenalties.StopAndGo > 0) penalties |= Pipeline.Telemetry.V0.Penalties.StopAndGo;
+            //if (cutTrackPenalties.PitStop > 0) penalties |= Pipeline.Telemetry.V0.Penalties.PitStop;
+            //if (cutTrackPenalties.TimeDeduction > 0) penalties |= Pipeline.Telemetry.V0.Penalties.TimeDeduction;
+            //if (cutTrackPenalties.SlowDown > 0) penalties |= Pipeline.Telemetry.V0.Penalties.SlowDown;
+            //return penalties;
+            return new Penalty[0];
         }
+
+        private static VehicleFlags VehicleFlags(Contrib.Data.Flags flags)
+        {
+            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+            // TODO return -1 or 0 depending on what state the game is on
+            // only black and checquered available during replay
+            // not sure when in menus
+            //var gameFlags = Pipeline.Telemetry.V0.IVehicleFlags.None;
+            //if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Yellow; // TODO ****************************
+            //if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Blue;
+            //if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Black;
+            //if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Green;
+            //if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Checkered;
+            //if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.White;
+            //if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.BlackAndWhite; // TODO ****************************
+            //return gameFlags;
+            return new VehicleFlags(
+                Green: null,
+                Blue: null,
+                Yellow: null,
+                White: null,
+                Chequered: null,
+                Black: null,
+                BlackWhite: null
+            );
+        }
+
 
         private static Player? Player(Contrib.Data.Shared sharedData)
         {
@@ -409,6 +455,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Roll: IAngle.FromDeg(0.0) // TODO
                 ),
                 LocalAcceleration: Vector3(sharedData.Player.LocalAcceleration, i => IAcceleration.FromMPS2(i)),
+                LapValid: Pipeline.Telemetry.V0.LapValidState.Valid, // TODO and move to Vehicle!
                 ClassBestLap: null, // TODO
                 ClassBestSectors: new Sectors( // TODO are these the best sectors of the class leader or the best class sectors???
                     Individual: ValuesPerSector(sharedData.BestIndividualSectorTimeLeaderClass, i => TimeSpan.FromSeconds(i)),
@@ -422,7 +469,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Drs: ActivationToggled(sharedData.Drs, sharedData),
                 PushToPass: WaitTimeToggled(sharedData.PushToPass, sharedData),
                 PitStop: PlayerPitStop(sharedData),
-                GameFlags: GameFlags(sharedData.Flags)
+                Warnings: new PlayerWarnings(null, null, 0) // TODO
             );
         }
 
@@ -448,22 +495,6 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (256, Pipeline.Telemetry.V0.PlayerPitStop.RepairRearWing),
                 (512, Pipeline.Telemetry.V0.PlayerPitStop.RepairSuspension)
             };
-
-        private static Pipeline.Telemetry.V0.IVehicleFlags GameFlags(Contrib.Data.Flags flags)
-        {
-            // TODO return -1 or 0 depending on what state the game is on
-            // only black and checquered available during replay
-            // not sure when in menus
-            var gameFlags = Pipeline.Telemetry.V0.IVehicleFlags.None;
-            if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Yellow; // TODO ****************************
-            if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Blue;
-            if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Black;
-            if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Green;
-            if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Checkered;
-            if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.White;
-            if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.BlackAndWhite; // TODO ****************************
-            return gameFlags;
-        }
 
         private static Orientation Orientation<I>(Contrib.Data.Orientation<I> value, Func<I, IAngle> f) =>
             new Orientation(Yaw: f(value.Yaw), Pitch: f(value.Pitch), Roll: f(value.Roll));

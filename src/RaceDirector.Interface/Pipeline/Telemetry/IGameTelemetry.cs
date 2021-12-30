@@ -334,6 +334,17 @@ namespace RaceDirector.Pipeline.Telemetry
 
             IVehiclePit Pit { get; }
 
+            /// <summary>
+            /// Flags as displayed by the game.
+            /// </summary>
+            /// <remarks>
+            /// Some games (AMS2) show partial flags for all cars, others only for the player's car.
+            /// </remarks>
+            IVehicleFlags Flags { get; }
+
+            /// <summary>
+            /// Penalties for the current vehicle.
+            /// </summary>
             IPenalty[] Penalties { get; }
         }
 
@@ -471,11 +482,6 @@ namespace RaceDirector.Pipeline.Telemetry
         public interface IFocusedVehicle : IVehicle
         {
             IInputs? Inputs { get; }
-
-            /// <summary>
-            /// Flags as displayed by the game.
-            /// </summary>
-            IVehicleFlags Flags { get; }
         }
 
         // r3e not all available during replay (only black ond checquered)
@@ -486,7 +492,7 @@ namespace RaceDirector.Pipeline.Telemetry
             IYellow? Yellow { get; }
             // IYellowRedStriped { get; }
             IWhite? White { get; }
-            IFlag Chequered { get; }
+            IFlag? Chequered { get; }
             // IGreenWhiteChequered GreenWhiteChequered { get; }
             /// <summary>
             /// It can mean Disqualified (FIA, with white cross NASCAR and IndyCar) or ReturnToPits (NASCAR and IndyCar).
@@ -494,7 +500,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// iRacing uses black flag for penalties, other games use the per-bend black and white.
             /// </remarks>
-            IFlag Black { get; }
+            IFlag? Black { get; }
 
             /// <summary>
             /// Per-bend black and white for unsportsmanlike conduct.
@@ -502,7 +508,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// Most games use this flag for penalties.
             /// </remarks>
-            IFlag BlackWhite { get; }
+            IFlag? BlackWhite { get; }
 
             public interface IGreen
             {

@@ -231,7 +231,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     //      not all flags available during replay (only black ond checquered)
                     //      what about monitor and menus?
 
-                    w.WriteNumber("Yellow", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Yellow))); // TODO **************************** 
+                    w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Yellow is not null)));
 
                     // Flags.YellowCausedIt
                     // Flags.YellowOvertake
@@ -241,12 +241,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    w.WriteNumber("Blue", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Blue)));
-                    w.WriteNumber("Black", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Black)));
-                    w.WriteNumber("Green", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Green)));
-                    w.WriteNumber("Checkered", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.Checkered)));
-                    w.WriteNumber("White", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.White)));
-                    w.WriteNumber("BlackAndWhite", ToInt32(gt.Player?.Flags.HasFlag(IVehicleFlags.BlackAndWhite))); // TODO **************************** more than one kind!!!!
+                    w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Blue is not null)));
+                    w.WriteNumber("Black", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Black is not null)));
+                    w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Green is not null)));
+                    w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Chequered is not null)));
+                    w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.White is not null)));
+                    w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.BlackWhite is not null)));
                 });
 
                 // Position
@@ -256,13 +256,14 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // FinishStatus
                 // CutTrackWarnings
 
+                // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
                 w.WriteObject("Penalties", _ =>
                 {
-                    w.WriteNumber("DriveThrough", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.DriveThrough)));
-                    w.WriteNumber("StopAndGo", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.StopAndGo)));
-                    w.WriteNumber("PitStop", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.PitStop)));
-                    w.WriteNumber("TimeDeduction", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.TimeDeduction)));
-                    w.WriteNumber("SlowDown", ToInt32(gt.FocusedVehicle?.Penalties.HasFlag(Penalties.SlowDown)));
+                    w.WriteNumber("DriveThrough", -1);
+                    w.WriteNumber("StopAndGo", -1);
+                    w.WriteNumber("PitStop", -1);
+                    w.WriteNumber("TimeDeduction", -1);
+                    w.WriteNumber("SlowDown", -1);
                 });
 
                 // NumPenalties
@@ -696,21 +697,31 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static Int32 MatchAsInt32<T>(T? value, T constant)
         {
-            if (value is null)
-                return -1;
-            return value.Equals(constant) ? 1 : 0;
+            return ToInt32(value, v => ToInt32(v.Equals(constant)));
         }
 
         private static Int32 ToInt32(IStartLights? startLights)
         {
-            if (startLights is null)
-                return -1;
-            else if (startLights.Colour == LightColour.Green)
-                return 6;
-            else
-                return Convert.ToInt32(5 * startLights.Lit.Value / startLights.Lit.Total);
+            return ToInt32(startLights, sl =>
+            {
+                if (sl.Colour == LightColour.Green)
+                    return 6;
+                else
+                    return Convert.ToInt32(5 * sl.Lit.Value / sl.Lit.Total);
+            });
         }
 
+        private static Int32 ToInt32<T>(T? value, Func<T, Int32> f)
+        {
+            if (value is null)
+                return -1;
+            return f(value);
+        }
+
+        private static Int32 ToInt32(Boolean value)
+        {
+            return value ? 1 : 0;
+        }
 
         private static Int32 PitWindowStatusAsInt32(IGameTelemetry gt)
         {

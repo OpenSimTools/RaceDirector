@@ -2,6 +2,7 @@
 using RaceDirector.Pipeline.Telemetry.V0;
 using System;
 using System.Linq;
+using static RaceDirector.Pipeline.Telemetry.V0.IVehicleFlags;
 
 // TODO this is in the interface project to make testing easier, but it might be abused
 namespace RaceDirector.Pipeline.Telemetry
@@ -53,13 +54,15 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan ElapsedTime,
         StartLights? StartLights,
         LapTime? BestLap,
-        Sectors? BestSectors
+        Sectors? BestSectors,
+        SessionFlags Flags
     ) : ISession
     {
         ISessionRequirements ISession.Requirements => Requirements;
         IStartLights? ISession.StartLights => StartLights;
         ILapTime? ISession.BestLap => BestLap;
         ISectors? ISession.BestSectors => BestSectors;
+        ISessionFlags ISession.Flags => Flags;
     }
 
     public record SessionRequirements
@@ -77,10 +80,17 @@ namespace RaceDirector.Pipeline.Telemetry
         IBoundedValue<uint> IStartLights.Lit => Lit;
     }
 
+    public record SessionFlags(
+        TrackFlags Track,
+        SectorFlags[] Sectors,
+        LeaderFlags Leader
+    ) : ISessionFlags;
+
     public record Vehicle
     (
         UInt32 Id,
         Int32 ClassPerformanceIndex,
+        IRacingStatus RacingStatus,
         EngineType EngineType,
         ControlType ControlType,
         UInt32 Position,
@@ -99,8 +109,9 @@ namespace RaceDirector.Pipeline.Telemetry
         ISpeed Speed,
         Driver CurrentDriver,
         VehiclePit Pit,
-        Penalties Penalties,
-        Inputs? Inputs
+        Penalty[] Penalties,
+        Inputs? Inputs,
+        VehicleFlags Flags
     ) : IFocusedVehicle
     {
         ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
@@ -109,6 +120,8 @@ namespace RaceDirector.Pipeline.Telemetry
         ISectors? IVehicle.BestSectors => BestSectors;
         IDriver IVehicle.CurrentDriver => CurrentDriver;
         IVehiclePit IVehicle.Pit => Pit;
+        IVehicleFlags IVehicle.Flags => Flags;
+        IPenalty[] IVehicle.Penalties => Penalties;
         IInputs? IFocusedVehicle.Inputs => Inputs;
     }
 
@@ -126,12 +139,44 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan? PitStallTime
     ) : IVehiclePit;
 
+    public record Penalty
+    (
+        PenaltyType Type,
+        PenaltyReason Reason
+    ) : IPenalty;
+
     public record Inputs
     (
         Double Throttle,
         Double Brake,
         Double Clutch
     ) : IInputs;
+
+    public record VehicleFlags
+    (
+        GreenFlag? Green,
+        BlueFlag? Blue,
+        YellowFlag? Yellow,
+        WhiteFlag? White,
+        Flag? Chequered,
+        Flag? Black,
+        Flag? BlackWhite
+    ) : IVehicleFlags
+    {
+        IGreen? IVehicleFlags.Green => Green;
+        IBlue? IVehicleFlags.Blue => Blue;
+        IYellow? IVehicleFlags.Yellow => Yellow;
+        IWhite? IVehicleFlags.White => White;
+        IFlag? IVehicleFlags.Chequered => Chequered;
+        IFlag? IVehicleFlags.Black => Black;
+        IFlag? IVehicleFlags.BlackWhite => BlackWhite;
+    }
+
+    public record GreenFlag(GreenReason Reason) : IGreen;
+    public record BlueFlag(BlueReason Reason) : IBlue;
+    public record YellowFlag(YellowReason Reason, Boolean OvertakeAllowed) : IYellow;
+    public record WhiteFlag(WhiteReason Reason) : IWhite;
+    public record Flag() : IFlag;
 
     public record Player
     (
@@ -145,6 +190,7 @@ namespace RaceDirector.Pipeline.Telemetry
         Vector3<IDistance> CgLocation,
         Orientation Orientation,
         Vector3<IAcceleration> LocalAcceleration,
+        LapValidState LapValid,
         LapTime? ClassBestLap,
         Sectors? ClassBestSectors,
         Sectors? PersonalBestSectors,
@@ -152,7 +198,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ActivationToggled? Drs,
         WaitTimeToggled? PushToPass,
         PlayerPitStop PitStop,
-        IVehicleFlags Flags
+        PlayerWarnings Warnings
     ) : IPlayer
     {
         IRawInputs IPlayer.RawInputs => RawInputs;
@@ -168,6 +214,7 @@ namespace RaceDirector.Pipeline.Telemetry
         IActivationToggled? IPlayer.Drs => Drs;
         IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
         PlayerPitStop IPlayer.PitStop => PitStop;
+        IPlayerWarnings IPlayer.Warnings => Warnings;
     }
 
     public record RawInputs
@@ -293,7 +340,14 @@ namespace RaceDirector.Pipeline.Telemetry
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;
 
-    public static class DistanceFraction
+    public record PlayerWarnings
+    (
+        IBoundedValue<UInt32>? IncidentPoints,
+        IBoundedValue<UInt32>? BlueFlagWarnings,
+        UInt32 GiveBackPositions
+    ) : IPlayerWarnings;
+
+public static class DistanceFraction
     {
         public static IFraction<IDistance> Of(IDistance value, Double fraction) =>
             new OfFraction(value, fraction);

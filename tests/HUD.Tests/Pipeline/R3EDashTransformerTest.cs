@@ -17,7 +17,8 @@ namespace HUD.Tests.Pipeline
     [UnitTest]
     public class R3EDashTransformerTest
     {
-        private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
+        // Note: these cannot be created concurrently, so cannot be static.
+        private Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -25,7 +26,7 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private static Bogus.Faker<Vehicle> vehicleFaker = new AutoFaker<Vehicle>()
+        private Bogus.Faker<Vehicle> vehicleFaker = new AutoFaker<Vehicle>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -33,10 +34,10 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private static Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
+        private Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
             .Configure(b => b.WithBinder<MoqBinder>());
 
-        // Have to create one par test: concurrent access seems to confuse AutoBogus
+        // Have to create one par test: concurrent access seems to confuse AutoBogus.
         private GameTelemetry NewGt() => gtFaker.Generate();
 
         [Fact]
@@ -159,6 +160,13 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PitState").GetInt32());
             Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
             Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
+            Assert.Equal(-1, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "BlackAndWhite").GetInt32());
             Assert.Equal(-1, result.Path("PositionClass").GetInt32());
             Assert.Equal(-1, result.Path("Penalties", "DriveThrough").GetInt32());
             Assert.Equal(-1, result.Path("Penalties", "StopAndGo").GetInt32());
@@ -375,31 +383,31 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(5.6, result.Path("CarOrientation", "Roll").GetDouble());
         }
 
-        [Theory]
-        [InlineData(Penalties.None, 0, 0, 0, 0, 0)]
-        [InlineData(Penalties.DriveThrough, 1, 0, 0, 0, 0)]
-        [InlineData(Penalties.StopAndGo, 0, 1, 0, 0, 0)]
-        [InlineData(Penalties.PitStop, 0, 0, 1, 0, 0)]
-        [InlineData(Penalties.TimeDeduction, 0, 0, 0, 1, 0)]
-        [InlineData(Penalties.SlowDown, 0, 0, 0, 0, 1)]
-        [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
-        public void FocusedVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
-    Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithFocusedVehicle(v => v with
-                    {
-                        Penalties = penalties
-                    })
-                );
+        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+        //    [Theory]
+        //    [InlineData(Penalties.None, 0, 0, 0, 0, 0)]
+        //    [InlineData(Penalties.DriveThrough, 1, 0, 0, 0, 0)]
+        //    [InlineData(Penalties.StopAndGo, 0, 1, 0, 0, 0)]
+        //    [InlineData(Penalties.PitStop, 0, 0, 1, 0, 0)]
+        //    [InlineData(Penalties.TimeDeduction, 0, 0, 0, 1, 0)]
+        //    [InlineData(Penalties.SlowDown, 0, 0, 0, 0, 1)]
+        //    [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
+        //    public void FocusedVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
+        //Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
+        //    {
+        //        var result = ToR3EDash(NewGt()
+        //                .WithFocusedVehicle(v => v with
+        //                {
+        //                    Penalties = penalties
+        //                })
+        //            );
 
-            Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
-            Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
-            Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
-            Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
-            Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
-        }
-
+        //        Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
+        //        Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
+        //        Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
+        //        Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
+        //        Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
+        //    }
 
         [Fact]
         public void FocusedVehicle_PersonalBestLapTime__Null()
@@ -528,6 +536,76 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
+        public void FocusedVehicle_Flags__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Green = null,
+                    Blue = null,
+                    Yellow = null,
+                    White = null,
+                    Chequered = null,
+                    Black = null,
+                    BlackWhite = null
+                }));
+
+
+            Assert.Equal(0, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(0, result.Path("Flags", "BlackAndWhite").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Flags()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
+                    Blue = new BlueFlag(IVehicleFlags.BlueReason.Unknown),
+                    White = new WhiteFlag(IVehicleFlags.WhiteReason.Unknown),
+                    Chequered = new Flag(),
+                    Black = new Flag()
+                }));
+
+            Assert.Equal(1, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "White").GetInt32());
+        }
+
+        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+        [Fact]
+        public void FocusedVehicle_Flags_Yellow()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown, false)
+                }));
+
+            Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
+        }
+
+        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+        [Fact]
+        public void FocusedVehicle_Flags_BlackAndWhite()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithFocusedVehicleFlags(f => f with {
+                    BlackWhite = new Flag()
+                }));
+
+            Assert.Equal(1, result.Path("Flags", "Green").GetInt32());
+        }
+
+        [Fact]
         public void FocusedVehicle_PositionClass()
         {
             var result = ToR3EDash(NewGt()
@@ -553,8 +631,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
         }
 
-        #endregion
-
         #region Player
 
         [Fact]
@@ -572,13 +648,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
             Assert.Equal(-1, result.Path("PitAction").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "Blue").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "Black").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "Checkered").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "White").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "BlackAndWhite").GetInt32());
             Assert.Equal(-1000.0, result.Path("TimeDeltaBestSelf").GetDouble());
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector1").GetDouble());
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector2").GetDouble());
@@ -616,7 +685,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
             Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
             Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
-            foreach (var tyre in new []{ "FrontLeft", "FrontRight", "RearLeft", "RearRight" })
+            foreach (var tyre in new[] { "FrontLeft", "FrontRight", "RearLeft", "RearRight" })
             {
                 Assert.Equal(-1.0, result.Path("TireGrip", tyre).GetDouble());
                 Assert.Equal(-1.0, result.Path("TireWear", tyre).GetDouble());
@@ -834,33 +903,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.2, result.Path("FuelPerLap").GetDouble());
         }
 
-        [Theory]
-        [InlineData(IVehicleFlags.None, 0, 0, 0, 0, 0, 0, 0)]
-        [InlineData(IVehicleFlags.Yellow, 1, 0, 0, 0, 0, 0, 0)]
-        [InlineData(IVehicleFlags.Blue, 0, 1, 0, 0, 0, 0, 0)]
-        [InlineData(IVehicleFlags.Black, 0, 0, 1, 0, 0, 0, 0)]
-        [InlineData(IVehicleFlags.Green, 0, 0, 0, 1, 0, 0, 0)]
-        [InlineData(IVehicleFlags.Checkered, 0, 0, 0, 0, 1, 0, 0)]
-        [InlineData(IVehicleFlags.White, 0, 0, 0, 0, 0, 1, 0)]
-        [InlineData(IVehicleFlags.BlackAndWhite, 0, 0, 0, 0, 0, 0, 1)]
-        [InlineData(IVehicleFlags.Blue | IVehicleFlags.White, 0, 1, 0, 0, 0, 1, 0)]
-        public void Player_GameFlags(IVehicleFlags gameFlags,
-            Int32 yellow, Int32 blue, Int32 black, Int32 green,
-            Int32 checkered, Int32 white, Int32 blackAndWhite)
-        {
-            var result = ToR3EDash(NewGt()
-                .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
-                .WithPlayer(p => p with { Flags = gameFlags }));
-
-            Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
-            Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
-            Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(checkered, result.Path("Flags", "Checkered").GetInt32());
-            Assert.Equal(white, result.Path("Flags", "White").GetInt32());
-            Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
-        }
-
         [Fact]
         public void Player_LocalAcceleration()
         {
@@ -1051,7 +1093,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new []
+                    Tyres = new[]
                     {
                         new []
                         {
@@ -1115,7 +1157,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new [] {
+                    Tyres = new[] {
                         tyresWithGrip(tyresFront),
                         tyresWithGrip(tyresRear)
                     }
@@ -1158,7 +1200,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new [] {
+                    Tyres = new[] {
                         new [] {
                             tyreWithCurrentTemperatures(temperatures)
                         }
@@ -1191,6 +1233,8 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.1, result.Path("CarDamage", "Aerodynamics").GetDouble());
             Assert.Equal(0.3, result.Path("CarDamage", "Suspension").GetDouble());
         }
+
+        #endregion
 
         #endregion
 
@@ -1662,6 +1706,11 @@ static class GameTelemetryExensions
         if (gt.FocusedVehicle is null)
             return gt;
         return gt with { FocusedVehicle = f(gt.FocusedVehicle) };
+    }
+    
+    public static GameTelemetry WithFocusedVehicleFlags(this GameTelemetry gt, Func<VehicleFlags, VehicleFlags> f)
+    {
+        return WithFocusedVehicle(gt, v => v with { Flags  = f(v.Flags) });
     }
 
     public static GameTelemetry WithPlayer(this GameTelemetry gt, Func<Player, Player> f)
