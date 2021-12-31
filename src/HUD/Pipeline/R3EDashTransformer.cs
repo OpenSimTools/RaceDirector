@@ -234,8 +234,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Yellow is not null)));
 
                     // Flags.YellowCausedIt
-                    // Flags.YellowOvertake
-                    // Flags.YellowPositionsGained
+
+                    w.WriteNumber("YellowOvertake", ToInt32(gt.FocusedVehicle?.Flags.Yellow?.OvertakeAllowed));
+                    w.WriteNumber("YellowPositionsGained", ToInt32(gt.Player?.Warnings.GiveBackPositions));
+
                     // Flags.SectorYellow.Sector1
                     // Flags.SectorYellow.Sector2
                     // Flags.SectorYellow.Sector3

@@ -483,7 +483,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                     IncidentPoints: null,
                     BlueFlagWarnings: BlueFlagWarnings(sharedData.Flags.BlackAndWhite),
-                    GiveBackPositions: 0
+                    GiveBackPositions: PositiveOrZero(sharedData.Flags.YellowPositionsGained)
                 )
             );
         }
@@ -641,6 +641,8 @@ namespace RaceDirector.Pipeline.Games.R3E
             };
             return new BoundedValue<UInt32>(blueWarnings, 2);
         }
+
+        private static UInt32 PositiveOrZero(Int32 value) => value > 0 ? (UInt32)value : 0;
 
         private static String? FromNullTerminatedByteArray(byte[] nullTerminated)
         {
