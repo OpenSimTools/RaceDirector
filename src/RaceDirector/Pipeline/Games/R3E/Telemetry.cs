@@ -1,6 +1,7 @@
 ﻿using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RaceDirector.Pipeline.Games.R3E
@@ -292,7 +293,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 CurrentLapValid: sharedData.CurrentLapValid > 0, // of course different from CurrentLapValid for the current vehicle!
                 CurrentLapTime: new LapTime(
                     Overall: TimeSpan.FromSeconds(sharedData.LapTimeCurrentSelf),
-                    Sectors: new Sectors(
+                    Sectors: new Sectors
+                    (
                         Individual: new TimeSpan[0], // TODO infer from cumulative
                         Cumulative: ValuesPerSector(sharedData.SectorTimesCurrentSelf, i => TimeSpan.FromSeconds(i))
                     )
@@ -300,7 +302,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 PreviousLapTime: null, // TODO
                 BestLapTime: new LapTime(
                     Overall: TimeSpan.FromSeconds(sharedData.LapTimeBestSelf),
-                    Sectors: new Sectors(
+                    Sectors: new Sectors
+                    (
                         Individual: new TimeSpan[0], // TODO infer from cumulative
                         Cumulative: ValuesPerSector(sharedData.SectorTimesBestSelf, i => TimeSpan.FromSeconds(i))
                     )
@@ -310,10 +313,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Location: Vector3(sharedData.CarCgLocation, i => IDistance.FromM(i)),
                 Orientation: Orientation(sharedData.CarOrientation, i => IAngle.FromRad(i)),
                 Speed: ISpeed.FromMPS(sharedData.CarSpeed),
-                CurrentDriver: new Driver(
+                CurrentDriver: new Driver
+                (
                     Name: driverName
                 ),
-                Pit: new VehiclePit(
+                Pit: new VehiclePit
+                (
                     StopsDone: SafeUInt32(currentDriverData.NumPitstops),
                     MandatoryStopsDone: ((Int32)Contrib.Constant.PitWindow.Completed == currentDriverData.PitStopStatus) ? 1u : 0u,
                     PitLaneState: PitLaneState(sharedData),
@@ -322,7 +327,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 Penalties: Penalties(sharedData.Penalties),
                 // IFocusedVehicle only
-                Inputs: new Inputs(
+                Inputs: new Inputs
+                (
                     Throttle: sharedData.Throttle,
                     Brake: sharedData.Brake,
                     Clutch: sharedData.Clutch
@@ -361,40 +367,42 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private static Penalty[] Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
         {
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-            //var penalties = Pipeline.Telemetry.V0.Penalties.None;
-            //if (cutTrackPenalties.DriveThrough > 0) penalties |= Pipeline.Telemetry.V0.Penalties.DriveThrough;
-            //if (cutTrackPenalties.StopAndGo > 0) penalties |= Pipeline.Telemetry.V0.Penalties.StopAndGo;
-            //if (cutTrackPenalties.PitStop > 0) penalties |= Pipeline.Telemetry.V0.Penalties.PitStop;
-            //if (cutTrackPenalties.TimeDeduction > 0) penalties |= Pipeline.Telemetry.V0.Penalties.TimeDeduction;
-            //if (cutTrackPenalties.SlowDown > 0) penalties |= Pipeline.Telemetry.V0.Penalties.SlowDown;
-            //return penalties;
-            return new Penalty[0];
+            var penalties = new List<Penalty>();
+            if (cutTrackPenalties.DriveThrough > 0)
+                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.DriveThrough, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+            if (cutTrackPenalties.StopAndGo > 0)
+                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.StopAndGo10, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+            if (cutTrackPenalties.PitStop > 0)
+                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.PitStop, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+            if (cutTrackPenalties.TimeDeduction > 0)
+                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.TimeDeduction, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+            if (cutTrackPenalties.SlowDown > 0)
+                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.SlowDown, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+            return penalties.ToArray();
         }
 
         private static VehicleFlags VehicleFlags(Contrib.Data.Flags flags)
         {
-            // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
             // TODO return -1 or 0 depending on what state the game is on
             // only black and checquered available during replay
             // not sure when in menus
-            //var gameFlags = Pipeline.Telemetry.V0.IVehicleFlags.None;
-            //if (flags.Yellow > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Yellow; // TODO ****************************
-            //if (flags.Blue > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Blue;
-            //if (flags.Black > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Black;
-            //if (flags.Green > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Green;
-            //if (flags.Checkered > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.Checkered;
-            //if (flags.White > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.White;
-            //if (flags.BlackAndWhite > 0) gameFlags |= Pipeline.Telemetry.V0.IVehicleFlags.BlackAndWhite; // TODO ****************************
-            //return gameFlags;
-            return new VehicleFlags(
-                Green: null,
-                Blue: null,
-                Yellow: null,
-                White: null,
-                Chequered: null,
-                Black: null,
-                BlackWhite: null
+            return new VehicleFlags
+            (
+                Green: flags.Green > 0 ? new GreenFlag(Pipeline.Telemetry.V0.IVehicleFlags.GreenReason.RaceStart) : null,
+                Blue: flags.Blue > 0 ? new BlueFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
+                Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown, flags.YellowOvertake > 0) : null,
+                White: flags.White > 0 ? new WhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
+                Chequered: flags.Checkered > 0 ? new Flag() : null,
+                Black: flags.Black > 0 ? new Flag() : null,
+                BlackWhite: flags.BlackAndWhite switch {
+                    -1 => null,
+                    0 => null,
+                    1 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
+                    2 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
+                    3 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.WrongWay),
+                    4 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.Cutting),
+                    _ => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.Unknown),
+                }
             );
         }
 
@@ -457,11 +465,13 @@ namespace RaceDirector.Pipeline.Games.R3E
                 LocalAcceleration: Vector3(sharedData.Player.LocalAcceleration, i => IAcceleration.FromMPS2(i)),
                 LapValid: Pipeline.Telemetry.V0.LapValidState.Valid, // TODO and move to Vehicle!
                 ClassBestLap: null, // TODO
-                ClassBestSectors: new Sectors( // TODO are these the best sectors of the class leader or the best class sectors???
+                ClassBestSectors: new Sectors // TODO are these the best sectors of the class leader or the best class sectors???
+                (
                     Individual: ValuesPerSector(sharedData.BestIndividualSectorTimeLeaderClass, i => TimeSpan.FromSeconds(i)),
                     Cumulative: new TimeSpan[0] // TODO
                 ),
-                PersonalBestSectors: new Sectors(
+                PersonalBestSectors: new Sectors
+                (
                     Individual: ValuesPerSector(sharedData.BestIndividualSectorTimeSelf, i => TimeSpan.FromSeconds(i)),
                     Cumulative: new TimeSpan[0] // TODO
                 ),
@@ -469,7 +479,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Drs: ActivationToggled(sharedData.Drs, sharedData),
                 PushToPass: WaitTimeToggled(sharedData.PushToPass, sharedData),
                 PitStop: PlayerPitStop(sharedData),
-                Warnings: new PlayerWarnings(null, null, 0) // TODO
+                Warnings: new PlayerWarnings
+                (
+                    IncidentPoints: null,
+                    BlueFlagWarnings: BlueFlagWarnings(sharedData.Flags.BlackAndWhite),
+                    GiveBackPositions: 0
+                )
             );
         }
 
@@ -519,7 +534,8 @@ namespace RaceDirector.Pipeline.Games.R3E
         {
             if (drs.Equipped <= 0)
                 return null;
-            return new ActivationToggled(
+            return new ActivationToggled
+                (
                 Available: drs.Available > 0,
                 Engaged: drs.Engaged > 0,
                 ActivationsLeft: new BoundedValue<UInt32>(
@@ -533,10 +549,12 @@ namespace RaceDirector.Pipeline.Games.R3E
         {
             if (ptp.Available < 0)
                 return null;
-            return new WaitTimeToggled(
+            return new WaitTimeToggled
+                (
                 Available: ptp.Available > 0,
                 Engaged: ptp.Engaged > 0,
-                ActivationsLeft: new BoundedValue<UInt32>(
+                ActivationsLeft: new BoundedValue<UInt32>
+                (
                     Value: SafeUInt32(ptp.AmountLeft),
                     Total: SafeUInt32(sharedData.PtpNumActivationsTotal)
                 ),
@@ -568,7 +586,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Dirt: extract.CurrentTyre(sharedData.TireDirt),
                 Grip: extract.CurrentTyre(sharedData.TireGrip),
                 Wear: extract.CurrentTyre(sharedData.TireWear),
-                Temperatures: new TemperaturesMatrix(
+                Temperatures: new TemperaturesMatrix
+                (
                     CurrentTemperatures: new ITemperature[][] { new ITemperature[] {
                         ITemperature.FromC(tyreTemps.CurrentTemp.Left),
                         ITemperature.FromC(tyreTemps.CurrentTemp.Center),
@@ -578,7 +597,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                     ColdTemperature: ITemperature.FromC(tyreTemps.ColdTemp),
                     HotTemperature: ITemperature.FromC(tyreTemps.HotTemp)
                 ),
-                BrakeTemperatures: new TemperaturesSingle(
+                BrakeTemperatures: new TemperaturesSingle
+                (
                     CurrentTemperature: ITemperature.FromC(brakeTemps.CurrentTemp),
                     OptimalTemperature: ITemperature.FromC(brakeTemps.OptimalTemp),
                     ColdTemperature: ITemperature.FromC(brakeTemps.ColdTemp),
@@ -610,6 +630,16 @@ namespace RaceDirector.Pipeline.Games.R3E
             {
                 T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
             }
+        }
+
+        private static IBoundedValue<UInt32>? BlueFlagWarnings(Int32 blackAndWhite)
+        {
+            UInt32 blueWarnings = blackAndWhite switch {
+                1 => 1,
+                2 => 2,
+                _ => 0
+            };
+            return new BoundedValue<UInt32>(blueWarnings, 2);
         }
 
         private static String? FromNullTerminatedByteArray(byte[] nullTerminated)

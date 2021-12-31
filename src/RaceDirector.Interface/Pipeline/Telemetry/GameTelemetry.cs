@@ -160,7 +160,7 @@ namespace RaceDirector.Pipeline.Telemetry
         WhiteFlag? White,
         Flag? Chequered,
         Flag? Black,
-        Flag? BlackWhite
+        BlackWhiteFlag? BlackWhite
     ) : IVehicleFlags
     {
         IGreen? IVehicleFlags.Green => Green;
@@ -169,13 +169,14 @@ namespace RaceDirector.Pipeline.Telemetry
         IWhite? IVehicleFlags.White => White;
         IFlag? IVehicleFlags.Chequered => Chequered;
         IFlag? IVehicleFlags.Black => Black;
-        IFlag? IVehicleFlags.BlackWhite => BlackWhite;
+        IBlackWhite? IVehicleFlags.BlackWhite => BlackWhite;
     }
 
     public record GreenFlag(GreenReason Reason) : IGreen;
     public record BlueFlag(BlueReason Reason) : IBlue;
     public record YellowFlag(YellowReason Reason, Boolean OvertakeAllowed) : IYellow;
     public record WhiteFlag(WhiteReason Reason) : IWhite;
+    public record BlackWhiteFlag(BlackWhiteReason Reason) : IBlackWhite;
     public record Flag() : IFlag;
 
     public record Player

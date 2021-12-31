@@ -449,7 +449,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             Unknown,
             SlowDown,
-            TimePenalty, // ACC's PostRaceTime
+            TimeDeduction, // ACC's PostRaceTime
             DriveThrough,
             PitStop,
             StopAndGo10, // R3E?
@@ -508,7 +508,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// Most games use this flag for penalties.
             /// </remarks>
-            IFlag? BlackWhite { get; }
+            IBlackWhite? BlackWhite { get; }
 
             public interface IGreen
             {
@@ -573,6 +573,19 @@ namespace RaceDirector.Pipeline.Telemetry
                 /// <a href="https://iracing.fandom.com/wiki/IRacing_Flags">iRacing</a> uses the white flag only for the final lap.
                 /// </remarks>
                 LastLap
+            }
+
+            public interface IBlackWhite
+            {
+                BlackWhiteReason Reason { get; }
+            }
+
+            public enum BlackWhiteReason
+            {
+                Unknown,
+                Cutting, // R3E
+                IgnoredBlueFlags, // R3E
+                WrongWay // R3E
             }
 
             public interface IFlag { }

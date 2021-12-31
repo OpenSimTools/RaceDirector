@@ -246,7 +246,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Green is not null)));
                     w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Chequered is not null)));
                     w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.White is not null)));
-                    w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.BlackWhite is not null)));
+                    w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags,
+                        f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value)
+                    ));
                 });
 
                 // Position
@@ -256,14 +258,44 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // FinishStatus
                 // CutTrackWarnings
 
-                // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
                 w.WriteObject("Penalties", _ =>
                 {
-                    w.WriteNumber("DriveThrough", -1);
-                    w.WriteNumber("StopAndGo", -1);
-                    w.WriteNumber("PitStop", -1);
-                    w.WriteNumber("TimeDeduction", -1);
-                    w.WriteNumber("SlowDown", -1);
+                    var penalties = gt.FocusedVehicle?.Penalties;
+                    var initValue = penalties is null ? -1 : 0;
+                    var driveThrough = initValue;
+                    var stopAndGo = initValue;
+                    var pitStop = initValue;
+                    var timeDeduction = initValue;
+                    var slowDown = initValue;
+                    foreach (var p in penalties ?? Array.Empty<IPenalty>())
+                    {
+                        switch (p.Type)
+                        {
+                            case PenaltyType.DriveThrough:
+                                driveThrough = 1;
+                                break;
+                            case PenaltyType.StopAndGo10:
+                            case PenaltyType.StopAndGo20:
+                            case PenaltyType.StopAndGo30:
+                                stopAndGo = 1;
+                                break;
+                            case PenaltyType.PitStop:
+                                pitStop = 1;
+                                break;
+                            case PenaltyType.TimeDeduction:
+                                timeDeduction = 1;
+                                break;
+                            case PenaltyType.SlowDown:
+                                slowDown = 1;
+                                break;
+                        }
+                    }
+
+                    w.WriteNumber("DriveThrough", driveThrough);
+                    w.WriteNumber("StopAndGo", stopAndGo);
+                    w.WriteNumber("PitStop", pitStop);
+                    w.WriteNumber("TimeDeduction", timeDeduction);
+                    w.WriteNumber("SlowDown", slowDown);
                 });
 
                 // NumPenalties
@@ -805,5 +837,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 (PlayerPitStop.RepairRearWing,   1 << 8),
                 (PlayerPitStop.RepairSuspension, 1 << 9)
             };
+
+        private static int BlackWhiteFlagAsInt32(IVehicleFlags.IBlackWhite? blackWhiteFlag, UInt32? blueFlagWarnings)
+        {
+            return (blackWhiteFlag?.Reason, blueFlagWarnings) switch
+            {
+                (IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags, 1) => 1,
+                (IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags, 2) => 2,
+                (IVehicleFlags.BlackWhiteReason.WrongWay, _) => 3,
+                (IVehicleFlags.BlackWhiteReason.Cutting, _) => 4,
+                _ => 0
+            };
+        }
     }
 }

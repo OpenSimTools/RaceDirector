@@ -11,6 +11,7 @@ using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using System.Linq;
+using static RaceDirector.Pipeline.Telemetry.V0.IVehicleFlags;
 
 namespace HUD.Tests.Pipeline
 {
@@ -335,18 +336,29 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void FocusedVehicle_Inputs__Null()
+        public void FocusedVehicle_PositionClass()
         {
             var result = ToR3EDash(NewGt()
-                .WithFocusedVehicle(v => v with
-                {
-                    Inputs = null
-                })
-            );
+                    .WithFocusedVehicle(v => v with
+                    {
+                        PositionClass = 4
+                    })
+                );
 
-            Assert.Equal(-1.0, result.Path("Throttle").GetDouble());
-            Assert.Equal(-1.0, result.Path("Brake").GetDouble());
-            Assert.Equal(-1.0, result.Path("Clutch").GetDouble());
+            Assert.Equal(4, result.Path("PositionClass").GetInt32());
+        }
+
+        [Fact]
+        public void FocusedVehicle_Speed()
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Speed = ISpeed.FromMPS(1.2)
+                    })
+                );
+
+            Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
         }
 
         [Fact]
@@ -382,32 +394,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.2, result.Path("CarOrientation", "Yaw").GetDouble());
             Assert.Equal(5.6, result.Path("CarOrientation", "Roll").GetDouble());
         }
-
-        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        //    [Theory]
-        //    [InlineData(Penalties.None, 0, 0, 0, 0, 0)]
-        //    [InlineData(Penalties.DriveThrough, 1, 0, 0, 0, 0)]
-        //    [InlineData(Penalties.StopAndGo, 0, 1, 0, 0, 0)]
-        //    [InlineData(Penalties.PitStop, 0, 0, 1, 0, 0)]
-        //    [InlineData(Penalties.TimeDeduction, 0, 0, 0, 1, 0)]
-        //    [InlineData(Penalties.SlowDown, 0, 0, 0, 0, 1)]
-        //    [InlineData(Penalties.DriveThrough | Penalties.SlowDown, 1, 0, 0, 0, 1)]
-        //    public void FocusedVehicle_Penalties(Penalties penalties, Int32 driveThrough, Int32 stopAndGo,
-        //Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
-        //    {
-        //        var result = ToR3EDash(NewGt()
-        //                .WithFocusedVehicle(v => v with
-        //                {
-        //                    Penalties = penalties
-        //                })
-        //            );
-
-        //        Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
-        //        Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
-        //        Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
-        //        Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
-        //        Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
-        //    }
 
         [Fact]
         public void FocusedVehicle_PersonalBestLapTime__Null()
@@ -580,7 +566,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1, result.Path("Flags", "White").GetInt32());
         }
 
-        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
         [Fact]
         public void FocusedVehicle_Flags_Yellow()
         {
@@ -593,42 +578,72 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
         }
 
-        // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-        [Fact]
-        public void FocusedVehicle_Flags_BlackAndWhite()
+        [Theory]
+        [InlineData(BlackWhiteReason.Unknown, 0, 0)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 0, 0)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 1, 1)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 2, 2)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 3, 0)]
+        [InlineData(BlackWhiteReason.WrongWay, 0, 3)]
+        [InlineData(BlackWhiteReason.Cutting, 0, 4)]
+        public void FocusedVehicle_Flags_BlackAndWhite(BlackWhiteReason reason, UInt32 blueFlagWarnings, Int32 value)
         {
             var result = ToR3EDash(NewGt()
-                .WithFocusedVehicleFlags(f => f with {
-                    BlackWhite = new Flag()
-                }));
+                    .WithFocusedVehicleFlags(f => f with {
+                        BlackWhite = new BlackWhiteFlag(reason)
+                    })
+                    .WithPlayerWarnings(w => w with {
+                        BlueFlagWarnings = new BoundedValue<UInt32>(blueFlagWarnings, 2)
+                    })
+                );
 
-            Assert.Equal(1, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(value, result.Path("Flags", "BlackAndWhite").GetInt32());
         }
 
-        [Fact]
-        public void FocusedVehicle_PositionClass()
+        [Theory]
+        [InlineData(PenaltyType.Unknown,           0, 0, 0, 0, 0)]
+        [InlineData(PenaltyType.SlowDown,          0, 0, 0, 0, 1)]
+        [InlineData(PenaltyType.TimeDeduction,       0, 0, 0, 1, 0)]
+        [InlineData(PenaltyType.DriveThrough,      1, 0, 0, 0, 0)]
+        [InlineData(PenaltyType.PitStop,           0, 0, 1, 0, 0)]
+        [InlineData(PenaltyType.StopAndGo10,       0, 1, 0, 0, 0)]
+        [InlineData(PenaltyType.StopAndGo20,       0, 1, 0, 0, 0)]
+        [InlineData(PenaltyType.StopAndGo30,       0, 1, 0, 0, 0)]
+        [InlineData(PenaltyType.GivePositionBack,  0, 0, 0, 0, 0)]
+        [InlineData(PenaltyType.RemoveBestLaptime, 0, 0, 0, 0, 0)]
+        public void FocusedVehicle_Penalties(PenaltyType penaltyType,
+            Int32 driveThrough, Int32 stopAndGo, Int32 pitStop, Int32 timeDeduction, Int32 slowDown)
         {
             var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
-                        PositionClass = 4
+                        Penalties = new Penalty[]
+                        {
+                            new Penalty(penaltyType, PenaltyReason.Unknown)
+                        }
                     })
                 );
 
-            Assert.Equal(4, result.Path("PositionClass").GetInt32());
+            Assert.Equal(driveThrough, result.Path("Penalties", "DriveThrough").GetInt32());
+            Assert.Equal(stopAndGo, result.Path("Penalties", "StopAndGo").GetInt32());
+            Assert.Equal(pitStop, result.Path("Penalties", "PitStop").GetInt32());
+            Assert.Equal(timeDeduction, result.Path("Penalties", "TimeDeduction").GetInt32());
+            Assert.Equal(slowDown, result.Path("Penalties", "SlowDown").GetInt32());
         }
 
         [Fact]
-        public void FocusedVehicle_Speed()
+        public void FocusedVehicle_Inputs__Null()
         {
             var result = ToR3EDash(NewGt()
-                    .WithFocusedVehicle(v => v with
-                    {
-                        Speed = ISpeed.FromMPS(1.2)
-                    })
-                );
+                .WithFocusedVehicle(v => v with
+                {
+                    Inputs = null
+                })
+            );
 
-            Assert.Equal(1.2, result.Path("CarSpeed").GetDouble());
+            Assert.Equal(-1.0, result.Path("Throttle").GetDouble());
+            Assert.Equal(-1.0, result.Path("Brake").GetDouble());
+            Assert.Equal(-1.0, result.Path("Clutch").GetDouble());
         }
 
         #region Player
@@ -1718,5 +1733,10 @@ static class GameTelemetryExensions
         if (gt.Player is null)
             return gt;
         return gt with { Player = f(gt.Player) };
+    }
+
+    public static GameTelemetry WithPlayerWarnings(this GameTelemetry gt, Func<PlayerWarnings, PlayerWarnings> f)
+    {
+        return gt.WithPlayer(p => p with { Warnings = f(p.Warnings) });
     }
 }
