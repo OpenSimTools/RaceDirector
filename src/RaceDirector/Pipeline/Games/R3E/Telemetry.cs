@@ -233,7 +233,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Overall: TimeSpan.FromSeconds(42), // TODO
                     Sectors: new Sectors(
                         Individual: new TimeSpan[0], // TODO infer from cumulative
-                        Cumulative: ValuesPerSector(sharedData.SectorTimesBestSelf, i => TimeSpan.FromSeconds(i))
+                        Cumulative: ValuesPerSector(driverData.SectorTimeBestSelf, i => TimeSpan.FromSeconds(i))
                     )
                 ),
                 BestSectors: null, // TODO

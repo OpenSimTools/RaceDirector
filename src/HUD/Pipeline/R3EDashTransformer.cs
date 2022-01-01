@@ -763,7 +763,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 return -1; // Unavailable
             var pitWindow = gt.Session.Requirements.PitWindow;
             if (pitWindow is null)
-                return 0; // Disabled
+                return 2; // When is it Disabled then?
             var focusedVehicle = gt.FocusedVehicle;
             if (focusedVehicle?.Pit.MandatoryStopsDone > 0)
                 return 4; // Completed
