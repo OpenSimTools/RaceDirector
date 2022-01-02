@@ -148,14 +148,14 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum SessionPhase
         {
-            Garage,           // R3E, RF2
-            Gridwalk,         // R3E, RF2
-            Formation,        // R3E, AMS2 (eSessionState), RF2
-            Countdown,        // R3E, RF2
-            Started,          // R3E, AMS2 (eRaceState), RF2
-            FullCourseYellow, // RF2
-            Stopped,          // RF2
-            Over              // R3E, AMS2 (eRaceState)
+            Garage = 1,           // R3E, RF2
+            Gridwalk = 2,         // R3E, RF2
+            Formation = 3,        // R3E, AMS2 (eSessionState), RF2
+            Countdown = 4,        // R3E, RF2
+            Started = 5,          // R3E, AMS2 (eRaceState), RF2
+            FullCourseYellow = 6, // RF2
+            Stopped = 7,          // RF2
+            Over = 7              // R3E, AMS2 (eRaceState)
         }
 
         public interface ISessionRequirements
@@ -510,7 +510,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </remarks>
             IBlackWhite? BlackWhite { get; }
 
-            public interface IGreen
+            public interface IGreen : IFlag
             {
                 GreenReason Reason { get; }
             }
@@ -523,7 +523,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 ResumeRace
             }
 
-            public interface IBlue
+            public interface IBlue : IFlag
             {
                 BlueReason Reason { get; }
             }
@@ -535,7 +535,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 TrackObstruction // NASCAR road course
             }
 
-            public interface IYellow
+            public interface IYellow : IFlag
             {
                 YellowReason Reason { get; }
                 // IDistance ClosestOnTrack { get; }
@@ -550,7 +550,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 TrackObstruction // Double waved yellows?
             }
 
-            public interface IWhite
+            public interface IWhite : IFlag
             {
                 WhiteReason Reason { get; }
             }
@@ -574,10 +574,10 @@ namespace RaceDirector.Pipeline.Telemetry
                 LastLap
             }
 
-            public interface IBlackWhite
+            public interface IBlackWhite : IFlag
             {
                 BlackWhiteReason Reason { get; }
-            }
+            };
 
             public enum BlackWhiteReason
             {

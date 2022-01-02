@@ -227,29 +227,27 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("Flags", _ =>
                 {
-                    // TODO unset flags are creative changing from -1 to 0 depending on situation and flag colour
-                    //      not all flags available during replay (only black ond checquered)
-                    //      what about monitor and menus?
+                    var raceStarted = gt.Session?.Phase >= SessionPhase.Started;
 
-                    w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Yellow is not null)));
+                    w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Yellow, raceStarted)));
 
                     // Flags.YellowCausedIt
 
                     w.WriteNumber("YellowOvertake", ToInt32(gt.Player?.OvertakeAllowed));
-                    w.WriteNumber("YellowPositionsGained", ToInt32(gt.Player?.Warnings.GiveBackPositions));
+                    w.WriteNumber("YellowPositionsGained", RaceOnly(ToInt32(gt.Player?.Warnings.GiveBackPositions), raceStarted));
 
                     // Flags.SectorYellow.Sector1
                     // Flags.SectorYellow.Sector2
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Blue is not null)));
-                    w.WriteNumber("Black", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Black is not null)));
-                    w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Green is not null)));
-                    w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.Chequered is not null)));
-                    w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => ToInt32(f.White is not null)));
+                    w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Blue, raceStarted)));
+                    w.WriteNumber("Black", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Black)));
+                    w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Green, raceStarted)));
+                    w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Chequered)));
+                    w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.White, raceStarted)));
                     w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags,
-                        f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value)
+                        f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value, raceStarted)
                     ));
                 });
 
@@ -847,8 +845,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 (PlayerPitStop.RepairSuspension, 1 << 9)
             };
 
-        private static int BlackWhiteFlagAsInt32(IVehicleFlags.IBlackWhite? blackWhiteFlag, UInt32? blueFlagWarnings)
+
+        private static int BlackWhiteFlagAsInt32(IVehicleFlags.IBlackWhite? blackWhiteFlag, UInt32? blueFlagWarnings, Boolean raceStarted)
         {
+            if (!raceStarted)
+                return -1;
             return (blackWhiteFlag?.Reason, blueFlagWarnings) switch
             {
                 (IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags, 1) => 1,
@@ -858,5 +859,14 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 _ => 0
             };
         }
+
+        private static Int32 FlagAsInt32(IVehicleFlags.IFlag? flag) =>
+            ToInt32(flag is not null);
+
+        private static Int32 RaceOnlyFlagAsInt32(IVehicleFlags.IFlag? flag, Boolean raceStarted) =>
+            RaceOnly(ToInt32(flag is not null), raceStarted);
+
+        private static Int32 RaceOnly(Int32 value, Boolean raceStarted) =>
+            raceStarted ? value : -1;
     }
 }
