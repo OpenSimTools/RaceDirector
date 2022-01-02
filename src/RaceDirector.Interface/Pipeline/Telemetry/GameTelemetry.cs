@@ -247,7 +247,7 @@ namespace RaceDirector.Pipeline.Telemetry
         UInt32 Level,
         Boolean Active,
         UInt32? Cut
-    ) : ITractionControl;
+    ) : Aid(Level, Active), ITractionControl;
 
     public record Aid
     (

@@ -24,7 +24,8 @@ namespace RaceDirector.Pipeline.Games.R3E
         public ISourceBlock<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetrySource()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
-            return PollingSource.Create<Pipeline.Telemetry.V0.IGameTelemetry>(_config.PollingInterval, () => Telemetry.Transform(mmReader.Read()));
+            var telemetry = new Telemetry();
+            return PollingSource.Create<Pipeline.Telemetry.V0.IGameTelemetry>(_config.PollingInterval, () => telemetry.Transform(mmReader.Read()));
         }
     }
 }

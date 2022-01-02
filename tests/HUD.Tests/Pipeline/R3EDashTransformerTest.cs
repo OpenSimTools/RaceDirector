@@ -1539,7 +1539,8 @@ namespace HUD.Tests.Pipeline
                 Requirements = s.Requirements with { PitWindow = null }
             }));
 
-            Assert.Equal(0, result.Path("PitWindowStatus").GetInt32());
+            // When is it Disabled then?
+            Assert.Equal(2, result.Path("PitWindowStatus").GetInt32());
             Assert.Equal(-1, result.Path("PitWindowStart").GetInt32());
             Assert.Equal(-1, result.Path("PitWindowEnd").GetInt32());
         }
