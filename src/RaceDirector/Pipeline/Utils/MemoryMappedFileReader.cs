@@ -41,23 +41,9 @@ namespace RaceDirector.Pipeline.Utils
 
             using (var viewStream = _mmFile.CreateViewStream(SharedMemoryBegin, SharedMemoryEnd, MemoryMappedFileAccess.Read))
             {
-                return ReadStruct(viewStream.SafeMemoryMappedViewHandle);
+                var safeHandle = viewStream.SafeMemoryMappedViewHandle;
+                return Marshal.PtrToStructure<T>(safeHandle.DangerousGetHandle());
             }
-        }
-
-        private T ReadStruct(SafeHandle safeHandle)
-        {
-            T data;
-            var handle = safeHandle.DangerousGetHandle();
-            try
-            {
-                data = Marshal.PtrToStructure<T>(handle);
-            }
-            finally
-            {
-                safeHandle.DangerousRelease();
-            }
-            return data;
         }
 
         public void Dispose()
