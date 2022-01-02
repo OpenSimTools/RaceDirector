@@ -162,7 +162,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1.0, result.Path("PitElapsedTime").GetDouble());
             Assert.Equal(-1.0, result.Path("PitTotalDuration").GetDouble());
             Assert.Equal(-1, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "YellowOvertake").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "Blue").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "Black").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "Green").GetInt32());
@@ -538,7 +537,6 @@ namespace HUD.Tests.Pipeline
                 }));
 
             Assert.Equal(0, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(-1, result.Path("Flags", "YellowOvertake").GetInt32());
             Assert.Equal(0, result.Path("Flags", "Blue").GetInt32());
             Assert.Equal(0, result.Path("Flags", "Black").GetInt32());
             Assert.Equal(0, result.Path("Flags", "Green").GetInt32());
@@ -567,21 +565,17 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1, result.Path("Flags", "White").GetInt32());
         }
 
-        [Theory]
-        [InlineData(false, 0)]
-        [InlineData(true, 1)]
-        public void FocusedVehicle_Flags_Yellow(
-            Boolean overtakeAllowed, Int32 yellowOvertake
-        )
+        [Fact]
+        public void FocusedVehicle_Flags_Yellow()
         {
+            // Separate for when we are going to implement other fields like CausedIt
             var result = ToR3EDash(NewGt()
                 .WithFocusedVehicleFlags(f => f with
                 {
-                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown, overtakeAllowed)
+                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown)
                 }));
 
             Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(yellowOvertake, result.Path("Flags", "YellowOvertake").GetInt32());
         }
 
         [Theory]
@@ -609,7 +603,7 @@ namespace HUD.Tests.Pipeline
         [Theory]
         [InlineData(PenaltyType.Unknown,           0, 0, 0, 0, 0)]
         [InlineData(PenaltyType.SlowDown,          0, 0, 0, 0, 1)]
-        [InlineData(PenaltyType.TimeDeduction,       0, 0, 0, 1, 0)]
+        [InlineData(PenaltyType.TimeDeduction,     0, 0, 0, 1, 0)]
         [InlineData(PenaltyType.DriveThrough,      1, 0, 0, 0, 0)]
         [InlineData(PenaltyType.PitStop,           0, 0, 1, 0, 0)]
         [InlineData(PenaltyType.StopAndGo10,       0, 1, 0, 0, 0)]
@@ -669,6 +663,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "LocalGforce", "Z").GetDouble());
             Assert.Equal(-1, result.Path("PitAction").GetInt32());
+            Assert.Equal(-1, result.Path("Flags", "YellowOvertake").GetInt32());
             Assert.Equal(-1, result.Path("Flags", "YellowPositionsGained").GetInt32());
             Assert.Equal(-1000.0, result.Path("TimeDeltaBestSelf").GetDouble());
             Assert.Equal(-1.0, result.Path("BestIndividualSectorTimeSelf", "Sector1").GetDouble());
@@ -1283,13 +1278,26 @@ namespace HUD.Tests.Pipeline
         public void Player_Warnings_GiveBackPositions()
         {
             var result = ToR3EDash(NewGt()
-                    .WithPlayerWarnings(w => w with
-                    {
-                        GiveBackPositions = 42
-                    })
-                );
+                .WithPlayerWarnings(w => w with
+                {
+                    GiveBackPositions = 42
+                })
+            );
 
             Assert.Equal(42, result.Path("Flags", "YellowPositionsGained").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(false, 0)]
+        [InlineData(true, 1)]
+        public void Player_OvertakeAllowed(Boolean overtakeAllowed, Int32 yellowOvertake)
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with {
+                    OvertakeAllowed = overtakeAllowed
+                })
+            );
+            Assert.Equal(yellowOvertake, result.Path("Flags", "YellowOvertake").GetInt32());
         }
 
         #endregion

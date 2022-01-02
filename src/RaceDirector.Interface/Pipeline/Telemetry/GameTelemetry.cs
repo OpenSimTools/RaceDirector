@@ -174,7 +174,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record GreenFlag(GreenReason Reason) : IGreen;
     public record BlueFlag(BlueReason Reason) : IBlue;
-    public record YellowFlag(YellowReason Reason, Boolean OvertakeAllowed) : IYellow;
+    public record YellowFlag(YellowReason Reason) : IYellow;
     public record WhiteFlag(WhiteReason Reason) : IWhite;
     public record BlackWhiteFlag(BlackWhiteReason Reason) : IBlackWhite;
     public record Flag() : IFlag;
@@ -199,7 +199,8 @@ namespace RaceDirector.Pipeline.Telemetry
         ActivationToggled? Drs,
         WaitTimeToggled? PushToPass,
         PlayerPitStop PitStop,
-        PlayerWarnings Warnings
+        PlayerWarnings Warnings,
+        Boolean? OvertakeAllowed
     ) : IPlayer
     {
         IRawInputs IPlayer.RawInputs => RawInputs;

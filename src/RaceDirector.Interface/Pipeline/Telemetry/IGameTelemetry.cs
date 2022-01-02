@@ -538,7 +538,6 @@ namespace RaceDirector.Pipeline.Telemetry
             public interface IYellow
             {
                 YellowReason Reason { get; }
-                Boolean OvertakeAllowed { get; }
                 // IDistance ClosestOnTrack { get; }
                 // Boolean? CausedIt { get; }
             }
@@ -658,6 +657,8 @@ namespace RaceDirector.Pipeline.Telemetry
             PlayerPitStop PitStop { get; }
 
             IPlayerWarnings Warnings { get; }
+
+            Boolean? OvertakeAllowed { get; }
         }
 
         // FIXME

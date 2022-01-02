@@ -229,8 +229,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
                 PositionClass: SafeUInt32(driverData.PlaceClass),
-                GapAhead: NullableTimeSpan(driverData.TimeDeltaFront),   // TODO ********* check when close to a lapped car
-                GapBehind: NullableTimeSpan(driverData.TimeDeltaBehind), // TODO ********* check when being lapped
+                GapAhead: TimeSpan.FromSeconds(driverData.TimeDeltaFront),   // It can be negative!
+                GapBehind: TimeSpan.FromSeconds(driverData.TimeDeltaBehind), // It can be negative!
                 CompletedLaps: SafeUInt32(driverData.CompletedLaps),
                 CurrentLapValid: driverData.CurrentLapValid > 0,
                 CurrentLapTime: null, // TODO
@@ -396,7 +396,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             (
                 Green: flags.Green > 0 ? new GreenFlag(Pipeline.Telemetry.V0.IVehicleFlags.GreenReason.RaceStart) : null,
                 Blue: flags.Blue > 0 ? new BlueFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
-                Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown, flags.YellowOvertake > 0) : null,
+                Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown) : null,
                 White: flags.White > 0 ? new WhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
                 Chequered: flags.Checkered > 0 ? new Flag() : null,
                 Black: flags.Black > 0 ? new Flag() : null,
@@ -490,7 +490,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                     IncidentPoints: null,
                     BlueFlagWarnings: BlueFlagWarnings(sharedData.Flags.BlackAndWhite),
                     GiveBackPositions: PositiveOrZero(sharedData.Flags.YellowPositionsGained)
-                )
+                ),
+                OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake)
             );
         }
 
@@ -659,11 +660,13 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return (UInt32)i;
         }
 
-        private TimeSpan? NullableTimeSpan(Single value)
+        private Boolean? NullableBoolean(Int32 i)
         {
-            if (value < 0.0)
+            if (i < 0)
                 return null;
-            return TimeSpan.FromSeconds(value);
+            if (i > 0)
+                return true;
+            return false;
         }
     }
 
