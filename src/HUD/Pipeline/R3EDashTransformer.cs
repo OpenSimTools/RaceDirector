@@ -419,11 +419,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("AidSettings", _ =>
                 {
-                    w.WriteNumber("Abs", ToInt32(gt.Player?.DrivingAids.Abs?.Level));
-                    w.WriteNumber("Tc", ToInt32(gt.Player?.DrivingAids.Tc?.Level));
-                    w.WriteNumber("Esp", ToInt32(gt.Player?.DrivingAids.Esp?.Level));
-                    w.WriteNumber("Countersteer", ToInt32(gt.Player?.DrivingAids.Countersteer?.Level));
-                    w.WriteNumber("Cornering", ToInt32(gt.Player?.DrivingAids.Cornering?.Level));
+                    w.WriteNumber("Abs", ToInt32(gt.Player?.DrivingAids.Abs));
+                    w.WriteNumber("Tc", ToInt32(gt.Player?.DrivingAids.Tc));
+                    w.WriteNumber("Esp", ToInt32(gt.Player?.DrivingAids.Esp));
+                    w.WriteNumber("Countersteer", ToInt32(gt.Player?.DrivingAids.Countersteer));
+                    w.WriteNumber("Cornering", ToInt32(gt.Player?.DrivingAids.Cornering));
                 });
 
                 w.WriteObject("Drs", _ =>
@@ -755,6 +755,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         private static Int32 ToInt32(Boolean value)
         {
             return value ? 1 : 0;
+        }
+
+        private static Int32 ToInt32(IAid? aid)
+        {
+            if (aid?.Active == true)
+                return 5;
+            return ToInt32(aid?.Level);
         }
 
         private static Int32 PitWindowStatusAsInt32(IGameTelemetry gt)

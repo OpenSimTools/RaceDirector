@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RaceDirector.Pipeline.Games.R3E
 {
-    class Telemetry
+    internal class Telemetry
     {
         private const UInt32 MaxLights = 5;
 
@@ -16,7 +16,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private StatefulAid<Aid> statefulCountersteer = StatefulAid.Generic();
         private StatefulAid<Aid> statefulCornering = StatefulAid.Generic();
 
-        public GameTelemetry Transform(Contrib.Data.Shared sharedData)
+        internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
             if (sharedData.VersionMajor != (Int32)Contrib.Constant.VersionMajor.R3E_VERSION_MAJOR)
                 throw new ArgumentException("Incompatible major version");

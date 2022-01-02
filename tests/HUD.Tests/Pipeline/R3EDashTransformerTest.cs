@@ -806,7 +806,7 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void Player_DrivingAids()
+        public void Player_DrivingAids__Inactive()
         {
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
@@ -825,6 +825,29 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(2, result.Path("AidSettings", "Tc").GetInt32());
             Assert.Equal(3, result.Path("AidSettings", "Esp").GetInt32());
             Assert.Equal(4, result.Path("AidSettings", "Countersteer").GetInt32());
+            Assert.Equal(5, result.Path("AidSettings", "Cornering").GetInt32());
+        }
+
+        [Fact]
+        public void Player_DrivingAids__Active()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithPlayer(p => p with
+                {
+                    DrivingAids = new DrivingAids(
+                        new Aid(1, true),
+                        new TractionControl(2, true, null),
+                        new Aid(3, true),
+                        new Aid(4, true),
+                        new Aid(5, true)
+                    )
+                })
+            );
+
+            Assert.Equal(5, result.Path("AidSettings", "Abs").GetInt32());
+            Assert.Equal(5, result.Path("AidSettings", "Tc").GetInt32());
+            Assert.Equal(5, result.Path("AidSettings", "Esp").GetInt32());
+            Assert.Equal(5, result.Path("AidSettings", "Countersteer").GetInt32());
             Assert.Equal(5, result.Path("AidSettings", "Cornering").GetInt32());
         }
 
