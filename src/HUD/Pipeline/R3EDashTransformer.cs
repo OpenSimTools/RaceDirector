@@ -82,7 +82,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     // Player.LocalAngularVelocity.Y
                     // Player.LocalAngularVelocity.Z
 
-                    w.WriteCoordinates("LocalGforce", gt.Player?.LocalAcceleration, a => a.G);
+                    w.WriteCoordinates("LocalGforce", gt.Player?.LocalAcceleration, a => a.ApproxG);
 
                     // Player.SteeringForce
                     // Player.SteeringForcePercentage

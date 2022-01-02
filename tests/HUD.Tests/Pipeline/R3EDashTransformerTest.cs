@@ -521,10 +521,23 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(1.2, result.Path("PitElapsedTime").GetDouble());
         }
 
-        [Fact]
-        public void FocusedVehicle_Flags__Null()
+        [Theory]
+        [InlineData(SessionPhase.Garage,           -1, -1,  0, -1,  0, -1, -1)]
+        [InlineData(SessionPhase.Gridwalk,         -1, -1,  0, -1,  0, -1, -1)]
+        [InlineData(SessionPhase.Formation,        -1, -1,  0, -1,  0, -1, -1)]
+        [InlineData(SessionPhase.Countdown,        -1, -1,  0, -1,  0, -1, -1)]
+        [InlineData(SessionPhase.Started,           0,  0,  0,  0,  0,  0,  0)]
+        [InlineData(SessionPhase.FullCourseYellow,  0,  0,  0,  0,  0,  0,  0)]
+        [InlineData(SessionPhase.Stopped,           0,  0,  0,  0,  0,  0,  0)]
+        [InlineData(SessionPhase.Over,              0,  0,  0,  0,  0,  0,  0)]
+        public void FocusedVehicle_Flags__Null(SessionPhase sessionPhase,
+            Int32 yellow, Int32 blue, Int32 black, Int32 green,
+            Int32 chequered, Int32 white, Int32 blackAndWhite)
         {
             var result = ToR3EDash(NewGt()
+                .WithSession(s => s with {
+                    Phase = sessionPhase
+                })
                 .WithFocusedVehicleFlags(f => f with
                 {
                     Green = null,
@@ -536,13 +549,13 @@ namespace HUD.Tests.Pipeline
                     BlackWhite = null
                 }));
 
-            Assert.Equal(0, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "Blue").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "Black").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "Checkered").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "White").GetInt32());
-            Assert.Equal(0, result.Path("Flags", "BlackAndWhite").GetInt32());
+            Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(chequered, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(white, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
         }
 
         [Fact]
@@ -570,6 +583,7 @@ namespace HUD.Tests.Pipeline
         {
             // Separate for when we are going to implement other fields like CausedIt
             var result = ToR3EDash(NewGt()
+                .WithSession(s => s with { Phase = SessionPhase.Started })
                 .WithFocusedVehicleFlags(f => f with
                 {
                     Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown)
@@ -589,6 +603,7 @@ namespace HUD.Tests.Pipeline
         public void FocusedVehicle_Flags_BlackAndWhite(BlackWhiteReason reason, UInt32 blueFlagWarnings, Int32 value)
         {
             var result = ToR3EDash(NewGt()
+                    .WithSession(s => s with { Phase = SessionPhase.Started })
                     .WithFocusedVehicleFlags(f => f with {
                         BlackWhite = new BlackWhiteFlag(reason)
                     })
@@ -964,9 +979,9 @@ namespace HUD.Tests.Pipeline
         {
             var acceleration = new Vector3<IAcceleration>
             (
-                IAcceleration.FromG(1.0),
-                IAcceleration.FromG(2.0),
-                IAcceleration.FromG(3.0)
+                IAcceleration.FromApproxG(1.0),
+                IAcceleration.FromApproxG(2.0),
+                IAcceleration.FromApproxG(3.0)
             );
             var result = ToR3EDash(NewGt().WithPlayer(p => p with { LocalAcceleration = acceleration }));
 
@@ -1274,17 +1289,26 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(0.3, result.Path("CarDamage", "Suspension").GetDouble());
         }
 
-        [Fact]
-        public void Player_Warnings_GiveBackPositions()
+        [Theory]
+        [InlineData(SessionPhase.Garage, -1)]
+        [InlineData(SessionPhase.Gridwalk, -1)]
+        [InlineData(SessionPhase.Formation, -1)]
+        [InlineData(SessionPhase.Countdown, -1)]
+        [InlineData(SessionPhase.Started, 3)]
+        [InlineData(SessionPhase.FullCourseYellow, 3)]
+        [InlineData(SessionPhase.Stopped, 3)]
+        [InlineData(SessionPhase.Over, 3)]
+        public void Player_Warnings_GiveBackPositions(SessionPhase sessionPhase, Int32 giveBackPositions)
         {
             var result = ToR3EDash(NewGt()
+                .WithSession(s => s with { Phase = sessionPhase })
                 .WithPlayerWarnings(w => w with
                 {
-                    GiveBackPositions = 42
+                    GiveBackPositions = 3
                 })
             );
 
-            Assert.Equal(42, result.Path("Flags", "YellowPositionsGained").GetInt32());
+            Assert.Equal(giveBackPositions, result.Path("Flags", "YellowPositionsGained").GetInt32());
         }
 
         [Theory]

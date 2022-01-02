@@ -104,23 +104,39 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
     public interface IAcceleration
     {
         private static Double s_GToMPS2 = 9.80665d;
+        private static Double s_ApproxGToMPS2 = 9.81d;
 
         Double MPS2 { get; }
         Double G { get; }
+        Double ApproxG { get; }
 
         static IAcceleration FromMPS2(Double MPS2) => new AccelerationMPS2(MPS2);
         static IAcceleration FromG(Double G) => new AccelerationG(G);
+        static IAcceleration FromApproxG(Double G) => new AccelerationApproxG(G);
 
         private record AccelerationMPS2(Double MPS2) : IAcceleration
         {
             private static Double s_MPS2ToG = 1d / s_GToMPS2;
+            private static Double s_MPS2ToApproxG = 1d / s_ApproxGToMPS2;
 
             public Double G => MPS2 * s_MPS2ToG;
+            public Double ApproxG => MPS2 * s_MPS2ToApproxG;
         }
 
         private record AccelerationG(Double G) : IAcceleration
         {
+            private static Double s_GToApproxG = s_ApproxGToMPS2 / s_GToMPS2;
+
             public Double MPS2 => G * s_GToMPS2;
+            public Double ApproxG => G * s_GToApproxG;
+        }
+
+        private record AccelerationApproxG(Double ApproxG) : IAcceleration
+        {
+            private static Double s_ApproxGToG = s_GToMPS2 / s_ApproxGToMPS2;
+
+            public Double MPS2 => G * s_GToMPS2;
+            public Double G => ApproxG * s_ApproxGToG;
         }
     }
 

@@ -155,7 +155,7 @@ namespace RaceDirector.Pipeline.Telemetry
             Started = 5,          // R3E, AMS2 (eRaceState), RF2
             FullCourseYellow = 6, // RF2
             Stopped = 7,          // RF2
-            Over = 7              // R3E, AMS2 (eRaceState)
+            Over = 8              // R3E, AMS2 (eRaceState)
         }
 
         public interface ISessionRequirements
