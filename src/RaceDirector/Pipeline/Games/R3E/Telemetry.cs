@@ -517,7 +517,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private static Aid? Aid(Int32 i) {
             if (i < 0)
                 return null;
-            if (i == 5)
+            if (i == 5) // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
                 return new Aid(42, true); // TODO store last seen state
             return new Aid((UInt32)i, false);
         }
