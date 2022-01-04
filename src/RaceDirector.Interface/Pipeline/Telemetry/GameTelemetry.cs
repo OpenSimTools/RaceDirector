@@ -51,6 +51,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ISessionDuration? Length,
         SessionRequirements Requirements,
         ISpeed PitSpeedLimit,
+        Boolean PitLaneOpen,
         TimeSpan ElapsedTime,
         StartLights? StartLights,
         LapTime? BestLap,
@@ -134,7 +135,7 @@ namespace RaceDirector.Pipeline.Telemetry
     (
         UInt32 StopsDone,
         UInt32 MandatoryStopsDone,
-        PitLaneState? PitLaneState,
+        PitLanePhase? PitLanePhase,
         TimeSpan? PitLaneTime,
         TimeSpan? PitStallTime
     ) : IVehiclePit;
@@ -215,7 +216,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ISectors? IPlayer.PersonalBestSectors => PersonalBestSectors;
         IActivationToggled? IPlayer.Drs => Drs;
         IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
-        PlayerPitStop IPlayer.PitStop => PitStop;
+        PlayerPitStop IPlayer.PitStopStatus => PitStop;
         IPlayerWarnings IPlayer.Warnings => Warnings;
     }
 

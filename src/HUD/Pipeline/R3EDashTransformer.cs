@@ -187,20 +187,15 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     TimePlusLapsDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
                     _ => -1.0
                 });
+
                 // MaxIncidentPoints
 
                 w.WriteNumber("PitWindowStatus", PitWindowStatusAsInt32(gt));
-                w.WriteNumber("PitWindowStart", gt.Session?.Requirements.PitWindow?.Start switch {
-                    LapsDuration length => Convert.ToInt32(length.Laps),
-                    TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
-                    _ => -1
-                });
-                w.WriteNumber("PitWindowEnd", gt.Session?.Requirements.PitWindow?.Finish switch
-                {
-                    LapsDuration length => Convert.ToInt32(length.Laps),
-                    TimeDuration length => Convert.ToInt32(length.Time.TotalMinutes),
-                    _ => -1
-                });
+
+                var pitWindow = PitWindowBoundaries(gt);
+                w.WriteNumber("PitWindowStart", pitWindow.Start);
+                w.WriteNumber("PitWindowEnd", pitWindow.Finish);
+
                 w.WriteNumber("InPitLane", InPitLaneAsInt32(gt.FocusedVehicle));
 
                 // PitMenuSelection
@@ -227,27 +222,41 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("Flags", _ =>
                 {
-                    var raceStarted = gt.Session?.Phase >= SessionPhase.Started;
+                    var raceStarted = gt.Session?.Phase switch
+                    {
+                        SessionPhase.Started => true,
+                        SessionPhase.FullCourseYellow => true,
+                        SessionPhase.Stopped => true,
+                        SessionPhase.Over => true,
+                        _ => false
+                    };
+                    var raceOngoing = gt.Session?.Phase switch
+                    {
+                        SessionPhase.Started => true,
+                        SessionPhase.FullCourseYellow => true,
+                        SessionPhase.Stopped => true,
+                        _ => false
+                    };
 
-                    w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Yellow, raceStarted)));
+                    w.WriteNumber("Yellow", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.Yellow, raceOngoing)));
 
                     // Flags.YellowCausedIt
 
                     w.WriteNumber("YellowOvertake", ToInt32(gt.Player?.OvertakeAllowed));
-                    w.WriteNumber("YellowPositionsGained", RaceOnly(ToInt32(gt.Player?.Warnings.GiveBackPositions), raceStarted));
+                    w.WriteNumber("YellowPositionsGained", Conditional(ToInt32(gt.Player?.Warnings.GiveBackPositions), raceStarted));
 
                     // Flags.SectorYellow.Sector1
                     // Flags.SectorYellow.Sector2
                     // Flags.SectorYellow.Sector3
                     // Flags.ClosestYellowDistanceIntoTrack
 
-                    w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Blue, raceStarted)));
+                    w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.Blue, raceOngoing)));
                     w.WriteNumber("Black", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Black)));
-                    w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.Green, raceStarted)));
+                    w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.Green, raceOngoing)));
                     w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Chequered)));
-                    w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => RaceOnlyFlagAsInt32(f.White, raceStarted)));
+                    w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.White, raceOngoing)));
                     w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags,
-                        f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value, raceStarted)
+                        f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value, raceOngoing)
                     ));
                 });
 
@@ -644,6 +653,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
+        private static Interval<Int32> PitWindowBoundaries(IGameTelemetry gt) =>
+            (gt.Session?.Requirements.PitWindow) switch
+            {
+                Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish)
+                        when gt.FocusedVehicle?.CompletedLaps.CompareTo(finish.Laps) < 0 =>
+                    new Interval<Int32>(Convert.ToInt32(start.Laps), Convert.ToInt32(finish.Laps)),
+                Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish)
+                        when gt.Session.ElapsedTime < finish.Time =>
+                    new Interval<Int32>(Convert.ToInt32(start.Time.TotalMinutes), Convert.ToInt32(finish.Time.TotalMinutes)),
+                _ =>
+                    new Interval<Int32>(-1, -1)
+            };
+
         public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, Double value)
         {
             writer.WriteNumber(propertyName, value, DecimalDigits);
@@ -764,42 +786,48 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static Int32 PitWindowStatusAsInt32(IGameTelemetry gt)
         {
-            if (gt.Session is null)
+            var s = gt.Session;
+            if (s is null)
                 return -1; // Unavailable
-            var pitWindow = gt.Session.Requirements.PitWindow;
+            if (!s.PitLaneOpen)
+                return 0; // Disabled
+
+            var fv = gt.FocusedVehicle;
+            if (fv is null)
+                return -1; // Unavailable
+
+            if (fv.Pit.PitLanePhase == PitLanePhase.Stopped)
+                return 3; // Stopped
+
+            var pitWindow = s.Requirements.PitWindow;
             if (pitWindow is null)
-                return 2;
-            var focusedVehicle = gt.FocusedVehicle;
-            if (focusedVehicle?.Pit.MandatoryStopsDone > 0)
+                return 2; // Open
+
+            if (fv.Pit.MandatoryStopsDone >= s.Requirements.MandatoryPitStops)
                 return 4; // Completed
 
+            // This should stay open even when in the pits when the time expires.
+            // Not worth implementing it though, as it's both difficult and pointless.
+            // TODO at the moment this doesn't work for very short races because ElapsedTime is based on
+            // SessionTimeRemaining, that is converted to wait time when the winner crosses the finish line.
             switch (pitWindow)
             {
-                case Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish):
-                    if (focusedVehicle is null)
-                        return -1; // Unavailable
-                    if (start.Laps.CompareTo(focusedVehicle.CompletedLaps) > 0
-                        || 0 > finish.Laps.CompareTo(focusedVehicle.CompletedLaps))
-                        return 1; // Closed
-                    break;
-                case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish):
-                    if (start.Time.CompareTo(gt.Session.ElapsedTime) > 0
-                        || 0 > finish.Time.CompareTo(gt.Session.ElapsedTime))
-                        return 1; // Closed
-                    break;
+                case Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish)
+                    when start.Laps <= fv.CompletedLaps && fv.CompletedLaps < finish.Laps:
+                    return 2; // Open
+                case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish)
+                    when start.Time <= s.ElapsedTime && s.ElapsedTime < finish.Time:
+                    return 2; // Open
             }
 
-            if (focusedVehicle?.Pit.PitLaneState == PitLaneState.Stopped)
-                return 3; // Stopped
-            else
-                return 2; // Open
+            return 1; // Closed
         }
 
         private static Int32 InPitLaneAsInt32(IVehicle? vehicle)
         {
             if (vehicle is null)
                 return -1;
-            if (vehicle.Pit.PitLaneState is null)
+            if (vehicle.Pit.PitLanePhase is null)
                 return 0;
             return 1;
         }
@@ -808,16 +836,16 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             if (gt.FocusedVehicle is null)
                 return -1;
-            switch (gt.FocusedVehicle?.Pit.PitLaneState)
+            switch (gt.FocusedVehicle?.Pit.PitLanePhase)
             {
-                case PitLaneState.Entered:
+                case PitLanePhase.Entered:
                     return 2;
-                case PitLaneState.Stopped:
+                case PitLanePhase.Stopped:
                     return 3;
-                case PitLaneState.Exiting:
+                case PitLanePhase.Exiting:
                     return 4;
             }
-            if (gt.Player?.PitStop.HasFlag(PlayerPitStop.Requested) ?? false)
+            if (gt.Player?.PitStopStatus.HasFlag(PlayerPitStop.Requested) ?? false)
                 return 1;
             return 0;
         }
@@ -828,7 +856,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 return -1;
             Int32 pitAction = 0;
             foreach (var (playerPitstopFlag, pitActionFlag) in pitActionMapping)
-                if (player.PitStop.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
+                if (player.PitStopStatus.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
             return pitAction;
         }
 
@@ -863,10 +891,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         private static Int32 FlagAsInt32(IVehicleFlags.IFlag? flag) =>
             ToInt32(flag is not null);
 
-        private static Int32 RaceOnlyFlagAsInt32(IVehicleFlags.IFlag? flag, Boolean raceStarted) =>
-            RaceOnly(ToInt32(flag is not null), raceStarted);
+        private static Int32 ConditionalFlagAsInt32(IVehicleFlags.IFlag? flag, Boolean raceStarted) =>
+            Conditional(ToInt32(flag is not null), raceStarted);
 
-        private static Int32 RaceOnly(Int32 value, Boolean raceStarted) =>
+        private static Int32 Conditional(Int32 value, Boolean raceStarted) =>
             raceStarted ? value : -1;
     }
 }

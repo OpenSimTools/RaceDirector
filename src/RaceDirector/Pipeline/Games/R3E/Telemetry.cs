@@ -10,11 +10,13 @@ namespace RaceDirector.Pipeline.Games.R3E
     {
         private const UInt32 MaxLights = 5;
 
+        // TODO what about passing the previous telemetry to the transform method?
         private StatefulAid<Aid> statefulAbs = StatefulAid.Generic();
         private StatefulAid<TractionControl> statefulTc = StatefulAid.Tc();
         private StatefulAid<Aid> statefulEsp = StatefulAid.Generic();
         private StatefulAid<Aid> statefulCountersteer = StatefulAid.Generic();
         private StatefulAid<Aid> statefulCornering = StatefulAid.Generic();
+        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? pitWindowState = null;
 
         internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
@@ -78,6 +80,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Length: maybeSessionLength,
                 Requirements: sessionRequirements,
                 PitSpeedLimit: ISpeed.FromMPS(sharedData.SessionPitSpeedLimit),
+                PitLaneOpen: sharedData.PitWindowStatus > 0,
                 ElapsedTime: TimeSpan.FromSeconds(sharedData.SessionTimeDuration - sharedData.SessionTimeRemaining), // TODO overtime? add both?
                 StartLights: StartLights(sharedData.StartLights),
                 BestLap: null, // TODO
@@ -153,43 +156,60 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private SessionRequirements SessionRequirements(Contrib.Data.Shared sharedData)
         {
-            if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
-                return new SessionRequirements(
-                    MandatoryPitStops: 0,
-                    MandatoryPitRequirements: 0,
-                    PitWindow: null
-                );
+            var currentPitWindow = PitWindow(sharedData);
 
-            var window = (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
-            {
-                Contrib.Constant.SessionLengthFormat.LapBased =>
-                    new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
-                        new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
-                            Laps: Convert.ToUInt32(sharedData.PitWindowStart),
-                            EstimatedTime: null // TODO
-                        ),
-                        new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
-                            Laps: Convert.ToUInt32(sharedData.PitWindowStart),
-                            EstimatedTime: null // TODO
-                        )
-                    ),
-                _ =>
-                    new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
-                        new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
-                            Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowStart)),
-                            EstimatedLaps: null // TODO
-                        ),
-                        new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
-                            Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowEnd)),
-                            EstimatedLaps: null // TODO
-                        )
-                    ),
+            // R3E removes the pit window when after it ends but we don't want that!
+            var pitWindowIsCorrect = (Contrib.Constant.PitWindow)sharedData.PitWindowStatus switch {
+                Contrib.Constant.PitWindow.Unavailable => true,
+                Contrib.Constant.PitWindow.Disabled => true,
+                Contrib.Constant.PitWindow.Open => true,
+                _ => false // In other cases, the pit window might be wrong
             };
+
+            // Keep the  previous pit window if null and unsure
+            if (currentPitWindow != null || pitWindowIsCorrect)
+                pitWindowState = currentPitWindow;
+
+            // R3E only supports a single mandatory pit stop
+            var mandatoryPitStops = pitWindowState is null ? 0u : 1u;
+
             return new SessionRequirements(
-                MandatoryPitStops: 1, // R3E only supports a single mandatory pit stop
+                MandatoryPitStops: mandatoryPitStops,
                 MandatoryPitRequirements: 0, // TODO
-                PitWindow: window
+                PitWindow: pitWindowState
             );
+        }
+
+        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? PitWindow(Contrib.Data.Shared sharedData)
+        {
+            if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
+                return null;
+            else
+                return (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
+                {
+                    Contrib.Constant.SessionLengthFormat.LapBased =>
+                        new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
+                            new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
+                                Laps: Convert.ToUInt32(sharedData.PitWindowStart),
+                                EstimatedTime: null // TODO
+                            ),
+                            new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
+                                Laps: Convert.ToUInt32(sharedData.PitWindowStart),
+                                EstimatedTime: null // TODO
+                            )
+                        ),
+                    _ =>
+                        new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
+                            new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
+                                Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowStart)),
+                                EstimatedLaps: null // TODO
+                            ),
+                            new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
+                                Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowEnd)),
+                                EstimatedLaps: null // TODO
+                            )
+                        ),
+                };
         }
 
         private StartLights? StartLights(Int32 startLights)
@@ -251,9 +271,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name) ?? "TODO"
                 ),
                 Pit: new VehiclePit(
-                    StopsDone: 42, // TODO
-                    MandatoryStopsDone: 42, // TODO
-                    PitLaneState: null, // TODO
+                    StopsDone: SafeUInt32(driverData.NumPitstops),
+                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)driverData.PitStopStatus),
+                    PitLanePhase: null, // TODO
                     PitLaneTime: null, // TODO
                     PitStallTime: null // TODO
                 ),
@@ -326,8 +346,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Pit: new VehiclePit
                 (
                     StopsDone: SafeUInt32(currentDriverData.NumPitstops),
-                    MandatoryStopsDone: ((Int32)Contrib.Constant.PitWindow.Completed == currentDriverData.PitStopStatus) ? 1u : 0u,
-                    PitLaneState: PitLaneState(sharedData),
+                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)currentDriverData.PitStopStatus),
+                    PitLanePhase: PitLanePhase(sharedData),
                     PitLaneTime: TimeSpan.FromSeconds(sharedData.PitTotalDuration),
                     PitStallTime: TimeSpan.FromSeconds(sharedData.PitElapsedTime)
                 ),
@@ -362,14 +382,17 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
             };
 
-        private Pipeline.Telemetry.V0.PitLaneState? PitLaneState(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.PitLanePhase? PitLanePhase(Contrib.Data.Shared sharedData) =>
             sharedData.PitState switch
             {
-                2 => Pipeline.Telemetry.V0.PitLaneState.Entered,
-                3 => Pipeline.Telemetry.V0.PitLaneState.Stopped,
-                4 => Pipeline.Telemetry.V0.PitLaneState.Exiting,
+                2 => Pipeline.Telemetry.V0.PitLanePhase.Entered,
+                3 => Pipeline.Telemetry.V0.PitLanePhase.Stopped,
+                4 => Pipeline.Telemetry.V0.PitLanePhase.Exiting,
                 _ => null
             };
+
+        private UInt32 MandatoryStopsDone(Contrib.Constant.PitStopStatus pitStopStatus) =>
+            (Contrib.Constant.PitStopStatus.Served == pitStopStatus) ? 1u : 0u;
 
         private Penalty[] Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
         {

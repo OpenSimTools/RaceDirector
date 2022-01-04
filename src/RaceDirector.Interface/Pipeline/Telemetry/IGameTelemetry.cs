@@ -107,6 +107,15 @@ namespace RaceDirector.Pipeline.Telemetry
             ISpeed PitSpeedLimit { get; }
 
             /// <summary>
+            /// Is the pit lane open?
+            /// </summary>
+            /// <remarks>
+            /// Some game modes disable the pit lane (e.g. R3E leaderboard).
+            /// In some games pits are closed at the beginning of the race.
+            /// </remarks>
+            Boolean PitLaneOpen { get; } // R3E PitWindowStatus > 0
+
+            /// <summary>
             /// Session duration.
             /// </summary>
             /// <remarks>
@@ -411,7 +420,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             UInt32 StopsDone { get; }
             UInt32 MandatoryStopsDone { get; } // R3E DriverData[].PitStopStatus for 0 or 1
-            PitLaneState? PitLaneState { get; } // R3E PitState (player) or DriverData[].InPitlane and inference
+            PitLanePhase? PitLanePhase { get; } // R3E PitState (player) or DriverData[].InPitlane and inference
 
             /// <summary>
             /// Time since entering the pit lane. When the vehicle exits, it stays
@@ -432,7 +441,7 @@ namespace RaceDirector.Pipeline.Telemetry
             TimeSpan? PitStallTime { get; } // R3E PitElapsedTime for player
         }
 
-        public enum PitLaneState
+        public enum PitLanePhase
         {
             Entered,   // Entered pit lane
             Stopped,   // Stopped at the pit stall
@@ -654,7 +663,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             IWaitTimeToggled? PushToPass { get; }
 
-            PlayerPitStop PitStop { get; }
+            PlayerPitStop PitStopStatus { get; }
 
             IPlayerWarnings Warnings { get; }
 

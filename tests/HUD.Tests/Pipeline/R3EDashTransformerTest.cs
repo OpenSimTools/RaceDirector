@@ -18,6 +18,8 @@ namespace HUD.Tests.Pipeline
     [UnitTest]
     public class R3EDashTransformerTest
     {
+        private IAutoFaker faker = AutoFaker.Create();
+
         // Note: these cannot be created concurrently, so cannot be static.
         private Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
@@ -443,7 +445,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
-                        Pit = v.Pit with { PitLaneState = null }
+                        Pit = v.Pit with { PitLanePhase = null }
                     })
                     .WithPlayer(p => p with { PitStop = 0 })
                 );
@@ -453,15 +455,15 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
-        [InlineData(PitLaneState.Entered, 1, 2)]
-        [InlineData(PitLaneState.Stopped, 1, 3)]
-        [InlineData(PitLaneState.Exiting, 1, 4)]
-        public void FocusedVehicle_Pit_PitLaneState(PitLaneState? pitLaneState, Int32 inPitLane, Int32 pitState)
+        [InlineData(PitLanePhase.Entered, 1, 2)]
+        [InlineData(PitLanePhase.Stopped, 1, 3)]
+        [InlineData(PitLanePhase.Exiting, 1, 4)]
+        public void FocusedVehicle_Pit_PitLaneState(PitLanePhase? pitLaneState, Int32 inPitLane, Int32 pitState)
         {
             var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
-                        Pit = v.Pit with { PitLaneState = pitLaneState }
+                        Pit = v.Pit with { PitLanePhase = pitLaneState }
                     })
                 );
 
@@ -529,7 +531,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionPhase.Started,           0,  0,  0,  0,  0,  0,  0)]
         [InlineData(SessionPhase.FullCourseYellow,  0,  0,  0,  0,  0,  0,  0)]
         [InlineData(SessionPhase.Stopped,           0,  0,  0,  0,  0,  0,  0)]
-        [InlineData(SessionPhase.Over,              0,  0,  0,  0,  0,  0,  0)]
+        [InlineData(SessionPhase.Over,             -1, -1, 0, -1, 0, -1, -1)]
         public void FocusedVehicle_Flags__Null(SessionPhase sessionPhase,
             Int32 yellow, Int32 blue, Int32 black, Int32 green,
             Int32 chequered, Int32 white, Int32 blackAndWhite)
@@ -562,6 +564,9 @@ namespace HUD.Tests.Pipeline
         public void FocusedVehicle_Flags()
         {
             var result = ToR3EDash(NewGt()
+                .WithSession(s => s with {
+                    Phase = SessionPhase.Started
+                })
                 .WithFocusedVehicleFlags(f => f with
                 {
                     Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
@@ -1070,7 +1075,7 @@ namespace HUD.Tests.Pipeline
         public void Player_PitStop(PlayerPitStop pitStop, Int32 pitState, Int32 pitAction)
         {
             var result = ToR3EDash(NewGt()
-                .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLaneState = null } })
+                .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLanePhase = null } })
                 .WithPlayer(p => p with { PitStop = pitStop }));
 
             Assert.Equal(pitState, result.Path("PitState").GetInt32());
@@ -1346,7 +1351,6 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("StartLights").GetInt32());
             Assert.Equal(-1, result.Path("NumberOfLaps").GetInt32());
             Assert.Equal(-1.0, result.Path("SessionTimeDuration").GetDouble());
-            Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
             Assert.Equal(-1, result.Path("PitWindowStart").GetInt32());
             Assert.Equal(-1, result.Path("PitWindowEnd").GetInt32());
         }
@@ -1421,101 +1425,43 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
-        [InlineData(3, 5, 2, 1)]
-        [InlineData(3, 5, 4, 3)]
-        [InlineData(3, 5, 6, 1)]
-        public void Session_Requirements_PitWindow__InPitStall(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
+        [InlineData(3, 4, 2, 3, 4)]
+        [InlineData(3, 4, 3, 3, 4)]
+        [InlineData(3, 4, 4, -1, -1)]
+        [InlineData(3, 4, 5, -1, -1)]
+        public void Session_Requirements_PitWindow__Laps(
+            UInt32 start, UInt32 finish, UInt32 completedLaps, Int32 pitWindowStart, Int32 pitWindowEnd)
         {
             var result = ToR3EDash(NewGt()
-                    .WithFocusedVehicle(v => v with
-                    {
-                        Pit = v.Pit with
-                        {
-                            MandatoryStopsDone = 0,
-                            PitLaneState = PitLaneState.Stopped
-                        }
-                    })
-                    .WithSession(s => s with
-                    {
-                        ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
-                        Requirements = s.Requirements with
-                        {
-                            PitWindow = new Interval<IPitWindowBoundary>(
-                                new TimeDuration(TimeSpan.FromMinutes(start), null),
-                                new TimeDuration(TimeSpan.FromMinutes(end), null)
-                            )
-                        }
-                    })
-                );
-
-            Assert.Equal(windowStatus, result.Path("PitWindowStatus").GetInt32());
-        }
-
-        [Theory]
-        [InlineData(3, 4, 2, 1)]
-        [InlineData(3, 4, 3, 2)]
-        [InlineData(3, 4, 4, 2)]
-        [InlineData(3, 4, 5, 1)]
-        public void Session_Requirements_PitWindow__Laps(UInt32 start, UInt32 end, UInt32 completedLaps, Int32 windowStatus)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithFocusedVehicle(v => v with
-                    {
-                        CompletedLaps = completedLaps,
-                        Pit = v.Pit with
-                        {
-                            MandatoryStopsDone = 0,
-                            PitLaneState = null
-                        }
-                    })
                     .WithSession(s => s with
                     {
                         Requirements = s.Requirements with
                         {
                             PitWindow = new Interval<IPitWindowBoundary>(
                                 new LapsDuration(start, null),
-                                new LapsDuration(end, null)
+                                new LapsDuration(finish, null)
                             )
                         }
                     })
-                );
-
-            Assert.Equal(windowStatus, result.Path("PitWindowStatus").GetInt32());
-            Assert.Equal(start, result.Path("PitWindowStart").GetUInt32());
-            Assert.Equal(end, result.Path("PitWindowEnd").GetUInt32());
-        }
-
-        [Fact]
-        public void Session_Requirements_PitWindow__Laps_NoVehicle()
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithSession(s => s with
+                    .WithFocusedVehicle(v => v with
                     {
-                        Requirements = s.Requirements with
-                        {
-                            PitWindow = new Interval<IPitWindowBoundary>(
-                                new LapsDuration(2, null),
-                                new LapsDuration(3, null)
-                            )
-                        }
+                        CompletedLaps = completedLaps
                     })
-                    with { FocusedVehicle = null }
                 );
 
-            Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
+            Assert.Equal(pitWindowStart, result.Path("PitWindowStart").GetInt32());
+            Assert.Equal(pitWindowEnd, result.Path("PitWindowEnd").GetInt32());
         }
 
         [Theory]
-        [InlineData(3, 5, 2)]
-        [InlineData(3, 5, 4)]
-        [InlineData(3, 5, 6)]
-        public void Session_Requirements_PitWindow__MandatoryStopsDone(UInt32 start, UInt32 end, UInt32 elapsedTime)
+        [InlineData(3, 4, 2, 3, 4)]
+        [InlineData(3, 4, 3, 3, 4)]
+        [InlineData(3, 4, 4, -1, -1)]
+        [InlineData(3, 4, 5, -1, -1)]
+        public void Session_Requirements_PitWindow__Time(
+            UInt32 start, UInt32 finish, UInt32 elapsedTime, Int32 pitWindowStart, Int32 pitWindowEnd)
         {
             var result = ToR3EDash(NewGt()
-                    .WithFocusedVehicle(v => v with
-                    {
-                        Pit = v.Pit with { MandatoryStopsDone = 1 }
-                    })
                     .WithSession(s => s with
                     {
                         ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
@@ -1523,47 +1469,34 @@ namespace HUD.Tests.Pipeline
                         {
                             PitWindow = new Interval<IPitWindowBoundary>(
                                 new TimeDuration(TimeSpan.FromMinutes(start), null),
-                                new TimeDuration(TimeSpan.FromMinutes(end), null)
+                                new TimeDuration(TimeSpan.FromMinutes(finish), null)
                             )
                         }
                     })
-                );
-
-            Assert.Equal(4, result.Path("PitWindowStatus").GetInt32());
-        }
-
-        [Theory]
-        [InlineData(3, 4, 2, 1)]
-        [InlineData(3, 4, 3, 2)]
-        [InlineData(3, 4, 4, 2)]
-        [InlineData(3, 4, 5, 1)]
-        public void Session_Requirements_PitWindow__Time(UInt32 start, UInt32 end, UInt32 elapsedTime, Int32 windowStatus)
-        {
-            var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with
                         {
                             MandatoryStopsDone = 0,
-                            PitLaneState = null
-                        }
-                    })
-                    .WithSession(s => s with
-                    {
-                        ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
-                        Requirements = s.Requirements with
-                        {
-                            PitWindow = new Interval<IPitWindowBoundary>(
-                                new TimeDuration(TimeSpan.FromMinutes(start), null),
-                                new TimeDuration(TimeSpan.FromMinutes(end), null)
-                            )
+                            PitLanePhase = null
                         }
                     })
                 );
 
-            Assert.Equal(windowStatus, result.Path("PitWindowStatus").GetInt32());
-            Assert.Equal(start, result.Path("PitWindowStart").GetUInt32());
-            Assert.Equal(end, result.Path("PitWindowEnd").GetUInt32());
+            Assert.Equal(pitWindowStart, result.Path("PitWindowStart").GetInt32());
+            Assert.Equal(pitWindowEnd, result.Path("PitWindowEnd").GetInt32());
+        }
+
+        [Fact]
+        public void Session_Requirements_PitWindow__Null()
+        {
+            var result = ToR3EDash(NewGt().WithSession(s => s with
+            {
+                Requirements = s.Requirements with { PitWindow = null }
+            }));
+
+            Assert.Equal(-1, result.Path("PitWindowStart").GetInt32());
+            Assert.Equal(-1, result.Path("PitWindowEnd").GetInt32());
         }
 
         [Theory]
@@ -1584,20 +1517,6 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt().WithSession(s => s with { StartLights = startLights }));
 
             Assert.Equal(expected, result.Path("StartLights").GetInt32());
-        }
-
-        [Fact]
-        public void Session_Requirements_PitWindow__Null()
-        {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
-            {
-                Requirements = s.Requirements with { PitWindow = null }
-            }));
-
-            // When is it Disabled then?
-            Assert.Equal(2, result.Path("PitWindowStatus").GetInt32());
-            Assert.Equal(-1, result.Path("PitWindowStart").GetInt32());
-            Assert.Equal(-1, result.Path("PitWindowEnd").GetInt32());
         }
 
         [Theory]
@@ -1753,6 +1672,182 @@ namespace HUD.Tests.Pipeline
 
         #endregion
 
+        #region Mixed
+
+        // PitWindowStatus
+
+        [Fact]
+        public void Out_PitWindowStatus__Session__Null()
+        {
+            var result = ToR3EDash(NewGt() with { Session = null });
+
+            Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void Out_PitWindowStatus__Session_PitLaneOpen()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    PitLaneOpen = false
+                }));
+
+            Assert.Equal(0, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void Out_PitWindowStatus__FocusedVehicle__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    PitLaneOpen = true // Precondition
+                })
+                .WithFocusedVehicle(_ => null));
+
+            Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void Out_PitWindowStatus__FocusedVehicle_Pit_PitLanePhase()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    PitLaneOpen = true // Precondition
+                })
+                .WithFocusedVehicle(v => v with
+                {
+                    Pit = v.Pit with
+                    {
+                        PitLanePhase = PitLanePhase.Stopped
+                    }
+                }));
+
+            Assert.Equal(3, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void Out_PitWindowStatus__Session_Requirements_PitWindow__Null()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    Requirements = s.Requirements with { PitWindow = null },
+                    PitLaneOpen = true // Precondition
+                })
+                .WithFocusedVehicle(v => v with
+                {
+                    Pit = v.Pit with
+                    {
+                        PitLanePhase = null, // Precondition
+                    }
+                }));
+
+            Assert.Equal(2, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Fact]
+        public void Out_PitWindowStatus__FocusedVehicle_Pit_MandatoryStopsDone()
+        {
+            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    Requirements = s.Requirements with
+                    {
+                        MandatoryPitStops = mandatoryPitStopsDone
+                    },
+                    PitLaneOpen = true // Precondition
+                })
+                .WithFocusedVehicle(v => v with
+                {
+                    Pit = v.Pit with
+                    {
+                        MandatoryStopsDone = mandatoryPitStopsDone,
+                        PitLanePhase = null // Precondition
+                    }
+                }));
+
+            Assert.Equal(4, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(3, 4, 2, 1)]
+        [InlineData(3, 4, 3, 2)]
+        [InlineData(3, 4, 4, 1)]
+        [InlineData(3, 4, 5, 1)]
+        public void Out_PitWindowStatus__Session_Requirements_PitWindow__Laps(
+            UInt32 start, UInt32 finish, UInt32 completedLaps, Int32 pitWindowStatus)
+        {
+            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var result = ToR3EDash(NewGt()
+                    .WithSession(s => s with
+                    {
+                        Requirements = s.Requirements with
+                        {
+                            PitWindow = new Interval<IPitWindowBoundary>(
+                                new LapsDuration(start, null),
+                                new LapsDuration(finish, null)
+                            ),
+                            MandatoryPitStops = mandatoryPitStopsDone + 1u // Precondition
+                        },
+                        PitLaneOpen = true // Precondition
+                    })
+                    .WithFocusedVehicle(v => v with
+                    {
+                        CompletedLaps = completedLaps,
+                        Pit = v.Pit with {
+                            MandatoryStopsDone = mandatoryPitStopsDone, // Precondition
+                            PitLanePhase = null // Precondition
+                        }
+                    })
+                );
+
+            Assert.Equal(pitWindowStatus, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(3, 4, 2, 1)]
+        [InlineData(3, 4, 3, 2)]
+        [InlineData(3, 4, 4, 1)]
+        [InlineData(3, 4, 5, 1)]
+        public void Out_PitWindowStatus__Session_Requirements_PitWindow__Time(
+            UInt32 start, UInt32 finish, UInt32 elapsedTime, Int32 pitWindowStatus)
+        {
+            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var result = ToR3EDash(NewGt()
+                    .WithSession(s => s with
+                    {
+                        ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
+                        Requirements = s.Requirements with
+                        {
+                            PitWindow = new Interval<IPitWindowBoundary>(
+                                new TimeDuration(TimeSpan.FromMinutes(start), null),
+                                new TimeDuration(TimeSpan.FromMinutes(finish), null)
+                            ),
+                            MandatoryPitStops = mandatoryPitStopsDone + 1u // Precondition
+                        },
+                        PitLaneOpen = true // Precondition
+                    })
+                    .WithFocusedVehicle(v => v with
+                    {
+                        Pit = v.Pit with
+                        {
+                            MandatoryStopsDone = mandatoryPitStopsDone, // Precondition
+                            PitLanePhase = null // Precondition
+                        }
+                    })
+                );
+
+            Assert.Equal(pitWindowStatus, result.Path("PitWindowStatus").GetInt32());
+        }
+
+        // TODO Move to this region everything that requires mode fields
+
+        #endregion
+
         #region Test setup
 
         private static JsonDocument ToR3EDash(GameTelemetry gt)
@@ -1792,7 +1887,7 @@ static class GameTelemetryExensions
         return gt with { Session = f(gt.Session) };
     }
 
-    public static GameTelemetry WithFocusedVehicle(this GameTelemetry gt, Func<Vehicle, Vehicle> f)
+    public static GameTelemetry WithFocusedVehicle(this GameTelemetry gt, Func<Vehicle, Vehicle?> f)
     {
         if (gt.FocusedVehicle is null)
             return gt;
