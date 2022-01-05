@@ -524,103 +524,6 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
-        [InlineData(SessionPhase.Garage,           -1, -1,  0, -1,  0, -1, -1)]
-        [InlineData(SessionPhase.Gridwalk,         -1, -1,  0, -1,  0, -1, -1)]
-        [InlineData(SessionPhase.Formation,        -1, -1,  0, -1,  0, -1, -1)]
-        [InlineData(SessionPhase.Countdown,        -1, -1,  0, -1,  0, -1, -1)]
-        [InlineData(SessionPhase.Started,           0,  0,  0,  0,  0,  0,  0)]
-        [InlineData(SessionPhase.FullCourseYellow,  0,  0,  0,  0,  0,  0,  0)]
-        [InlineData(SessionPhase.Stopped,           0,  0,  0,  0,  0,  0,  0)]
-        [InlineData(SessionPhase.Over,             -1, -1, 0, -1, 0, -1, -1)]
-        public void FocusedVehicle_Flags__Null(SessionPhase sessionPhase,
-            Int32 yellow, Int32 blue, Int32 black, Int32 green,
-            Int32 chequered, Int32 white, Int32 blackAndWhite)
-        {
-            var result = ToR3EDash(NewGt()
-                .WithSession(s => s with {
-                    Phase = sessionPhase
-                })
-                .WithFocusedVehicleFlags(f => f with
-                {
-                    Green = null,
-                    Blue = null,
-                    Yellow = null,
-                    White = null,
-                    Chequered = null,
-                    Black = null,
-                    BlackWhite = null
-                }));
-
-            Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
-            Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
-            Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
-            Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(chequered, result.Path("Flags", "Checkered").GetInt32());
-            Assert.Equal(white, result.Path("Flags", "White").GetInt32());
-            Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
-        }
-
-        [Fact]
-        public void FocusedVehicle_Flags()
-        {
-            var result = ToR3EDash(NewGt()
-                .WithSession(s => s with {
-                    Phase = SessionPhase.Started
-                })
-                .WithFocusedVehicleFlags(f => f with
-                {
-                    Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
-                    Blue = new BlueFlag(IVehicleFlags.BlueReason.Unknown),
-                    White = new WhiteFlag(IVehicleFlags.WhiteReason.Unknown),
-                    Chequered = new Flag(),
-                    Black = new Flag()
-                }));
-
-            Assert.Equal(1, result.Path("Flags", "Blue").GetInt32());
-            Assert.Equal(1, result.Path("Flags", "Black").GetInt32());
-            Assert.Equal(1, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(1, result.Path("Flags", "Checkered").GetInt32());
-            Assert.Equal(1, result.Path("Flags", "White").GetInt32());
-        }
-
-        [Fact]
-        public void FocusedVehicle_Flags_Yellow()
-        {
-            // Separate for when we are going to implement other fields like CausedIt
-            var result = ToR3EDash(NewGt()
-                .WithSession(s => s with { Phase = SessionPhase.Started })
-                .WithFocusedVehicleFlags(f => f with
-                {
-                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown)
-                }));
-
-            Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
-        }
-
-        [Theory]
-        [InlineData(BlackWhiteReason.Unknown, 0, 0)]
-        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 0, 0)]
-        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 1, 1)]
-        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 2, 2)]
-        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 3, 0)]
-        [InlineData(BlackWhiteReason.WrongWay, 0, 3)]
-        [InlineData(BlackWhiteReason.Cutting, 0, 4)]
-        public void FocusedVehicle_Flags_BlackAndWhite(BlackWhiteReason reason, UInt32 blueFlagWarnings, Int32 value)
-        {
-            var result = ToR3EDash(NewGt()
-                    .WithSession(s => s with { Phase = SessionPhase.Started })
-                    .WithFocusedVehicleFlags(f => f with {
-                        BlackWhite = new BlackWhiteFlag(reason)
-                    })
-                    .WithPlayerWarnings(w => w with {
-                        BlueFlagWarnings = new BoundedValue<UInt32>(blueFlagWarnings, 2)
-                    })
-                );
-
-            Assert.Equal(value, result.Path("Flags", "BlackAndWhite").GetInt32());
-        }
-
-        [Theory]
         [InlineData(PenaltyType.Unknown,           0, 0, 0, 0, 0)]
         [InlineData(PenaltyType.SlowDown,          0, 0, 0, 0, 1)]
         [InlineData(PenaltyType.TimeDeduction,     0, 0, 0, 1, 0)]
@@ -1844,7 +1747,106 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(pitWindowStatus, result.Path("PitWindowStatus").GetInt32());
         }
 
-        // TODO Move to this region everything that requires mode fields
+        [Theory]
+        [InlineData(SessionPhase.Garage, -1, -1, 0, -1, 0, -1, -1)]
+        [InlineData(SessionPhase.Gridwalk, -1, -1, 0, -1, 0, -1, -1)]
+        [InlineData(SessionPhase.Formation, -1, -1, 0, -1, 0, -1, -1)]
+        [InlineData(SessionPhase.Countdown, -1, -1, 0, -1, 0, -1, -1)]
+        [InlineData(SessionPhase.Started, 0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(SessionPhase.FullCourseYellow, 0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(SessionPhase.Stopped, 0, 0, 0, 0, 0, 0, 0)]
+        [InlineData(SessionPhase.Over, -1, -1, 0, -1, 0, -1, -1)]
+        public void Out_Flags__Null(SessionPhase sessionPhase,
+            Int32 yellow, Int32 blue, Int32 black, Int32 green,
+            Int32 chequered, Int32 white, Int32 blackAndWhite)
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    Phase = sessionPhase
+                })
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Green = null,
+                    Blue = null,
+                    Yellow = null,
+                    White = null,
+                    Chequered = null,
+                    Black = null,
+                    BlackWhite = null
+                }));
+
+            Assert.Equal(yellow, result.Path("Flags", "Yellow").GetInt32());
+            Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(chequered, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(white, result.Path("Flags", "White").GetInt32());
+            Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
+        }
+
+        [Fact]
+        public void Out_Flags()
+        {
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with
+                {
+                    Phase = SessionPhase.Started
+                })
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
+                    Blue = new BlueFlag(IVehicleFlags.BlueReason.Unknown),
+                    White = new WhiteFlag(IVehicleFlags.WhiteReason.Unknown),
+                    Chequered = new Flag(),
+                    Black = new Flag()
+                }));
+
+            Assert.Equal(1, result.Path("Flags", "Blue").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Black").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Green").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(1, result.Path("Flags", "White").GetInt32());
+        }
+
+        [Fact]
+        public void Out_Flags_Yellow()
+        {
+            // Separate for when we are going to implement other fields like CausedIt
+            var result = ToR3EDash(NewGt()
+                .WithSession(s => s with { Phase = SessionPhase.Started })
+                .WithFocusedVehicleFlags(f => f with
+                {
+                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown)
+                }));
+
+            Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
+        }
+
+        [Theory]
+        [InlineData(BlackWhiteReason.Unknown, 0, 0)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 0, 0)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 1, 1)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 2, 2)]
+        [InlineData(BlackWhiteReason.IgnoredBlueFlags, 3, 0)]
+        [InlineData(BlackWhiteReason.WrongWay, 0, 3)]
+        [InlineData(BlackWhiteReason.Cutting, 0, 4)]
+        public void Out_Flags_BlackAndWhite(BlackWhiteReason reason, UInt32 blueFlagWarnings, Int32 value)
+        {
+            var result = ToR3EDash(NewGt()
+                    .WithSession(s => s with { Phase = SessionPhase.Started })
+                    .WithFocusedVehicleFlags(f => f with
+                    {
+                        BlackWhite = new BlackWhiteFlag(reason)
+                    })
+                    .WithPlayerWarnings(w => w with
+                    {
+                        BlueFlagWarnings = new BoundedValue<UInt32>(blueFlagWarnings, 2)
+                    })
+                );
+
+            Assert.Equal(value, result.Path("Flags", "BlackAndWhite").GetInt32());
+        }
 
         #endregion
 

@@ -1,4 +1,5 @@
-﻿using RaceDirector.Pipeline.Telemetry;
+﻿using RaceDirector.Pipeline.Games.R3E.Contrib;
+using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using System;
 using System.Collections.Generic;
@@ -244,7 +245,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
-                RacingStatus: Pipeline.Telemetry.V0.IRacingStatus.Unknown, // TODO
+                RacingStatus: RacingStatus((Constant.FinishStatus)driverData.FinishStatus),
                 EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
@@ -308,7 +309,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
-                RacingStatus: Pipeline.Telemetry.V0.IRacingStatus.Unknown, // TODO
+                RacingStatus: RacingStatus((Constant.FinishStatus)currentDriverData.FinishStatus), // TODO
                 EngineType: EngineType(sharedData),
                 ControlType: ControlType(sharedData),
                 Position: 42, // TODO
@@ -434,6 +435,18 @@ namespace RaceDirector.Pipeline.Games.R3E
                 }
             );
         }
+
+        private Pipeline.Telemetry.V0.IRacingStatus RacingStatus(Constant.FinishStatus finishStatus) =>
+            finishStatus switch
+            {
+                Constant.FinishStatus.None => Pipeline.Telemetry.V0.IRacingStatus.Racing,
+                Constant.FinishStatus.Finished => Pipeline.Telemetry.V0.IRacingStatus.Finished,
+                Constant.FinishStatus.DNF => Pipeline.Telemetry.V0.IRacingStatus.DNF,
+                Constant.FinishStatus.DNQ => Pipeline.Telemetry.V0.IRacingStatus.DNQ,
+                Constant.FinishStatus.DNS => Pipeline.Telemetry.V0.IRacingStatus.DNS,
+                Constant.FinishStatus.DQ => new Pipeline.Telemetry.V0.IRacingStatus.DQ(Pipeline.Telemetry.V0.IRacingStatus.DQReason.Unknown),
+                _ => Pipeline.Telemetry.V0.IRacingStatus.Unknown,
+            };
 
 
         private Player? Player(Contrib.Data.Shared sharedData)

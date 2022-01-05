@@ -230,11 +230,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                         SessionPhase.Over => true,
                         _ => false
                     };
+                    var focusedVechicleRacing = gt.FocusedVehicle?.RacingStatus == IRacingStatus.Racing; // TODO test
                     var raceOngoing = gt.Session?.Phase switch
                     {
                         SessionPhase.Started => true,
                         SessionPhase.FullCourseYellow => true,
                         SessionPhase.Stopped => true,
+                        SessionPhase.Over => focusedVechicleRacing, // Race is over when the leader crosses the line
                         _ => false
                     };
 
