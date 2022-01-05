@@ -11,7 +11,7 @@ namespace RaceDirector.Plugin
         public void Init(IServiceCollection services)
         {
             services
-                .AddSingletonWithInterfaces(_ => new Pipeline.Games.R3E.Game.Config(TimeSpan.FromMilliseconds(500)))
+                .AddSingletonWithInterfaces(_ => new Pipeline.Games.R3E.Game.Config(TimeSpan.FromMilliseconds(15)))
                 .AddSingletonWithInterfaces<Pipeline.Games.R3E.Game>()
                 .AddSingletonWithInterfaces(_ => new ProcessMonitorNode.Config(TimeSpan.FromSeconds(5)))
                 .AddTransientWithInterfaces<ProcessMonitorNode>()
