@@ -312,7 +312,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // NumPenalties
 
                 w.WriteNumber("CompletedLaps", ToInt32(gt.FocusedVehicle?.CompletedLaps));
-                w.WriteNumber("CurrentLapValid", ToInt32(gt.FocusedVehicle?.CurrentLapValid));
+                w.WriteNumber("CurrentLapValid", gt.FocusedVehicle?.LapValid switch {
+                    LapValidState.Invalid => 0,
+                    LapValidState.Valid => 1,
+                    _ => -1
+                });
 
                 // TrackSector
 

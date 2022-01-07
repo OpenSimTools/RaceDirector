@@ -318,7 +318,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
             UInt32 CompletedLaps { get; } // R3E DriverData[].CompletedLaps
 
-            Boolean CurrentLapValid { get; }
+            LapValidState LapValid { get; }
 
             ILapTime? CurrentLapTime { get; } // R3E DriverData[].LapTimeCurrentSelf for player
 
@@ -642,8 +642,6 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             Vector3<IAcceleration> LocalAcceleration { get; } // R3E Player.LocalGforce.*, ACC/AC accG
 
-            LapValidState LapValid { get; }// R3E LapValidState
-
             // TODO player or current vehicle?
             // this is odd because it's related to the player's car class. we could extract it in the session if we compute it outselves
             ILapTime? ClassBestLap { get; } // R3E LapTimeBestLeaderClass
@@ -847,9 +845,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum LapValidState
         {
+            Unknown,
+            Invalid,
             Valid,
-            CurrentInvalid,
-            CurrentAndNextInvalid,
+            // CurrentAndNextInvalid, // Does any game expose this information?
         }
 
         [Flags]

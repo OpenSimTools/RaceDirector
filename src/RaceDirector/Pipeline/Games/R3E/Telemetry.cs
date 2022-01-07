@@ -253,7 +253,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 GapAhead: TimeSpan.FromSeconds(driverData.TimeDeltaFront),   // It can be negative!
                 GapBehind: TimeSpan.FromSeconds(driverData.TimeDeltaBehind), // It can be negative!
                 CompletedLaps: SafeUInt32(driverData.CompletedLaps),
-                CurrentLapValid: driverData.CurrentLapValid > 0,
+                LapValid: LapValid(driverData.CurrentLapValid),
                 CurrentLapTime: null, // TODO
                 PreviousLapTime: null, // TODO
                 BestLapTime: new LapTime(
@@ -317,7 +317,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 GapAhead: null, // TODO
                 GapBehind: null, // TODO
                 CompletedLaps: SafeUInt32(currentDriverData.CompletedLaps),
-                CurrentLapValid: sharedData.CurrentLapValid > 0, // of course different from CurrentLapValid for the current vehicle!
+                LapValid: LapValid(sharedData.CurrentLapValid),
                 CurrentLapTime: new LapTime(
                     Overall: TimeSpan.FromSeconds(sharedData.LapTimeCurrentSelf),
                     Sectors: new Sectors
@@ -382,6 +382,13 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (int)Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
                 _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
             };
+
+        private Pipeline.Telemetry.V0.LapValidState LapValid(Int32 currentLapValid) => currentLapValid switch
+        {
+            0 => Pipeline.Telemetry.V0.LapValidState.Invalid,
+            1 => Pipeline.Telemetry.V0.LapValidState.Valid,
+            _ => Pipeline.Telemetry.V0.LapValidState.Unknown
+        };
 
         private Pipeline.Telemetry.V0.PitLanePhase? PitLanePhase(Contrib.Data.Shared sharedData) =>
             sharedData.PitState switch
@@ -505,7 +512,6 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Roll: IAngle.FromDeg(0.0) // TODO
                 ),
                 LocalAcceleration: Vector3(sharedData.Player.LocalAcceleration, i => IAcceleration.FromMPS2(i)),
-                LapValid: Pipeline.Telemetry.V0.LapValidState.Valid, // TODO and move to Vehicle!
                 ClassBestLap: null, // TODO
                 ClassBestSectors: new Sectors // TODO are these the best sectors of the class leader or the best class sectors???
                 (
