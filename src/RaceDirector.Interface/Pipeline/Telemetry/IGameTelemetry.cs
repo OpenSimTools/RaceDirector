@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using RaceDirector.Pipeline.Telemetry.Physics;
+using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
@@ -202,15 +203,21 @@ namespace RaceDirector.Pipeline.Telemetry
             FourTyres  = 1 << 3
         }
 
-        public interface IPitWindowBoundary { }
+        public interface IPitWindowBoundary : IComparable<IRaceInstant> { }
 
         public interface ISessionDuration { }
 
         public static class RaceDuration {
 
-            public record LapsDuration(UInt32 Laps, TimeSpan? EstimatedTime) : ISessionDuration, IPitWindowBoundary;
+            public record LapsDuration(UInt32 Laps, TimeSpan? EstimatedTime) : ISessionDuration, IPitWindowBoundary
+            {
+                Int32 IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Laps.CompareTo(other?.Laps);
+            }
 
-            public record TimeDuration(TimeSpan Time, UInt32? EstimatedLaps) : ISessionDuration, IPitWindowBoundary;
+            public record TimeDuration(TimeSpan Time, UInt32? EstimatedLaps) : ISessionDuration, IPitWindowBoundary
+            {
+                Int32 IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Time.CompareTo(other?.Time);
+            }
 
             /// <summary>
             /// Laps are added after the time duration.
@@ -933,5 +940,20 @@ namespace RaceDirector.Pipeline.Telemetry
         /// It might not be available even if this is zero. Think of P2P during qualifying.
         /// </remarks>
         TimeSpan WaitTimeLeft { get; }
+    }
+
+    public interface IRaceInstant {
+        TimeSpan Time { get; }
+        UInt32 Laps { get; }
+
+        /// <summary>
+        /// Returns if the race instant is within a certain interval.
+        /// </summary>
+        /// <param name="boundary"></param>
+        /// <returns>If the instant is within the interval.</returns>
+        /// <remarks>
+        /// Interval start is included, finish excluded.
+        /// </remarks>
+        Boolean IsWithin<T>(Interval<T> boundary) where T : IComparable<IRaceInstant>;
     }
 }

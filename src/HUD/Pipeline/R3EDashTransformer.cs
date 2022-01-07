@@ -812,15 +812,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             // Not worth implementing it though, as it's both difficult and pointless.
             // TODO at the moment this doesn't work for very short races because ElapsedTime is based on
             // SessionTimeRemaining, that is converted to wait time when the winner crosses the finish line.
-            switch (pitWindow)
-            {
-                case Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish)
-                    when start.Laps <= fv.CompletedLaps && fv.CompletedLaps < finish.Laps:
-                    return 2; // Open
-                case Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish)
-                    when start.Time <= s.ElapsedTime && s.ElapsedTime < finish.Time:
-                    return 2; // Open
-            }
+            var raceInstant = new RaceInstant(s.ElapsedTime, fv.CompletedLaps);
+
+            if (raceInstant.IsWithin(pitWindow))
+                return 2;
 
             return 1; // Closed
         }
