@@ -52,7 +52,9 @@ namespace RaceDirector.Pipeline.Telemetry
         SessionRequirements Requirements,
         ISpeed PitSpeedLimit,
         Boolean PitLaneOpen,
-        TimeSpan ElapsedTime,
+        TimeSpan? ElapsedTime,
+        TimeSpan? TimeRemaining,
+        TimeSpan? WaitTime,
         StartLights? StartLights,
         LapTime? BestLap,
         Sectors? BestSectors,
@@ -387,7 +389,7 @@ public static class DistanceFraction
 
     public record BoundedValue<T>(T Value, T Total) : IBoundedValue<T>;
 
-    public record RaceInstant(TimeSpan Time, UInt32 Laps) : IRaceInstant
+    public record RaceInstant(TimeSpan? Time, UInt32 Laps) : IRaceInstant
     {
         public bool IsWithin<T>(Interval<T> boundary) where T : IComparable<IRaceInstant> =>
             boundary.Start.CompareTo(this) <= 0 && boundary.Finish.CompareTo(this) > 0;

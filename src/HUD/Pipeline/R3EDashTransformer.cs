@@ -181,12 +181,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     TimePlusLapsDuration length => length.Time.TotalSeconds,
                     _ => -1.0
                 });
-                w.WriteRoundedNumber("SessionTimeRemaining", gt.Session?.Length switch
-                {
-                    TimeDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
-                    TimePlusLapsDuration length => length.Time.TotalSeconds - gt.Session.ElapsedTime.TotalSeconds,
-                    _ => -1.0
-                });
+                w.WriteRoundedNumber("SessionTimeRemaining",
+                    gt.Session?.WaitTime?.TotalSeconds ??
+                    gt.Session?.TimeRemaining?.TotalSeconds ??
+                    -1.0
+                );
 
                 // MaxIncidentPoints
 
@@ -814,8 +813,6 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
             // This should stay open even when in the pits when the time expires.
             // Not worth implementing it though, as it's both difficult and pointless.
-            // TODO at the moment this doesn't work for very short races because ElapsedTime is based on
-            // SessionTimeRemaining, that is converted to wait time when the winner crosses the finish line.
             var raceInstant = new RaceInstant(s.ElapsedTime, fv.CompletedLaps);
 
             if (raceInstant.IsWithin(pitWindow))

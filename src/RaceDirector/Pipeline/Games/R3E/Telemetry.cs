@@ -1,5 +1,4 @@
-﻿using RaceDirector.Pipeline.Games.R3E.Contrib;
-using RaceDirector.Pipeline.Telemetry;
+﻿using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using System;
 using System.Collections.Generic;
@@ -71,8 +70,9 @@ namespace RaceDirector.Pipeline.Games.R3E
             var maybeSessionPhase = SessionPhase(sharedData);
             if (maybeSessionType is null || maybeSessionPhase is null)
                 return null;
-            var maybeSessionLength = SessionLength(sharedData);
+            var maybeSessionLength = CurrentSessionLength(sharedData);
             var sessionRequirements = SessionRequirements(sharedData);
+            var (elapsedTime, timeRemaining, waitTime) = RemainingTime(sharedData);
 
             return new Session
             (
@@ -82,7 +82,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Requirements: sessionRequirements,
                 PitSpeedLimit: ISpeed.FromMPS(sharedData.SessionPitSpeedLimit),
                 PitLaneOpen: sharedData.PitWindowStatus > 0,
-                ElapsedTime: TimeSpan.FromSeconds(sharedData.SessionTimeDuration - sharedData.SessionTimeRemaining), // TODO overtime? add both?
+                ElapsedTime: elapsedTime,
+                TimeRemaining: timeRemaining,
+                WaitTime: waitTime,
                 StartLights: StartLights(sharedData.StartLights),
                 BestLap: null, // TODO
                 BestSectors: null, // TODO
@@ -116,38 +118,33 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(Contrib.Data.Shared sharedData)
+        private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(Contrib.Data.Shared sharedData) =>
+            SessionLength(sharedData.SessionTimeDuration, sharedData.NumberOfLaps);
+
+        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(Double secondsOrNegative, Int32 lapsOrNegative)
         {
-            // TODO Create Event.SessionsLength and get the SessionIteration-1 element from it
-            var (laps, minutes) = sharedData.SessionIteration switch
+            if (lapsOrNegative >= 0)
             {
-                1 => (sharedData.RaceSessionLaps.Race1, sharedData.RaceSessionMinutes.Race1),
-                2 => (sharedData.RaceSessionLaps.Race2, sharedData.RaceSessionMinutes.Race2),
-                3 => (sharedData.RaceSessionLaps.Race3, sharedData.RaceSessionMinutes.Race3),
-                _ => (-1, -1)
-            }; // -1 no race, 0 not used, >0 used
-            if (laps > 0)
-            {
-                if (minutes > 0)
+                if (secondsOrNegative >= 0)
                     return new Pipeline.Telemetry.V0.RaceDuration.TimePlusLapsDuration
                     (
-                        Time: TimeSpan.FromMinutes(minutes),
-                        ExtraLaps: Convert.ToUInt32(laps),
+                        Time: TimeSpan.FromSeconds(secondsOrNegative),
+                        ExtraLaps: Convert.ToUInt32(lapsOrNegative),
                         EstimatedLaps: null // TODO
                     );
                 else
                     return new Pipeline.Telemetry.V0.RaceDuration.LapsDuration
                     (
-                        Laps: Convert.ToUInt32(laps),
+                        Laps: Convert.ToUInt32(lapsOrNegative),
                         EstimatedTime: null // TODO
                     );
             }
             else
             {
-                if (minutes > 0)
+                if (secondsOrNegative >= 0)
                     return new Pipeline.Telemetry.V0.RaceDuration.TimeDuration
                     (
-                        Time: TimeSpan.FromMinutes(minutes),
+                        Time: TimeSpan.FromSeconds(secondsOrNegative),
                         EstimatedLaps: null // TODO
                     );
                 else
@@ -181,6 +178,21 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
+        private (TimeSpan?, TimeSpan?, TimeSpan?) RemainingTime(Contrib.Data.Shared sharedData)
+        {
+            var timeRemaining = sharedData.SessionTimeRemaining;
+            var sessionTimeLength = sharedData.SessionTimeDuration;
+
+            if ((Contrib.Constant.SessionPhase)sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
+                // TODO infer elapsed time after chequered flag by storing GameSimulationTime at t0
+                return (null, TimeSpan.Zero, TimeSpan.FromSeconds(timeRemaining));
+
+            if (sessionTimeLength < 0 || timeRemaining < 0)
+                return (null, null, null);
+
+            return (TimeSpan.FromSeconds(sessionTimeLength - timeRemaining), TimeSpan.FromSeconds(timeRemaining), null);
+        }
+
         private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? PitWindow(Contrib.Data.Shared sharedData)
         {
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
@@ -195,7 +207,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                                 EstimatedTime: null // TODO
                             ),
                             new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
-                                Laps: Convert.ToUInt32(sharedData.PitWindowStart),
+                                Laps: Convert.ToUInt32(sharedData.PitWindowEnd),
                                 EstimatedTime: null // TODO
                             )
                         ),
@@ -245,7 +257,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Constant.FinishStatus)driverData.FinishStatus),
+                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)driverData.FinishStatus),
                 EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
@@ -309,7 +321,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Constant.FinishStatus)currentDriverData.FinishStatus), // TODO
+                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)currentDriverData.FinishStatus), // TODO
                 EngineType: EngineType(sharedData),
                 ControlType: ControlType(sharedData),
                 Position: 42, // TODO
@@ -443,15 +455,15 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.IRacingStatus RacingStatus(Constant.FinishStatus finishStatus) =>
+        private Pipeline.Telemetry.V0.IRacingStatus RacingStatus(Contrib.Constant.FinishStatus finishStatus) =>
             finishStatus switch
             {
-                Constant.FinishStatus.None => Pipeline.Telemetry.V0.IRacingStatus.Racing,
-                Constant.FinishStatus.Finished => Pipeline.Telemetry.V0.IRacingStatus.Finished,
-                Constant.FinishStatus.DNF => Pipeline.Telemetry.V0.IRacingStatus.DNF,
-                Constant.FinishStatus.DNQ => Pipeline.Telemetry.V0.IRacingStatus.DNQ,
-                Constant.FinishStatus.DNS => Pipeline.Telemetry.V0.IRacingStatus.DNS,
-                Constant.FinishStatus.DQ => new Pipeline.Telemetry.V0.IRacingStatus.DQ(Pipeline.Telemetry.V0.IRacingStatus.DQReason.Unknown),
+                Contrib.Constant.FinishStatus.None => Pipeline.Telemetry.V0.IRacingStatus.Racing,
+                Contrib.Constant.FinishStatus.Finished => Pipeline.Telemetry.V0.IRacingStatus.Finished,
+                Contrib.Constant.FinishStatus.DNF => Pipeline.Telemetry.V0.IRacingStatus.DNF,
+                Contrib.Constant.FinishStatus.DNQ => Pipeline.Telemetry.V0.IRacingStatus.DNQ,
+                Contrib.Constant.FinishStatus.DNS => Pipeline.Telemetry.V0.IRacingStatus.DNS,
+                Contrib.Constant.FinishStatus.DQ => new Pipeline.Telemetry.V0.IRacingStatus.DQ(Pipeline.Telemetry.V0.IRacingStatus.DQReason.Unknown),
                 _ => Pipeline.Telemetry.V0.IRacingStatus.Unknown,
             };
 

@@ -125,12 +125,25 @@ namespace RaceDirector.Pipeline.Telemetry
             ISessionDuration? Length { get; } // R3E NumberOfLaps, SessionTimeDuration
 
             /// <summary>
-            /// Time since the session started.
+            /// Elapsed time in this session
+            /// </summary>
+            /// <remarks>
+            /// Some games, like R3E, do not expose this at all. It can be inferred from the time remaining for time-based race.
+            /// </remarks>
+            TimeSpan? ElapsedTime { get; }
+
+            /// <summary>
+            /// Time remaining in the session.
             /// </summary>
             /// <remarks>
             /// Menu might have a session time if it's in game menu and the session has started, as opposed to the main menu.
             /// </remarks>
-            TimeSpan ElapsedTime { get; } // R3E Player.GameSimulationTime is 0.0 during replays but SessionTimeRemaining is present!
+            TimeSpan? TimeRemaining { get; } // R3E Player.GameSimulationTime is 0.0 during replays but SessionTimeRemaining is present!
+
+            /// <summary>
+            /// Wait time after the session is finished.
+            /// </summary>
+            TimeSpan? WaitTime { get; }
 
             IStartLights? StartLights { get; }
 
@@ -942,7 +955,7 @@ namespace RaceDirector.Pipeline.Telemetry
     }
 
     public interface IRaceInstant {
-        TimeSpan Time { get; }
+        TimeSpan? Time { get; }
         UInt32 Laps { get; }
 
         /// <summary>
