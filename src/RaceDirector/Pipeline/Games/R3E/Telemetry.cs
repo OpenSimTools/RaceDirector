@@ -291,8 +291,6 @@ namespace RaceDirector.Pipeline.Games.R3E
                     PitStallTime: null // TODO
                 ),
                 Penalties: new Penalty[0], // TODO
-                // IFocusedVehicle only
-                Inputs: null,
                 Flags: new VehicleFlags(
                     Green: null,
                     Blue: null,
@@ -301,7 +299,9 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Chequered: null,
                     Black: null,
                     BlackWhite: null
-                )
+                ),
+                // IFocusedVehicle only
+                Inputs: null
             );
         }
 
@@ -365,14 +365,14 @@ namespace RaceDirector.Pipeline.Games.R3E
                     PitStallTime: TimeSpan.FromSeconds(sharedData.PitElapsedTime)
                 ),
                 Penalties: Penalties(sharedData.Penalties),
+                Flags: VehicleFlags(sharedData.Flags),
                 // IFocusedVehicle only
                 Inputs: new Inputs
                 (
                     Throttle: sharedData.Throttle,
                     Brake: sharedData.Brake,
                     Clutch: sharedData.Clutch
-                ),
-                Flags: VehicleFlags(sharedData.Flags)
+                )
             );
         }
 

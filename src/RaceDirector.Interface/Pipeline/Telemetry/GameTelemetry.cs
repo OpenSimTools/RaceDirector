@@ -113,8 +113,8 @@ namespace RaceDirector.Pipeline.Telemetry
         Driver CurrentDriver,
         VehiclePit Pit,
         Penalty[] Penalties,
-        Inputs? Inputs,
-        VehicleFlags Flags
+        VehicleFlags Flags,
+        Inputs? Inputs
     ) : IFocusedVehicle
     {
         ILapTime? IVehicle.CurrentLapTime => CurrentLapTime;
