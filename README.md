@@ -8,7 +8,7 @@ It is a console application that will read every 15ms the memory mapped file tha
 RaceRoom exposes, only when the game is running. It will then expose that data on
 a WebSocket (`ws://localhost:8070/r3e`). The supported fields are those required
 by [RaceRoom's WebHud](https://github.com/sector3studios/webhud), and can be found
-[here](docs/HUD/README.md).
+[here](docs/Plugins/HUD/README.md).
 
 To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser
 window can be pointed to https://sector3studios.github.io/webhud/dist/.

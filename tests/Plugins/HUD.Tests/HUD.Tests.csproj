@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\HUD\HUD.csproj" />
+    <ProjectReference Include="..\..\..\src\Plugins\HUD\HUD.csproj" />
   </ItemGroup>
 
 </Project>
