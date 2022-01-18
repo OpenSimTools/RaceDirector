@@ -16,14 +16,12 @@ namespace RaceDirector.Pipeline.Utils
         private const long SharedMemoryEnd = 0;
 
         private readonly string _path;
-        private readonly int _size;
 
         private MemoryMappedFile? _mmFile;
 
         public MemoryMappedFileReader(string path)
         {
             _path = path;
-            _size = Marshal.SizeOf(typeof(T));
         }
 
         /// <summary>
@@ -43,25 +41,9 @@ namespace RaceDirector.Pipeline.Utils
 
             using (var viewStream = _mmFile.CreateViewStream(SharedMemoryBegin, SharedMemoryEnd, MemoryMappedFileAccess.Read))
             {
-                return ReadStruct(viewStream);
+                var safeHandle = viewStream.SafeMemoryMappedViewHandle;
+                return Marshal.PtrToStructure<T>(safeHandle.DangerousGetHandle());
             }
-        }
-
-        private T ReadStruct(MemoryMappedViewStream viewStream)
-        {
-            T data;
-            var reader = new BinaryReader(viewStream);
-            var buffer = reader.ReadBytes(_size);
-            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            try
-            {
-                data = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
-            }
-            finally
-            {
-                handle.Free();
-            }
-            return data;
         }
 
         public void Dispose()

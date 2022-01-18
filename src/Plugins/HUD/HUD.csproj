@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
-    <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
+    <ProjectReference Include="..\..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
+    <ProjectReference Include="..\..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@ namespace RaceDirector.Pipeline.Telemetry
 {
     public class TelemetryReaderNode : INode, IDisposable
     {
-        public ISourceBlock<V0.ILiveTelemetry> LiveTelemetrySource
+        public ISourceBlock<V0.IGameTelemetry> GameTelemetrySource
         {
             get;
         }
@@ -18,22 +18,22 @@ namespace RaceDirector.Pipeline.Telemetry
             get;
         }
 
-        private ISourceBlock<V0.ILiveTelemetry>? _currentLiveTelemetrySource;
+        private ISourceBlock<V0.IGameTelemetry>? _currentGameTelemetrySource;
 
         public TelemetryReaderNode(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
             var createSource = TelemetrySourceSelector(telemetrySourceFactories);
-            var outsideLiveTelemetrySource = new BufferBlock<V0.ILiveTelemetry>();
-            LiveTelemetrySource = outsideLiveTelemetrySource;
+            var externalGameTelemetrySource = new BufferBlock<V0.IGameTelemetry>();
+            GameTelemetrySource = externalGameTelemetrySource;
             RunningGameTarget = new ActionBlock<IRunningGame>(runningGame =>
             {
-                _currentLiveTelemetrySource?.Complete();
-                _currentLiveTelemetrySource = createSource(runningGame.Name);
-                _currentLiveTelemetrySource?.LinkTo(outsideLiveTelemetrySource, new DataflowLinkOptions());
+                _currentGameTelemetrySource?.Complete();
+                _currentGameTelemetrySource = createSource(runningGame.Name);
+                _currentGameTelemetrySource?.LinkTo(externalGameTelemetrySource, new DataflowLinkOptions());
             });
         }
 
-        private Func<string?, ISourceBlock<V0.ILiveTelemetry>?> TelemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
+        private Func<string?, ISourceBlock<V0.IGameTelemetry>?> TelemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
             return (string? gameName) =>
                 telemetrySourceFactories
@@ -44,7 +44,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public void Dispose()
         {
-            LiveTelemetrySource.Complete();
+            GameTelemetrySource.Complete();
             RunningGameTarget.Complete();
         }
     }

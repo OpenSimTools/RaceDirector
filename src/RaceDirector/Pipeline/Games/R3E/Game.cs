@@ -1,6 +1,4 @@
-﻿using RaceDirector.Pipeline.GameMonitor;
-using RaceDirector.Pipeline.Telemetry;
-using RaceDirector.Pipeline.Utils;
+﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks.Dataflow;
@@ -23,15 +21,11 @@ namespace RaceDirector.Pipeline.Games.R3E
             _config = config;
         }
 
-        public ISourceBlock<Telemetry.V0.ILiveTelemetry> CreateTelemetrySource()
+        public ISourceBlock<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetrySource()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
-            return PollingSource.Create<Telemetry.V0.ILiveTelemetry>(_config.PollingInterval, () => Transform(mmReader.Read()));
-        }
-
-        private LiveTelemetry Transform(Contrib.Data.Shared sharedData)
-        {
-            return new LiveTelemetry(TimeSpan.FromSeconds(sharedData.Player.GameSimulationTime));
+            var telemetry = new Telemetry();
+            return PollingSource.Create<Pipeline.Telemetry.V0.IGameTelemetry>(_config.PollingInterval, () => telemetry.Transform(mmReader.Read()));
         }
     }
 }

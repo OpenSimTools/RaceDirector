@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoBogus.Moq" Version="2.13.0" />
+    <PackageReference Include="Bogus" Version="33.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -22,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\HUD\HUD.csproj" />
+    <ProjectReference Include="..\..\..\src\Plugins\HUD\HUD.csproj" />
   </ItemGroup>
 
 </Project>
