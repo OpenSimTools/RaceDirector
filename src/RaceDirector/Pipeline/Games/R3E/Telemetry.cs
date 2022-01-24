@@ -20,7 +20,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
-            if (sharedData.VersionMajor != (Int32)Contrib.Constant.VersionMajor.R3E_VERSION_MAJOR)
+            if (sharedData.VersionMajor != Contrib.Constant.VersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
                 GameState: GameState(sharedData),
@@ -97,7 +97,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         }
 
         private Pipeline.Telemetry.V0.SessionType? SessionType(Contrib.Data.Shared sharedData) =>
-            (Contrib.Constant.Session)sharedData.SessionType switch
+            sharedData.SessionType switch
             {
                 Contrib.Constant.Session.Practice => Pipeline.Telemetry.V0.SessionType.Practice,
                 Contrib.Constant.Session.Qualify => Pipeline.Telemetry.V0.SessionType.Qualify,
@@ -107,7 +107,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             };
 
         private Pipeline.Telemetry.V0.SessionPhase? SessionPhase(Contrib.Data.Shared sharedData) =>
-            (Contrib.Constant.SessionPhase)sharedData.SessionPhase switch
+            sharedData.SessionPhase switch
             {
                 Contrib.Constant.SessionPhase.Garage => Pipeline.Telemetry.V0.SessionPhase.Garage,
                 Contrib.Constant.SessionPhase.Gridwalk => Pipeline.Telemetry.V0.SessionPhase.Gridwalk,
@@ -157,7 +157,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             var currentPitWindow = PitWindow(sharedData);
 
             // R3E removes the pit window when after it ends but we don't want that!
-            var pitWindowIsCorrect = (Contrib.Constant.PitWindow)sharedData.PitWindowStatus switch {
+            var pitWindowIsCorrect = sharedData.PitWindowStatus switch {
                 Contrib.Constant.PitWindow.Unavailable => true,
                 Contrib.Constant.PitWindow.Disabled => true,
                 Contrib.Constant.PitWindow.Open => true,
@@ -183,7 +183,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             var timeRemaining = sharedData.SessionTimeRemaining;
             var sessionTimeLength = sharedData.SessionTimeDuration;
 
-            if ((Contrib.Constant.SessionPhase)sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
+            if (sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
                 // TODO infer elapsed time after chequered flag by storing GameSimulationTime at t0
                 return (null, TimeSpan.Zero, TimeSpan.FromSeconds(timeRemaining));
 
@@ -198,7 +198,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
                 return null;
             else
-                return (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
+                return sharedData.SessionLengthFormat switch
                 {
                     Contrib.Constant.SessionLengthFormat.LapBased =>
                         new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
@@ -257,7 +257,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)driverData.FinishStatus),
+                RacingStatus: RacingStatus(driverData.FinishStatus),
                 EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
@@ -285,7 +285,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 Pit: new VehiclePit(
                     StopsDone: SafeUInt32(driverData.NumPitstops),
-                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)driverData.PitStopStatus),
+                    MandatoryStopsDone: MandatoryStopsDone(driverData.PitStopStatus),
                     PitLanePhase: null, // TODO
                     PitLaneTime: null, // TODO
                     PitStallTime: null // TODO
@@ -321,7 +321,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)currentDriverData.FinishStatus), // TODO
+                RacingStatus: RacingStatus(currentDriverData.FinishStatus), // TODO
                 EngineType: EngineType(sharedData),
                 ControlType: ControlType(sharedData),
                 Position: 42, // TODO
@@ -359,7 +359,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Pit: new VehiclePit
                 (
                     StopsDone: SafeUInt32(currentDriverData.NumPitstops),
-                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)currentDriverData.PitStopStatus),
+                    MandatoryStopsDone: MandatoryStopsDone(currentDriverData.PitStopStatus),
                     PitLanePhase: PitLanePhase(sharedData),
                     PitLaneTime: TimeSpan.FromSeconds(sharedData.PitTotalDuration),
                     PitStallTime: TimeSpan.FromSeconds(sharedData.PitElapsedTime)
@@ -379,19 +379,19 @@ namespace RaceDirector.Pipeline.Games.R3E
         private Pipeline.Telemetry.V0.EngineType EngineType(Contrib.Data.Shared sharedData) =>
             sharedData.VehicleInfo.EngineType switch
             {
-                (int)Contrib.Constant.EngineType.COMBUSTION => Pipeline.Telemetry.V0.EngineType.Combustion,
-                (int)Contrib.Constant.EngineType.ELECTRIC => Pipeline.Telemetry.V0.EngineType.Electric,
-                (int)Contrib.Constant.EngineType.HYBRID => Pipeline.Telemetry.V0.EngineType.Hybrid,
+                Contrib.Constant.EngineType.Combustion => Pipeline.Telemetry.V0.EngineType.Combustion,
+                Contrib.Constant.EngineType.Electric => Pipeline.Telemetry.V0.EngineType.Electric,
+                Contrib.Constant.EngineType.Hybrid => Pipeline.Telemetry.V0.EngineType.Hybrid,
                 _ => Pipeline.Telemetry.V0.EngineType.Unknown
             };
 
         private Pipeline.Telemetry.V0.ControlType ControlType(Contrib.Data.Shared sharedData) =>
             sharedData.ControlType switch
             {
-                (int)Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
-                (int)Contrib.Constant.Control.AI => Pipeline.Telemetry.V0.ControlType.AI,
-                (int)Contrib.Constant.Control.Remote => Pipeline.Telemetry.V0.ControlType.RemotePlayer,
-                (int)Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
+                Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
+                Contrib.Constant.Control.AI => Pipeline.Telemetry.V0.ControlType.AI,
+                Contrib.Constant.Control.Remote => Pipeline.Telemetry.V0.ControlType.RemotePlayer,
+                Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
                 _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
             };
 

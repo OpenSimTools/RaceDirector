@@ -39,17 +39,8 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
     {
         public const string SharedMemoryName = "$R3E";
 
-        internal enum VersionMajor
-        {
-            // Major version number to test against
-            R3E_VERSION_MAJOR = 2
-        };
-
-        internal enum VersionMinor
-        {
-            // Minor version number to test against
-            R3E_VERSION_MINOR = 11
-        };
+        public const Int32 VersionMajor = 2;
+        public const Int32 VersionMinor = 11;
 
         public enum Session
         {
@@ -217,9 +208,10 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
 
         public enum EngineType
         {
-            COMBUSTION = 0,
-            ELECTRIC = 1,
-            HYBRID = 2,
+            Unavailable = -1,
+            Combustion = 0,
+            Electric = 1,
+            Hybrid = 2,
         };
     }
 
@@ -573,8 +565,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             public Int32 UserId;
             public Int32 SlotId;
             public Int32 ClassPerformanceIndex;
-            // Note: See the EngineType enum
-            public Int32 EngineType;
+            public Constant.EngineType EngineType;
 
             public Int32 Unused1;
             public Int32 Unused2;
@@ -584,8 +575,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         public struct DriverData
         {
             public DriverInfo DriverInfo;
-            // Note: See the R3E.Constant.FinishStatus enum
-            public Int32 FinishStatus;
+            public Constant.FinishStatus FinishStatus;
             public Int32 Place;
             // Based on performance index
             public Int32 PlaceClass;
@@ -600,8 +590,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             public Sectors<Single> SectorTimeBestSelf;
             public Single TimeDeltaFront;
             public Single TimeDeltaBehind;
-            // Note: See the R3E.Constant.PitStopStatus enum
-            public Int32 PitStopStatus;
+            public Constant.PitStopStatus PitStopStatus;
             public Int32 InPitlane;
 
             public Int32 NumPitstops;
@@ -609,12 +598,10 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             public CutTrackPenalties Penalties;
 
             public Single CarSpeed;
-            // Note: See the R3E.Constant.TireType enum
-            public Int32 TireTypeFront;
-            public Int32 TireTypeRear;
-            // Note: See the R3E.Constant.TireSubtype enum
-            public Int32 TireSubtypeFront;
-            public Int32 TireSubtypeRear;
+            public Constant.TireType TireTypeFront;
+            public Constant.TireType TireTypeRear;
+            public Constant.TireSubtype TireSubtypeFront;
+            public Constant.TireSubtype TireSubtypeRear;
 
             public Single BasePenaltyWeight;
             public Single AidPenaltyWeight;
@@ -744,22 +731,20 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             public Int32 EventIndex;
 
             // Which session the player is in (practice, qualifying, race, etc.)
-            // Note: See the R3E.Constant.Session enum
-            public Int32 SessionType;
+            public Constant.Session SessionType;
 
             // The current iteration of the current type of session (second qualifying session, etc.)
             // Note: 1 = first, 2 = second etc, -1 = N/A
             public Int32 SessionIteration;
 
             // If the session is time based, lap based or time based with an extra lap at the end
-            public Int32 SessionLengthFormat;
+            public Constant.SessionLengthFormat SessionLengthFormat;
 
             // Unit: Meter per second (m/s)
             public Single SessionPitSpeedLimit;
 
             // Which phase the current session is in (gridwalk, countdown, green flag, etc.)
-            // Note: See the R3E.Constant.SessionPhase enum
-            public Int32 SessionPhase;
+            public Constant.SessionPhase SessionPhase;
 
             // Which phase start lights are in; -1 = unavailable, 0 = off, 1-5 = redlight on and counting down, 6 = greenlight on
             // Note: See the r3e_session_phase enum
@@ -801,8 +786,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             //////////////////////////////////////////////////////////////////////////
 
             // Current status of the pit stop
-            // Note: See the R3E.Constant.PitWindow enum
-            public Int32 PitWindowStatus;
+            public Constant.PitWindow PitWindowStatus;
 
             // The minute/lap from which you're obligated to pit (-1 = N/A)
             // Unit: Minutes in time-based sessions, otherwise lap
@@ -816,7 +800,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             public Int32 InPitlane;
 
             // What is currently selected in pit menu, and array of states (preset/buttons: -1 = not selectable, 1 = selectable) (actions: -1 = N/A, 0 = unmarked for fix, 1 = marked for fix)
-            public Int32 PitMenuSelection;
+            public Constant.PitMenuSelection PitMenuSelection;
             public PitMenuState PitMenuState;
 
             // Current vehicle pit state (-1 = N/A, 0 = None, 1 = Requested stop, 2 = Entered pitlane heading for pitspot, 3 = Stopped at pitspot, 4 = Exiting pitspot heading for pit exit)
@@ -923,8 +907,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             //////////////////////////////////////////////////////////////////////////
 
             // Which controller is currently controlling the player's car (AI, player, remote, etc.)
-            // Note: See the R3E.Constant.Control enum
-            public Int32 ControlType;
+            public Constant.Control ControlType;
 
             // Unit: Meter per second (m/s)
             public Single CarSpeed;
