@@ -8,7 +8,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
     // Released by Sector 3 Studios as Public Domain
     // https://github.com/sector3studios/r3e-api/
     //////////////////////////////////////////////////////////////////////////
-    class Constant
+    public class Constant
     {
         public const string SharedMemoryName = "$R3E";
 
@@ -24,7 +24,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             R3E_VERSION_MINOR = 11
         };
 
-        internal enum Session
+        public enum Session
         {
             Unavailable = -1,
             Practice = 0,
@@ -33,7 +33,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Warmup = 3,
         };
 
-        internal enum SessionPhase
+        public enum SessionPhase
         {
             Unavailable = -1,
 
@@ -56,7 +56,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Checkered = 6,
         };
 
-        internal enum Control
+        public enum Control
         {
             Unavailable = -1,
 
@@ -73,7 +73,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Replay = 3,
         };
 
-        internal enum PitWindow
+        public enum PitWindow
         {
             Unavailable = -1,
 
@@ -93,7 +93,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Completed = 4,
         };
 
-        internal enum PitStopStatus
+        public enum PitStopStatus
         {
             // No mandatory pitstops
             Unavailable = -1,
@@ -108,7 +108,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Served = 2,
         };
 
-        internal enum FinishStatus
+        public enum FinishStatus
         {
             // N/A
             Unavailable = -1,
@@ -132,7 +132,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             DQ = 5,
         };
 
-        internal enum SessionLengthFormat
+        public enum SessionLengthFormat
         {
             // N/A
             Unavailable = -1,
@@ -145,7 +145,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             TimeAndLapBased = 2
         };
 
-        internal enum PitMenuSelection
+        public enum PitMenuSelection
         {
             // Pit menu unavailable
             Unavailable = -1,
@@ -171,14 +171,14 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Max = 11
         };
 
-        internal enum TireType
+        public enum TireType
         {
             Unavailable = -1,
             Option = 0,
             Prime = 1,
         };
 
-        internal enum TireSubtype
+        public enum TireSubtype
         {
             Unavailable = -1,
             Primary = 0,
@@ -188,7 +188,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             Hard = 4
         };
 
-        internal enum EngineType
+        public enum EngineType
         {
             COMBUSTION = 0,
             ELECTRIC = 1,
@@ -199,7 +199,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
     namespace Data
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct RaceDuration<T>
+        public struct RaceDuration<T>
         {
             public T Race1;
             public T Race2;
@@ -207,7 +207,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Vector3<T>
+        public struct Vector3<T>
         {
             public T X;
             public T Y;
@@ -215,7 +215,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Orientation<T>
+        public struct Orientation<T>
         {
             public T Pitch;
             public T Yaw;
@@ -223,7 +223,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct SectorStarts<T>
+        public struct SectorStarts<T>
         {
             public T Sector1;
             public T Sector2;
@@ -231,7 +231,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct PlayerData
+        public struct PlayerData
         {
             // Virtual physics time
             // Unit: Ticks (1 tick = 1/400th of a second)
@@ -317,7 +317,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Flags
+        public struct Flags
         {
             // Whether yellow flag is currently active
             // -1 = no data
@@ -391,7 +391,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct CarDamage
+        public struct CarDamage
         {
             // Range: 0.0 - 1.0
             // Note: -1.0 = N/A
@@ -416,7 +416,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct TireData<T>
+        public struct TireData<T>
         {
             public T FrontLeft;
             public T FrontRight;
@@ -425,7 +425,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct PitMenuState
+        public struct PitMenuState
         {
             // Pit menu preset
             public Int32 Preset;
@@ -446,7 +446,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct CutTrackPenalties
+        public struct CutTrackPenalties
         {
             public Int32 DriveThrough;
             public Int32 StopAndGo;
@@ -456,7 +456,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct DRS
+        public struct DRS
         {
             // If DRS is equipped and allowed
             // 0 = No, 1 = Yes, -1 = N/A
@@ -474,7 +474,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct PushToPass
+        public struct PushToPass
         {
             public Int32 Available;
             public Int32 Engaged;
@@ -484,7 +484,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct TireTempInformation
+        public struct TireTempInformation
         {
             public TireTemperature<Single> CurrentTemp;
             public Single OptimalTemp;
@@ -493,7 +493,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct BrakeTemp
+        public struct BrakeTemp
         {
             public Single CurrentTemp;
             public Single OptimalTemp;
@@ -502,7 +502,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct TireTemperature<T>
+        public struct TireTemperature<T>
         {
             public T Left;
             public T Center;
@@ -510,7 +510,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct AidSettings
+        public struct AidSettings
         {
             // ABS; -1 = N/A, 0 = off, 1 = on, 5 = currently active
             public Int32 Abs;
@@ -525,7 +525,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Sectors<T>
+        public struct Sectors<T>
         {
             public T Sector1;
             public T Sector2;
@@ -533,7 +533,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct DriverInfo
+        public struct DriverInfo
         {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
             public byte[] Name; // UTF-8
@@ -554,7 +554,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct DriverData
+        public struct DriverData
         {
             public DriverInfo DriverInfo;
             // Note: See the R3E.Constant.FinishStatus enum
@@ -661,7 +661,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        internal struct Shared
+        public struct Shared
         {
             //////////////////////////////////////////////////////////////////////////
             // Version
