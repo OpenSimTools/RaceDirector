@@ -8,7 +8,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 {
     internal class Telemetry
     {
-        private const UInt32 MaxLights = 5;
+        private const uint MaxLights = 5;
 
         // TODO what about passing the previous telemetry to the transform method?
         private StatefulAid<Aid> statefulAbs = StatefulAid.Generic();
@@ -121,7 +121,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(Contrib.Data.Shared sharedData) =>
             SessionLength(sharedData.SessionTimeDuration, sharedData.NumberOfLaps);
 
-        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(Double secondsOrNegative, Int32 lapsOrNegative)
+        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(double secondsOrNegative, int lapsOrNegative)
         {
             if (lapsOrNegative >= 0)
             {
@@ -225,18 +225,18 @@ namespace RaceDirector.Pipeline.Games.R3E
                 };
         }
 
-        private StartLights? StartLights(Int32 startLights)
+        private StartLights? StartLights(int startLights)
         {
             if (startLights < 0)
                 return null;
             if (startLights > MaxLights)
                 return new StartLights(
                     Colour: Pipeline.Telemetry.V0.LightColour.Green,
-                    Lit: new BoundedValue<UInt32>(MaxLights, MaxLights)
+                    Lit: new BoundedValue<uint>(MaxLights, MaxLights)
                 );
             return new StartLights(
                 Colour: Pipeline.Telemetry.V0.LightColour.Red,
-                Lit: new BoundedValue<UInt32>((UInt32)startLights, MaxLights)
+                Lit: new BoundedValue<uint>((uint)startLights, MaxLights)
             );
         }
 
@@ -307,7 +307,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private Vehicle? FocusedVehicle(Contrib.Data.Shared sharedData)
         {
-            Int32 currentSlotId = sharedData.VehicleInfo.SlotId;
+            int currentSlotId = sharedData.VehicleInfo.SlotId;
             if (currentSlotId < 0)
                 return null;
             var driverDataIndex = Array.FindIndex(sharedData.DriverData, dd => dd.DriverInfo.SlotId == currentSlotId);
@@ -393,7 +393,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
             };
 
-        private Pipeline.Telemetry.V0.LapValidState LapValid(Int32 currentLapValid) => currentLapValid switch
+        private Pipeline.Telemetry.V0.LapValidState LapValid(int currentLapValid) => currentLapValid switch
         {
             0 => Pipeline.Telemetry.V0.LapValidState.Invalid,
             1 => Pipeline.Telemetry.V0.LapValidState.Valid,
@@ -409,7 +409,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private UInt32 MandatoryStopsDone(Contrib.Constant.PitStopStatus pitStopStatus) =>
+        private uint MandatoryStopsDone(Contrib.Constant.PitStopStatus pitStopStatus) =>
             (Contrib.Constant.PitStopStatus.Served == pitStopStatus) ? 1u : 0u;
 
         private Penalty[] Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
@@ -557,7 +557,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return playerPitStop;
         }
 
-        private readonly (Int32, Pipeline.Telemetry.V0.PlayerPitStop)[] pitActionFlags = {
+        private readonly (int, Pipeline.Telemetry.V0.PlayerPitStop)[] pitActionFlags = {
                 (  1, Pipeline.Telemetry.V0.PlayerPitStop.Preparing),
                 (  2, Pipeline.Telemetry.V0.PlayerPitStop.ServingPenalty),
                 (  4, Pipeline.Telemetry.V0.PlayerPitStop.DriverChange),
@@ -581,7 +581,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                 Available: drs.Available > 0,
                 Engaged: drs.Engaged > 0,
-                ActivationsLeft: new BoundedValue<UInt32>(
+                ActivationsLeft: new BoundedValue<uint>(
                     Value: SafeUInt32(drs.NumActivationsLeft),
                     Total: SafeUInt32(sharedData.DrsNumActivationsTotal)
                 )
@@ -596,7 +596,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                 Available: ptp.Available > 0,
                 Engaged: ptp.Engaged > 0,
-                ActivationsLeft: new BoundedValue<UInt32>
+                ActivationsLeft: new BoundedValue<uint>
                 (
                     Value: SafeUInt32(ptp.AmountLeft),
                     Total: SafeUInt32(sharedData.PtpNumActivationsTotal)
@@ -675,17 +675,17 @@ namespace RaceDirector.Pipeline.Games.R3E
             }
         }
 
-        private IBoundedValue<UInt32>? BlueFlagWarnings(Int32 blackAndWhite)
+        private IBoundedValue<uint>? BlueFlagWarnings(int blackAndWhite)
         {
-            UInt32 blueWarnings = blackAndWhite switch {
+            uint blueWarnings = blackAndWhite switch {
                 1 => 1,
                 2 => 2,
                 _ => 0
             };
-            return new BoundedValue<UInt32>(blueWarnings, 2);
+            return new BoundedValue<uint>(blueWarnings, 2);
         }
 
-        private UInt32 PositiveOrZero(Int32 value) => value > 0 ? (UInt32)value : 0;
+        private uint PositiveOrZero(int value) => value > 0 ? (uint)value : 0;
 
         private String FromNullTerminatedByteArray(byte[] nullTerminated)
         {
@@ -704,15 +704,15 @@ namespace RaceDirector.Pipeline.Games.R3E
         private O[] ValuesPerSector<I, O>(Contrib.Data.SectorStarts<I> value, Func<I, O> f) =>
             new O[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
-        private UInt32 SafeUInt32(Int32 i, UInt32 defaultValue = 0)
+        private uint SafeUInt32(int i, uint defaultValue = 0)
         {
             if (i < 0)
                 return defaultValue;
             else
-                return (UInt32)i;
+                return (uint)i;
         }
 
-        private Boolean? NullableBoolean(Int32 i)
+        private bool? NullableBoolean(int i)
         {
             if (i < 0)
                 return null;
@@ -728,14 +728,14 @@ namespace RaceDirector.Pipeline.Games.R3E
     public class StatefulAid<T> where T : Aid
     {
         private T? current = null;
-        private Func<UInt32, T> constructor;
+        private Func<uint, T> constructor;
 
-        public StatefulAid(Func<UInt32, T> constructor)
+        public StatefulAid(Func<uint, T> constructor)
         {
             this.constructor = constructor;
         }
 
-        public T? Update(Int32 newLevel)
+        public T? Update(int newLevel)
         {
             switch (newLevel)
             {
@@ -747,7 +747,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                         current = current with { Active = true };
                     break;
                 default:
-                    current = constructor((UInt32)newLevel);
+                    current = constructor((uint)newLevel);
                     break;
             }
             return current;

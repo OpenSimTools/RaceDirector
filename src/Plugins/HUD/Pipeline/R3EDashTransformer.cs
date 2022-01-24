@@ -12,10 +12,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
-        public static readonly UInt32 MajorVersion = 2;
-        public static readonly UInt32 MinorVersion = 11;
+        public static readonly uint MajorVersion = 2;
+        public static readonly uint MinorVersion = 11;
 
-        public static readonly Int32 DecimalDigits = 3;
+        public static readonly int DecimalDigits = 3;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -658,25 +658,25 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static Interval<Int32> PitWindowBoundaries(IGameTelemetry gt) =>
+        private static Interval<int> PitWindowBoundaries(IGameTelemetry gt) =>
             (gt.Session?.Requirements.PitWindow) switch
             {
                 Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish)
                         when gt.FocusedVehicle?.CompletedLaps.CompareTo(finish.Laps) < 0 =>
-                    new Interval<Int32>(Convert.ToInt32(start.Laps), Convert.ToInt32(finish.Laps)),
+                    new Interval<int>(Convert.ToInt32(start.Laps), Convert.ToInt32(finish.Laps)),
                 Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish)
                         when gt.Session.ElapsedTime < finish.Time =>
-                    new Interval<Int32>(Convert.ToInt32(start.Time.TotalMinutes), Convert.ToInt32(finish.Time.TotalMinutes)),
+                    new Interval<int>(Convert.ToInt32(start.Time.TotalMinutes), Convert.ToInt32(finish.Time.TotalMinutes)),
                 _ =>
-                    new Interval<Int32>(-1, -1)
+                    new Interval<int>(-1, -1)
             };
 
-        public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, Double value)
+        public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, double value)
         {
             writer.WriteNumber(propertyName, value, DecimalDigits);
         }
 
-        private static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, Double> f)
+        private static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
@@ -687,7 +687,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, String propertyName, Vector3<T>? v, Func<T, Double> f)
+        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, String propertyName, Vector3<T>? v, Func<T, double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
@@ -697,7 +697,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void WriteOrientationPYR(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, Double> f)
+        private static void WriteOrientationPYR(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
@@ -707,7 +707,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, Double> f)
+        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
@@ -725,13 +725,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             action("RearRight", tyres?.GetValueOrNull(1, 1));
         }
 
-        private static T? GetValueOrNull<T>(this T[][] array, Int32 i, Int32 j) =>
+        private static T? GetValueOrNull<T>(this T[][] array, int i, int j) =>
             (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
 
 
         private static byte[] NullTerminated(String? value) => Encoding.UTF8.GetBytes($"{value ?? ""}\0");
 
-        private static UInt32 ToUInt32(Double? value)
+        private static uint ToUInt32(double? value)
         {
             try
             {
@@ -742,24 +742,24 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             }
         }
 
-        private static Int32 ToInt32(UInt32? value)
+        private static int ToInt32(uint? value)
         {
-            if (value is null || value > Int32.MaxValue)
+            if (value is null || value > int.MaxValue)
                 return -1;
             return Convert.ToInt32(value);
         }
 
-        private static Int32 ToInt32(Boolean? value)
+        private static int ToInt32(bool? value)
         {
             return MatchAsInt32(value, true);
         }
 
-        private static Int32 MatchAsInt32<T>(T? value, T constant)
+        private static int MatchAsInt32<T>(T? value, T constant)
         {
             return ToInt32(value, v => ToInt32(v.Equals(constant)));
         }
 
-        private static Int32 ToInt32(IStartLights? startLights)
+        private static int ToInt32(IStartLights? startLights)
         {
             return ToInt32(startLights, sl =>
             {
@@ -770,26 +770,26 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static Int32 ToInt32<T>(T? value, Func<T, Int32> f)
+        private static int ToInt32<T>(T? value, Func<T, int> f)
         {
             if (value is null)
                 return -1;
             return f(value);
         }
 
-        private static Int32 ToInt32(Boolean value)
+        private static int ToInt32(bool value)
         {
             return value ? 1 : 0;
         }
 
-        private static Int32 ToInt32(IAid? aid)
+        private static int ToInt32(IAid? aid)
         {
             if (aid?.Active == true)
                 return 5;
             return ToInt32(aid?.Level);
         }
 
-        private static Int32 PitWindowStatusAsInt32(IGameTelemetry gt)
+        private static int PitWindowStatusAsInt32(IGameTelemetry gt)
         {
             var s = gt.Session;
             if (s is null)
@@ -821,7 +821,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             return 1; // Closed
         }
 
-        private static Int32 InPitLaneAsInt32(IVehicle? vehicle)
+        private static int InPitLaneAsInt32(IVehicle? vehicle)
         {
             if (vehicle is null)
                 return -1;
@@ -830,7 +830,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             return 1;
         }
 
-        private static Int32 PitStateAsInt32(IGameTelemetry gt)
+        private static int PitStateAsInt32(IGameTelemetry gt)
         {
             if (gt.FocusedVehicle is null)
                 return -1;
@@ -848,17 +848,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             return 0;
         }
 
-        private static Int32 PitActionAsInt32(IPlayer? player)
+        private static int PitActionAsInt32(IPlayer? player)
         {
             if (player is null)
                 return -1;
-            Int32 pitAction = 0;
+            int pitAction = 0;
             foreach (var (playerPitstopFlag, pitActionFlag) in pitActionMapping)
                 if (player.PitStopStatus.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
             return pitAction;
         }
 
-        private static readonly (PlayerPitStop, Int32)[] pitActionMapping = {
+        private static readonly (PlayerPitStop, int)[] pitActionMapping = {
                 (PlayerPitStop.Preparing,        1 << 0),
                 (PlayerPitStop.ServingPenalty,   1 << 1),
                 (PlayerPitStop.DriverChange,     1 << 2),
@@ -872,7 +872,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             };
 
 
-        private static int BlackWhiteFlagAsInt32(IVehicleFlags.IBlackWhite? blackWhiteFlag, UInt32? blueFlagWarnings, Boolean raceStarted)
+        private static int BlackWhiteFlagAsInt32(IVehicleFlags.IBlackWhite? blackWhiteFlag, uint? blueFlagWarnings, bool raceStarted)
         {
             if (!raceStarted)
                 return -1;
@@ -886,13 +886,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             };
         }
 
-        private static Int32 FlagAsInt32(IVehicleFlags.IFlag? flag) =>
+        private static int FlagAsInt32(IVehicleFlags.IFlag? flag) =>
             ToInt32(flag is not null);
 
-        private static Int32 ConditionalFlagAsInt32(IVehicleFlags.IFlag? flag, Boolean raceStarted) =>
+        private static int ConditionalFlagAsInt32(IVehicleFlags.IFlag? flag, bool raceStarted) =>
             Conditional(ToInt32(flag is not null), raceStarted);
 
-        private static Int32 Conditional(Int32 value, Boolean raceStarted) =>
+        private static int Conditional(int value, bool raceStarted) =>
             raceStarted ? value : -1;
     }
 }

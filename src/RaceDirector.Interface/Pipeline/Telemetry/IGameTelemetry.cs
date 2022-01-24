@@ -24,7 +24,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             GameState GameState { get; }
 
-            Boolean UsingVR { get; }
+            bool UsingVR { get; }
 
             /// <summary>
             /// Race event information.
@@ -77,11 +77,11 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <summary>
             /// Fuel burning rate. 0.0 disabled, 1.0 is normal, 2.0 double, etc.
             /// </summary>
-            Double FuelRate { get; } // R3E FuelUseActive (it's a multiplier!)
+            double FuelRate { get; } // R3E FuelUseActive (it's a multiplier!)
 
-            //Double TireRate { get; }
+            //double TireRate { get; }
 
-            //Double MechanicalDamage { get; }
+            //double MechanicalDamage { get; }
         }
 
         public interface ITrackLayout
@@ -114,7 +114,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// Some game modes disable the pit lane (e.g. R3E leaderboard).
             /// In some games pits are closed at the beginning of the race.
             /// </remarks>
-            Boolean PitLaneOpen { get; } // R3E PitWindowStatus > 0
+            bool PitLaneOpen { get; } // R3E PitWindowStatus > 0
 
             /// <summary>
             /// Session duration.
@@ -194,7 +194,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// Set to 0 to disable.
             /// </remarks>
-            UInt32 MandatoryPitStops { get; }
+            uint MandatoryPitStops { get; }
 
             /// <summary>
             /// Minimum requirements for mandatory pit stops to count.
@@ -222,22 +222,22 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public static class RaceDuration {
 
-            public record LapsDuration(UInt32 Laps, TimeSpan? EstimatedTime) : ISessionDuration, IPitWindowBoundary
+            public record LapsDuration(uint Laps, TimeSpan? EstimatedTime) : ISessionDuration, IPitWindowBoundary
             {
-                Int32 IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Laps.CompareTo(other?.Laps);
+                int IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Laps.CompareTo(other?.Laps);
             }
 
-            public record TimeDuration(TimeSpan Time, UInt32? EstimatedLaps) : ISessionDuration, IPitWindowBoundary
+            public record TimeDuration(TimeSpan Time, uint? EstimatedLaps) : ISessionDuration, IPitWindowBoundary
             {
-                Int32 IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Time.CompareTo(other?.Time);
+                int IComparable<IRaceInstant>.CompareTo(IRaceInstant? other) => Time.CompareTo(other?.Time);
             }
 
             /// <summary>
             /// Laps are added after the time duration.
             /// </summary>
-            public record TimePlusLapsDuration(TimeSpan Time, UInt32 ExtraLaps, UInt32? EstimatedLaps) : ISessionDuration;
+            public record TimePlusLapsDuration(TimeSpan Time, uint ExtraLaps, uint? EstimatedLaps) : ISessionDuration;
 
-            // public record TimeOrLapsDuration(TimeSpan Time, UInt32 Laps) : ISessionDuration;
+            // public record TimeOrLapsDuration(TimeSpan Time, uint Laps) : ISessionDuration;
         }
 
         // TODO shall we have an array of Off/Red/Green? Or separate game and real (historic might be different)?
@@ -251,7 +251,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             LightColour Colour { get; }
            
-            IBoundedValue<UInt32> Lit { get; }
+            IBoundedValue<uint> Lit { get; }
         }
 
         public enum LightColour
@@ -299,9 +299,9 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IVehicle
         {
-            UInt32 Id { get; } // R3E DriverData[].DriverInfo.SlotId
+            uint Id { get; } // R3E DriverData[].DriverInfo.SlotId
 
-            Int32 ClassPerformanceIndex { get; } // R3E DriverData[].DriverInfo.ClassPerformanceIndex
+            int ClassPerformanceIndex { get; } // R3E DriverData[].DriverInfo.ClassPerformanceIndex
 
             IRacingStatus RacingStatus { get; } // R3E DriverData[].FinishStatus DriverData[].PenaltyReason ACC penalty
 
@@ -309,8 +309,8 @@ namespace RaceDirector.Pipeline.Telemetry
 
             ControlType ControlType { get; }
 
-            UInt32 Position { get; }      // R3E DriverData[].Place or Position
-            UInt32 PositionClass { get; } // R3E DriverData[].PlaceClass or PositionClass
+            uint Position { get; }      // R3E DriverData[].Place or Position
+            uint PositionClass { get; } // R3E DriverData[].PlaceClass or PositionClass
 
             /// <summary>
             /// Gap to the car in front, if any.
@@ -329,7 +329,7 @@ namespace RaceDirector.Pipeline.Telemetry
             TimeSpan? GapBehind { get; } // R3E DriverData[].TimeDeltaBehind
             // TODO Have Gap.{Ahead|Behind} and ClassGap.{Ahead|Behind}?
 
-            UInt32 CompletedLaps { get; } // R3E DriverData[].CompletedLaps
+            uint CompletedLaps { get; } // R3E DriverData[].CompletedLaps
 
             LapValidState LapValid { get; }
 
@@ -438,8 +438,8 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IVehiclePit
         {
-            UInt32 StopsDone { get; }
-            UInt32 MandatoryStopsDone { get; } // R3E DriverData[].PitStopStatus for 0 or 1
+            uint StopsDone { get; }
+            uint MandatoryStopsDone { get; } // R3E DriverData[].PitStopStatus for 0 or 1
             PitLanePhase? PitLanePhase { get; } // R3E PitState (player) or DriverData[].InPitlane and inference
 
             /// <summary>
@@ -568,7 +568,7 @@ namespace RaceDirector.Pipeline.Telemetry
             {
                 YellowReason Reason { get; }
                 // IDistance ClosestOnTrack { get; }
-                // Boolean? CausedIt { get; }
+                // bool? CausedIt { get; }
             }
 
             public enum YellowReason
@@ -576,7 +576,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 Unknown,
                 SingleVehicle,
                 MultipleVehicles,
-                TrackObstruction // Double waved yellows?
+                TrackObstruction // double waved yellows?
             }
 
             public interface IWhite : IFlag
@@ -685,7 +685,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
             IPlayerWarnings Warnings { get; }
 
-            Boolean? OvertakeAllowed { get; }
+            bool? OvertakeAllowed { get; }
         }
 
         // FIXME
@@ -699,7 +699,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IRawInputs : IInputs
         {
-            Double Steering { get; }
+            double Steering { get; }
 
             IAngle SteerWheelRange { get; } // R3E SteerWheelRangeDegrees
         }
@@ -708,11 +708,11 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             // TODO Add nullable steering? R3E doesn't show it but RF2 and AMS2 do.
 
-            Double Throttle { get; }
+            double Throttle { get; }
 
-            Double Brake { get; }
+            double Brake { get; }
 
-            Double Clutch { get; }
+            double Clutch { get; }
         }
 
         /// <summary>
@@ -748,7 +748,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ITractionControl : IAid
         {
-             UInt32? Cut { get; }
+             uint? Cut { get; }
         }
 
         public interface IAid
@@ -756,12 +756,12 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <summary>
             /// Numeric setting.
             /// </summary>
-            UInt32 Level { get; }
+            uint Level { get; }
 
             /// <summary>
             /// Aid is actively altering the driver's inputs.
             /// </summary>
-            Boolean Active { get; }
+            bool Active { get; }
         }
 
         public interface IVehicleSettings
@@ -772,9 +772,9 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <remarks>
             /// ACC comes with real ECU settings, not percentages https://www.assettocorsa.net/forum/index.php?threads/ecu-maps-implementation.54472/
             /// </remarks>
-            UInt32? EngineMap { get; } // R3E EngineMapSetting
+            uint? EngineMap { get; } // R3E EngineMapSetting
 
-            UInt32? EngineBrakeReduction { get; } // R3E EngineBrakeSetting
+            uint? EngineBrakeReduction { get; } // R3E EngineBrakeSetting
 
             // MGU-K...
         }
@@ -782,24 +782,24 @@ namespace RaceDirector.Pipeline.Telemetry
         // [0,1] where 1 is OK
         public interface IVehicleDamage
         {
-            Double AerodynamicsPercent { get; }
+            double AerodynamicsPercent { get; }
 
-            Double EnginePercent { get; }
+            double EnginePercent { get; }
 
-            Double SuspensionPercent { get; }
+            double SuspensionPercent { get; }
 
-            Double TransmissionPercent { get; }
+            double TransmissionPercent { get; }
         }
 
         public interface ITyre
         {
             // Compound
             // Pressure
-            Double Dirt { get; } // [0,1] where 0 = no dirt
+            double Dirt { get; } // [0,1] where 0 = no dirt
 
-            Double Grip { get; } // [0,1] where 0 = no grip, 1 = max grip
+            double Grip { get; } // [0,1] where 0 = no grip, 1 = max grip
 
-            Double Wear { get; } // [0,1] where 1 is new
+            double Wear { get; } // [0,1] where 1 is new
 
             ITemperaturesMatrix Temperatures { get; } // [[L,C,R]] not [[I,C,O]], when more layers (rF2) [Thread,...,Carcass]
 
@@ -831,11 +831,11 @@ namespace RaceDirector.Pipeline.Telemetry
         // TODO define quantities (litres, gallons, etc.)
         public interface IFuel
         {
-            Double Max { get; } // R3E FuelCapacity
+            double Max { get; } // R3E FuelCapacity
 
-            Double Left { get; } // R3E FuelLeft
+            double Left { get; } // R3E FuelLeft
 
-            Double? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
+            double? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
         }
 
         public interface IEngine
@@ -883,16 +883,16 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IPlayerWarnings
         {
-            IBoundedValue<UInt32>? IncidentPoints { get; } // R3E IncidentPoints / MaxIncidentPoints
-            IBoundedValue<UInt32>? BlueFlagWarnings { get; } // R3E Flags.BlackAndWhite
+            IBoundedValue<uint>? IncidentPoints { get; } // R3E IncidentPoints / MaxIncidentPoints
+            IBoundedValue<uint>? BlueFlagWarnings { get; } // R3E Flags.BlackAndWhite
             // TrackLimitWarnings // ACC does not expose this in telemetry
-            UInt32 GiveBackPositions { get; } // R3E YellowPositionsGained
+            uint GiveBackPositions { get; } // R3E YellowPositionsGained
         }
     }
 
     public interface IFraction<T> : IBoundedValue<T>
     {
-        Double Fraction { get; }
+        double Fraction { get; }
     }
 
     public interface IBoundedValue<T>
@@ -925,17 +925,17 @@ namespace RaceDirector.Pipeline.Telemetry
         /// <summary>
         /// It can be activated.
         /// </summary>
-        Boolean Available { get; }
+        bool Available { get; }
 
         /// <summary>
         /// Currently activated.
         /// </summary>
-        Boolean Engaged { get; }
+        bool Engaged { get; }
 
         /// <summary>
         /// Number of activations left.
         /// </summary>
-        IBoundedValue<UInt32>? ActivationsLeft { get; }
+        IBoundedValue<uint>? ActivationsLeft { get; }
     }
 
     public interface IWaitTimeToggled : IActivationToggled
@@ -956,7 +956,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public interface IRaceInstant {
         TimeSpan? Time { get; }
-        UInt32 Laps { get; }
+        uint Laps { get; }
 
         /// <summary>
         /// Returns if the race instant is within a certain interval.
@@ -966,6 +966,6 @@ namespace RaceDirector.Pipeline.Telemetry
         /// <remarks>
         /// Interval start is included, finish excluded.
         /// </remarks>
-        Boolean IsWithin<T>(Interval<T> boundary) where T : IComparable<IRaceInstant>;
+        bool IsWithin<T>(Interval<T> boundary) where T : IComparable<IRaceInstant>;
     }
 }
