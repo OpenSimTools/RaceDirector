@@ -11,7 +11,7 @@ namespace RaceDirector.Pipeline.Telemetry
     public record GameTelemetry
     (
         GameState GameState,
-        Boolean UsingVR,
+        bool UsingVR,
         Event? Event,
         Session? Session,
         Vehicle[] Vehicles,
@@ -30,7 +30,7 @@ namespace RaceDirector.Pipeline.Telemetry
     (
         TrackLayout Track,
         // ISessionDuration[] SessionsLength
-        Double FuelRate
+        double FuelRate
     ) : IEvent
     {
         ITrackLayout IEvent.Track => Track;
@@ -51,7 +51,7 @@ namespace RaceDirector.Pipeline.Telemetry
         ISessionDuration? Length,
         SessionRequirements Requirements,
         ISpeed PitSpeedLimit,
-        Boolean PitLaneOpen,
+        bool PitLaneOpen,
         TimeSpan? ElapsedTime,
         TimeSpan? TimeRemaining,
         TimeSpan? WaitTime,
@@ -70,14 +70,14 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record SessionRequirements
     (
-        UInt32 MandatoryPitStops,
+        uint MandatoryPitStops,
         MandatoryPitRequirements MandatoryPitRequirements,
         Interval<IPitWindowBoundary>? PitWindow
     ) : ISessionRequirements;
 
     public record StartLights(
-        LightColour Colour,
-        BoundedValue<UInt32> Lit
+        LightColor Color,
+        BoundedValue<uint> Lit
     ) : IStartLights
     {
         IBoundedValue<uint> IStartLights.Lit => Lit;
@@ -91,16 +91,16 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record Vehicle
     (
-        UInt32 Id,
-        Int32 ClassPerformanceIndex,
+        uint Id,
+        int ClassPerformanceIndex,
         IRacingStatus RacingStatus,
         EngineType EngineType,
         ControlType ControlType,
-        UInt32 Position,
-        UInt32 PositionClass,
+        uint Position,
+        uint PositionClass,
         TimeSpan? GapAhead,
         TimeSpan? GapBehind,
-        UInt32 CompletedLaps,
+        uint CompletedLaps,
         LapValidState LapValid,
         LapTime? CurrentLapTime,
         LapTime? PreviousLapTime,
@@ -135,8 +135,8 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record VehiclePit
     (
-        UInt32 StopsDone,
-        UInt32 MandatoryStopsDone,
+        uint StopsDone,
+        uint MandatoryStopsDone,
         PitLanePhase? PitLanePhase,
         TimeSpan? PitLaneTime,
         TimeSpan? PitStallTime
@@ -150,9 +150,9 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record Inputs
     (
-        Double Throttle,
-        Double Brake,
-        Double Clutch
+        double Throttle,
+        double Brake,
+        double Clutch
     ) : IInputs;
 
     public record VehicleFlags
@@ -161,7 +161,7 @@ namespace RaceDirector.Pipeline.Telemetry
         BlueFlag? Blue,
         YellowFlag? Yellow,
         WhiteFlag? White,
-        Flag? Chequered,
+        Flag? Checkered,
         Flag? Black,
         BlackWhiteFlag? BlackWhite
     ) : IVehicleFlags
@@ -170,7 +170,7 @@ namespace RaceDirector.Pipeline.Telemetry
         IBlue? IVehicleFlags.Blue => Blue;
         IYellow? IVehicleFlags.Yellow => Yellow;
         IWhite? IVehicleFlags.White => White;
-        IFlag? IVehicleFlags.Chequered => Chequered;
+        IFlag? IVehicleFlags.Checkered => Checkered;
         IFlag? IVehicleFlags.Black => Black;
         IBlackWhite? IVehicleFlags.BlackWhite => BlackWhite;
     }
@@ -188,7 +188,7 @@ namespace RaceDirector.Pipeline.Telemetry
         DrivingAids DrivingAids,
         VehicleSettings VehicleSettings,
         VehicleDamage VehicleDamage,
-        Tyre[][] Tyres,
+        Tire[][] Tires,
         Fuel Fuel,
         Engine Engine,
         Vector3<IDistance> CgLocation,
@@ -202,14 +202,14 @@ namespace RaceDirector.Pipeline.Telemetry
         WaitTimeToggled? PushToPass,
         PlayerPitStop PitStop,
         PlayerWarnings Warnings,
-        Boolean? OvertakeAllowed
+        bool? OvertakeAllowed
     ) : IPlayer
     {
         IRawInputs IPlayer.RawInputs => RawInputs;
         IDrivingAids IPlayer.DrivingAids => DrivingAids;
         IVehicleSettings IPlayer.VehicleSettings => VehicleSettings;
         IVehicleDamage IPlayer.VehicleDamage => VehicleDamage;
-        ITyre[][] IPlayer.Tyres => Tyres;
+        ITire[][] IPlayer.Tires => Tires;
         IFuel IPlayer.Fuel => Fuel;
         IEngine IPlayer.Engine => Engine;
         ILapTime? IPlayer.ClassBestLap => ClassBestLap;
@@ -223,10 +223,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record RawInputs
     (
-        Double Throttle,
-        Double Brake,
-        Double Clutch,
-        Double Steering,
+        double Throttle,
+        double Brake,
+        double Clutch,
+        double Steering,
         IAngle SteerWheelRange
     ) : IRawInputs;
 
@@ -247,42 +247,42 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record TractionControl
     (
-        UInt32 Level,
-        Boolean Active,
-        UInt32? Cut
+        uint Level,
+        bool Active,
+        uint? Cut
     ) : Aid(Level, Active), ITractionControl;
 
     public record Aid
     (
-        UInt32 Level,
-        Boolean Active
+        uint Level,
+        bool Active
     ) : IAid;
 
     public record VehicleSettings
     (
-        UInt32? EngineMap,
-        UInt32? EngineBrakeReduction
+        uint? EngineMap,
+        uint? EngineBrakeReduction
     ) : IVehicleSettings;
 
     public record VehicleDamage
     (
-        Double AerodynamicsPercent,
-        Double EnginePercent,
-        Double SuspensionPercent,
-        Double TransmissionPercent
+        double AerodynamicsPercent,
+        double EnginePercent,
+        double SuspensionPercent,
+        double TransmissionPercent
     ) : IVehicleDamage;
 
-    public record Tyre
+    public record Tire
     (
-        Double Dirt,
-        Double Grip,
-        Double Wear,
+        double Dirt,
+        double Grip,
+        double Wear,
         TemperaturesMatrix Temperatures,
         TemperaturesSingle BrakeTemperatures
-    ) : ITyre
+    ) : ITire
     {
-        ITemperaturesMatrix ITyre.Temperatures => Temperatures;
-        ITemperaturesSingle ITyre.BrakeTemperatures => BrakeTemperatures;
+        ITemperaturesMatrix ITire.Temperatures => Temperatures;
+        ITemperaturesSingle ITire.BrakeTemperatures => BrakeTemperatures;
     }
 
     public record TemperaturesSingle
@@ -303,9 +303,9 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record Fuel
     (
-        Double Max,
-        Double Left,
-        Double? PerLap
+        double Max,
+        double Left,
+        double? PerLap
     ) : IFuel;
 
     public record Engine
@@ -330,49 +330,49 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record ActivationToggled
     (
-        Boolean Available,
-        Boolean Engaged,
-        IBoundedValue<UInt32>? ActivationsLeft // R3E Drs.NumActivationsLeft + DrsNumActivationsTotal
+        bool Available,
+        bool Engaged,
+        IBoundedValue<uint>? ActivationsLeft // R3E Drs.NumActivationsLeft + DrsNumActivationsTotal
     ) : IActivationToggled;
 
     public record WaitTimeToggled
     (
-        Boolean Available,
-        Boolean Engaged,
-        IBoundedValue<UInt32>? ActivationsLeft, // R3E PushToPass.AmountLeft + PtpNumActivationsTotal
+        bool Available,
+        bool Engaged,
+        IBoundedValue<uint>? ActivationsLeft, // R3E PushToPass.AmountLeft + PtpNumActivationsTotal
         TimeSpan EngagedTimeLeft,
         TimeSpan WaitTimeLeft
     ) : IWaitTimeToggled;
 
     public record PlayerWarnings
     (
-        IBoundedValue<UInt32>? IncidentPoints,
-        IBoundedValue<UInt32>? BlueFlagWarnings,
-        UInt32 GiveBackPositions
+        IBoundedValue<uint>? IncidentPoints,
+        IBoundedValue<uint>? BlueFlagWarnings,
+        uint GiveBackPositions
     ) : IPlayerWarnings;
 
 public static class DistanceFraction
     {
-        public static IFraction<IDistance> Of(IDistance value, Double fraction) =>
+        public static IFraction<IDistance> Of(IDistance value, double fraction) =>
             new OfFraction(value, fraction);
 
         public static IFraction<IDistance> FromTotal(IDistance total, IDistance value) =>
             new OfTotalValue(total, value);
 
-        public static IFraction<IDistance> FromTotal(IDistance total, Double fraction) =>
+        public static IFraction<IDistance> FromTotal(IDistance total, double fraction) =>
             new OfTotalFraction(total, fraction);
 
-        public static IFraction<IDistance>[] FromTotal(IDistance total, params Double[] fractions) =>
+        public static IFraction<IDistance>[] FromTotal(IDistance total, params double[] fractions) =>
             fractions.Select(f => new OfTotalFraction(total, f)).ToArray();
 
-        private record OfFraction(IDistance Value, Double Fraction) : IFraction<IDistance>
+        private record OfFraction(IDistance Value, double Fraction) : IFraction<IDistance>
         {
             private Lazy<IDistance> _LazyTotal = new Lazy<IDistance>(() => Value / Fraction);
 
             public IDistance Total => _LazyTotal.Value;
         }
 
-        private record OfTotalFraction(IDistance Total, Double Fraction) : IFraction<IDistance>
+        private record OfTotalFraction(IDistance Total, double Fraction) : IFraction<IDistance>
         {
             private Lazy<IDistance> _LazyValue = new Lazy<IDistance>(() => Total * Fraction);
 
@@ -381,15 +381,15 @@ public static class DistanceFraction
 
         private record OfTotalValue(IDistance Total, IDistance Value) : IFraction<IDistance>
         {
-            private Lazy<Double> _LazyValue = new Lazy<Double>(() => Value / Total);
+            private Lazy<double> _LazyValue = new Lazy<double>(() => Value / Total);
 
-            public Double Fraction => _LazyValue.Value;
+            public double Fraction => _LazyValue.Value;
         }
     }
 
     public record BoundedValue<T>(T Value, T Total) : IBoundedValue<T>;
 
-    public record RaceInstant(TimeSpan? Time, UInt32 Laps) : IRaceInstant
+    public record RaceInstant(TimeSpan? Time, uint Laps) : IRaceInstant
     {
         public bool IsWithin<T>(Interval<T> boundary) where T : IComparable<IRaceInstant> =>
             boundary.Start.CompareTo(this) <= 0 && boundary.Finish.CompareTo(this) > 0;

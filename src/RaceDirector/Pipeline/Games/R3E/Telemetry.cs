@@ -8,7 +8,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 {
     internal class Telemetry
     {
-        private const UInt32 MaxLights = 5;
+        private const uint MaxLights = 5;
 
         // TODO what about passing the previous telemetry to the transform method?
         private StatefulAid<Aid> statefulAbs = StatefulAid.Generic();
@@ -20,7 +20,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
-            if (sharedData.VersionMajor != (Int32)Contrib.Constant.VersionMajor.R3E_VERSION_MAJOR)
+            if (sharedData.VersionMajor != Contrib.Constant.VersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
                 GameState: GameState(sharedData),
@@ -97,7 +97,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         }
 
         private Pipeline.Telemetry.V0.SessionType? SessionType(Contrib.Data.Shared sharedData) =>
-            (Contrib.Constant.Session)sharedData.SessionType switch
+            sharedData.SessionType switch
             {
                 Contrib.Constant.Session.Practice => Pipeline.Telemetry.V0.SessionType.Practice,
                 Contrib.Constant.Session.Qualify => Pipeline.Telemetry.V0.SessionType.Qualify,
@@ -107,7 +107,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             };
 
         private Pipeline.Telemetry.V0.SessionPhase? SessionPhase(Contrib.Data.Shared sharedData) =>
-            (Contrib.Constant.SessionPhase)sharedData.SessionPhase switch
+            sharedData.SessionPhase switch
             {
                 Contrib.Constant.SessionPhase.Garage => Pipeline.Telemetry.V0.SessionPhase.Garage,
                 Contrib.Constant.SessionPhase.Gridwalk => Pipeline.Telemetry.V0.SessionPhase.Gridwalk,
@@ -121,7 +121,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(Contrib.Data.Shared sharedData) =>
             SessionLength(sharedData.SessionTimeDuration, sharedData.NumberOfLaps);
 
-        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(Double secondsOrNegative, Int32 lapsOrNegative)
+        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(double secondsOrNegative, int lapsOrNegative)
         {
             if (lapsOrNegative >= 0)
             {
@@ -157,7 +157,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             var currentPitWindow = PitWindow(sharedData);
 
             // R3E removes the pit window when after it ends but we don't want that!
-            var pitWindowIsCorrect = (Contrib.Constant.PitWindow)sharedData.PitWindowStatus switch {
+            var pitWindowIsCorrect = sharedData.PitWindowStatus switch {
                 Contrib.Constant.PitWindow.Unavailable => true,
                 Contrib.Constant.PitWindow.Disabled => true,
                 Contrib.Constant.PitWindow.Open => true,
@@ -183,8 +183,8 @@ namespace RaceDirector.Pipeline.Games.R3E
             var timeRemaining = sharedData.SessionTimeRemaining;
             var sessionTimeLength = sharedData.SessionTimeDuration;
 
-            if ((Contrib.Constant.SessionPhase)sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
-                // TODO infer elapsed time after chequered flag by storing GameSimulationTime at t0
+            if (sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
+                // TODO infer elapsed time after checkered flag by storing GameSimulationTime at t0
                 return (null, TimeSpan.Zero, TimeSpan.FromSeconds(timeRemaining));
 
             if (sessionTimeLength < 0 || timeRemaining < 0)
@@ -198,7 +198,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
                 return null;
             else
-                return (Contrib.Constant.SessionLengthFormat)sharedData.SessionLengthFormat switch
+                return sharedData.SessionLengthFormat switch
                 {
                     Contrib.Constant.SessionLengthFormat.LapBased =>
                         new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
@@ -225,18 +225,18 @@ namespace RaceDirector.Pipeline.Games.R3E
                 };
         }
 
-        private StartLights? StartLights(Int32 startLights)
+        private StartLights? StartLights(int startLights)
         {
             if (startLights < 0)
                 return null;
             if (startLights > MaxLights)
                 return new StartLights(
-                    Colour: Pipeline.Telemetry.V0.LightColour.Green,
-                    Lit: new BoundedValue<UInt32>(MaxLights, MaxLights)
+                    Color: Pipeline.Telemetry.V0.LightColor.Green,
+                    Lit: new BoundedValue<uint>(MaxLights, MaxLights)
                 );
             return new StartLights(
-                Colour: Pipeline.Telemetry.V0.LightColour.Red,
-                Lit: new BoundedValue<UInt32>((UInt32)startLights, MaxLights)
+                Color: Pipeline.Telemetry.V0.LightColor.Red,
+                Lit: new BoundedValue<uint>((uint)startLights, MaxLights)
             );
         }
 
@@ -257,7 +257,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)driverData.FinishStatus),
+                RacingStatus: RacingStatus(driverData.FinishStatus),
                 EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
                 ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
@@ -281,11 +281,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
                 CurrentDriver: new Driver(
-                    Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name) ?? "TODO"
+                    Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name)
                 ),
                 Pit: new VehiclePit(
                     StopsDone: SafeUInt32(driverData.NumPitstops),
-                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)driverData.PitStopStatus),
+                    MandatoryStopsDone: MandatoryStopsDone(driverData.PitStopStatus),
                     PitLanePhase: null, // TODO
                     PitLaneTime: null, // TODO
                     PitStallTime: null // TODO
@@ -296,7 +296,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Blue: null,
                     Yellow: null,
                     White: null,
-                    Chequered: null,
+                    Checkered: null,
                     Black: null,
                     BlackWhite: null
                 ),
@@ -307,7 +307,7 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private Vehicle? FocusedVehicle(Contrib.Data.Shared sharedData)
         {
-            Int32 currentSlotId = sharedData.VehicleInfo.SlotId;
+            int currentSlotId = sharedData.VehicleInfo.SlotId;
             if (currentSlotId < 0)
                 return null;
             var driverDataIndex = Array.FindIndex(sharedData.DriverData, dd => dd.DriverInfo.SlotId == currentSlotId);
@@ -315,13 +315,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return null;
             var currentDriverData = sharedData.DriverData[driverDataIndex];
             var driverName = FromNullTerminatedByteArray(sharedData.PlayerName);
-            if (driverName == null)
-                return null;
 
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
-                RacingStatus: RacingStatus((Contrib.Constant.FinishStatus)currentDriverData.FinishStatus), // TODO
+                RacingStatus: RacingStatus(currentDriverData.FinishStatus), // TODO
                 EngineType: EngineType(sharedData),
                 ControlType: ControlType(sharedData),
                 Position: 42, // TODO
@@ -359,7 +357,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Pit: new VehiclePit
                 (
                     StopsDone: SafeUInt32(currentDriverData.NumPitstops),
-                    MandatoryStopsDone: MandatoryStopsDone((Contrib.Constant.PitStopStatus)currentDriverData.PitStopStatus),
+                    MandatoryStopsDone: MandatoryStopsDone(currentDriverData.PitStopStatus),
                     PitLanePhase: PitLanePhase(sharedData),
                     PitLaneTime: TimeSpan.FromSeconds(sharedData.PitTotalDuration),
                     PitStallTime: TimeSpan.FromSeconds(sharedData.PitElapsedTime)
@@ -379,23 +377,23 @@ namespace RaceDirector.Pipeline.Games.R3E
         private Pipeline.Telemetry.V0.EngineType EngineType(Contrib.Data.Shared sharedData) =>
             sharedData.VehicleInfo.EngineType switch
             {
-                (int)Contrib.Constant.EngineType.COMBUSTION => Pipeline.Telemetry.V0.EngineType.Combustion,
-                (int)Contrib.Constant.EngineType.ELECTRIC => Pipeline.Telemetry.V0.EngineType.Electric,
-                (int)Contrib.Constant.EngineType.HYBRID => Pipeline.Telemetry.V0.EngineType.Hybrid,
+                Contrib.Constant.EngineType.Combustion => Pipeline.Telemetry.V0.EngineType.Combustion,
+                Contrib.Constant.EngineType.Electric => Pipeline.Telemetry.V0.EngineType.Electric,
+                Contrib.Constant.EngineType.Hybrid => Pipeline.Telemetry.V0.EngineType.Hybrid,
                 _ => Pipeline.Telemetry.V0.EngineType.Unknown
             };
 
         private Pipeline.Telemetry.V0.ControlType ControlType(Contrib.Data.Shared sharedData) =>
             sharedData.ControlType switch
             {
-                (int)Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
-                (int)Contrib.Constant.Control.AI => Pipeline.Telemetry.V0.ControlType.AI,
-                (int)Contrib.Constant.Control.Remote => Pipeline.Telemetry.V0.ControlType.RemotePlayer,
-                (int)Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
+                Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
+                Contrib.Constant.Control.AI => Pipeline.Telemetry.V0.ControlType.AI,
+                Contrib.Constant.Control.Remote => Pipeline.Telemetry.V0.ControlType.RemotePlayer,
+                Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
                 _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
             };
 
-        private Pipeline.Telemetry.V0.LapValidState LapValid(Int32 currentLapValid) => currentLapValid switch
+        private Pipeline.Telemetry.V0.LapValidState LapValid(int currentLapValid) => currentLapValid switch
         {
             0 => Pipeline.Telemetry.V0.LapValidState.Invalid,
             1 => Pipeline.Telemetry.V0.LapValidState.Valid,
@@ -411,7 +409,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private UInt32 MandatoryStopsDone(Contrib.Constant.PitStopStatus pitStopStatus) =>
+        private uint MandatoryStopsDone(Contrib.Constant.PitStopStatus pitStopStatus) =>
             (Contrib.Constant.PitStopStatus.Served == pitStopStatus) ? 1u : 0u;
 
         private Penalty[] Penalties(Contrib.Data.CutTrackPenalties cutTrackPenalties)
@@ -441,7 +439,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Blue: flags.Blue > 0 ? new BlueFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
                 Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown) : null,
                 White: flags.White > 0 ? new WhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
-                Chequered: flags.Checkered > 0 ? new Flag() : null,
+                Checkered: flags.Checkered > 0 ? new Flag() : null,
                 Black: flags.Black > 0 ? new Flag() : null,
                 BlackWhite: flags.BlackAndWhite switch {
                     -1 => null,
@@ -503,7 +501,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     SuspensionPercent: sharedData.CarDamage.Suspension,
                     TransmissionPercent: sharedData.CarDamage.Transmission
                 ),
-                Tyres: Tyres(sharedData),
+                Tires: Tires(sharedData),
                 Fuel: new Fuel
                 (
                     Max: sharedData.FuelCapacity,
@@ -559,13 +557,13 @@ namespace RaceDirector.Pipeline.Games.R3E
             return playerPitStop;
         }
 
-        private readonly (Int32, Pipeline.Telemetry.V0.PlayerPitStop)[] pitActionFlags = {
+        private readonly (int, Pipeline.Telemetry.V0.PlayerPitStop)[] pitActionFlags = {
                 (  1, Pipeline.Telemetry.V0.PlayerPitStop.Preparing),
                 (  2, Pipeline.Telemetry.V0.PlayerPitStop.ServingPenalty),
                 (  4, Pipeline.Telemetry.V0.PlayerPitStop.DriverChange),
                 (  8, Pipeline.Telemetry.V0.PlayerPitStop.Refuelling),
-                ( 16, Pipeline.Telemetry.V0.PlayerPitStop.ChangeFrontTyres),
-                ( 32, Pipeline.Telemetry.V0.PlayerPitStop.ChangeRearTyres),
+                ( 16, Pipeline.Telemetry.V0.PlayerPitStop.ChangeFrontTires),
+                ( 32, Pipeline.Telemetry.V0.PlayerPitStop.ChangeRearTires),
                 ( 64, Pipeline.Telemetry.V0.PlayerPitStop.RepairBody),
                 (128, Pipeline.Telemetry.V0.PlayerPitStop.RepairFrontWing),
                 (256, Pipeline.Telemetry.V0.PlayerPitStop.RepairRearWing),
@@ -583,7 +581,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                 Available: drs.Available > 0,
                 Engaged: drs.Engaged > 0,
-                ActivationsLeft: new BoundedValue<UInt32>(
+                ActivationsLeft: new BoundedValue<uint>(
                     Value: SafeUInt32(drs.NumActivationsLeft),
                     Total: SafeUInt32(sharedData.DrsNumActivationsTotal)
                 )
@@ -598,7 +596,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                 Available: ptp.Available > 0,
                 Engaged: ptp.Engaged > 0,
-                ActivationsLeft: new BoundedValue<UInt32>
+                ActivationsLeft: new BoundedValue<uint>
                 (
                     Value: SafeUInt32(ptp.AmountLeft),
                     Total: SafeUInt32(sharedData.PtpNumActivationsTotal)
@@ -608,39 +606,39 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Tyre[][] Tyres(Contrib.Data.Shared sharedData)
+        private Tire[][] Tires(Contrib.Data.Shared sharedData)
         {
-            return new Tyre[][]
+            return new Tire[][]
             {
-                new Tyre[] {
-                    Tyre(sharedData, new ITyreExtractor.FrontLeft()),
-                    Tyre(sharedData, new ITyreExtractor.FrontRight())
+                new Tire[] {
+                    Tire(sharedData, new ITireExtractor.FrontLeft()),
+                    Tire(sharedData, new ITireExtractor.FrontRight())
                 },
-                new Tyre[] {
-                    Tyre(sharedData, new ITyreExtractor.RearLeft()),
-                    Tyre(sharedData, new ITyreExtractor.RearRight())
+                new Tire[] {
+                    Tire(sharedData, new ITireExtractor.RearLeft()),
+                    Tire(sharedData, new ITireExtractor.RearRight())
                 }
             };
         }
 
-        private Tyre Tyre(Contrib.Data.Shared sharedData, ITyreExtractor extract)
+        private Tire Tire(Contrib.Data.Shared sharedData, ITireExtractor extract)
         {
-            var tyreTemps = extract.CurrentTyre(sharedData.TireTemp);
-            var brakeTemps = extract.CurrentTyre(sharedData.BrakeTemp);
-            return new Tyre(
-                Dirt: extract.CurrentTyre(sharedData.TireDirt),
-                Grip: extract.CurrentTyre(sharedData.TireGrip),
-                Wear: extract.CurrentTyre(sharedData.TireWear),
+            var tireTemps = extract.CurrentTire(sharedData.TireTemp);
+            var brakeTemps = extract.CurrentTire(sharedData.BrakeTemp);
+            return new Tire(
+                Dirt: extract.CurrentTire(sharedData.TireDirt),
+                Grip: extract.CurrentTire(sharedData.TireGrip),
+                Wear: extract.CurrentTire(sharedData.TireWear),
                 Temperatures: new TemperaturesMatrix
                 (
                     CurrentTemperatures: new ITemperature[][] { new ITemperature[] {
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Left),
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Center),
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Right)
+                        ITemperature.FromC(tireTemps.CurrentTemp.Left),
+                        ITemperature.FromC(tireTemps.CurrentTemp.Center),
+                        ITemperature.FromC(tireTemps.CurrentTemp.Right)
                     }},
-                    OptimalTemperature: ITemperature.FromC(tyreTemps.OptimalTemp),
-                    ColdTemperature: ITemperature.FromC(tyreTemps.ColdTemp),
-                    HotTemperature: ITemperature.FromC(tyreTemps.HotTemp)
+                    OptimalTemperature: ITemperature.FromC(tireTemps.OptimalTemp),
+                    ColdTemperature: ITemperature.FromC(tireTemps.ColdTemp),
+                    HotTemperature: ITemperature.FromC(tireTemps.HotTemp)
                 ),
                 BrakeTemperatures: new TemperaturesSingle
                 (
@@ -652,48 +650,48 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private interface ITyreExtractor
+        private interface ITireExtractor
         {
-            T CurrentTyre<T>(Contrib.Data.TireData<T> outer);
+            T CurrentTire<T>(Contrib.Data.TireData<T> outer);
 
-            class FrontLeft : ITyreExtractor
+            class FrontLeft : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.FrontLeft;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontLeft;
             }
 
-            class FrontRight : ITyreExtractor
+            class FrontRight : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.FrontRight;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontRight;
             }
 
-            class RearLeft : ITyreExtractor
+            class RearLeft : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.RearLeft;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearLeft;
             }
 
-            class RearRight : ITyreExtractor
+            class RearRight : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
             }
         }
 
-        private IBoundedValue<UInt32>? BlueFlagWarnings(Int32 blackAndWhite)
+        private IBoundedValue<uint>? BlueFlagWarnings(int blackAndWhite)
         {
-            UInt32 blueWarnings = blackAndWhite switch {
+            uint blueWarnings = blackAndWhite switch {
                 1 => 1,
                 2 => 2,
                 _ => 0
             };
-            return new BoundedValue<UInt32>(blueWarnings, 2);
+            return new BoundedValue<uint>(blueWarnings, 2);
         }
 
-        private UInt32 PositiveOrZero(Int32 value) => value > 0 ? (UInt32)value : 0;
+        private uint PositiveOrZero(int value) => value > 0 ? (uint)value : 0;
 
-        private String? FromNullTerminatedByteArray(byte[] nullTerminated)
+        private String FromNullTerminatedByteArray(byte[] nullTerminated)
         {
             var nullIndex = Array.IndexOf<byte>(nullTerminated, 0);
-            if (nullIndex <= 0)
-                return null;
+            if (nullIndex < 0)
+                nullIndex = nullTerminated.Length;
             return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
         }
 
@@ -706,15 +704,15 @@ namespace RaceDirector.Pipeline.Games.R3E
         private O[] ValuesPerSector<I, O>(Contrib.Data.SectorStarts<I> value, Func<I, O> f) =>
             new O[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
-        private UInt32 SafeUInt32(Int32 i, UInt32 defaultValue = 0)
+        private uint SafeUInt32(int i, uint defaultValue = 0)
         {
             if (i < 0)
                 return defaultValue;
             else
-                return (UInt32)i;
+                return (uint)i;
         }
 
-        private Boolean? NullableBoolean(Int32 i)
+        private bool? NullableBoolean(int i)
         {
             if (i < 0)
                 return null;
@@ -730,14 +728,14 @@ namespace RaceDirector.Pipeline.Games.R3E
     public class StatefulAid<T> where T : Aid
     {
         private T? current = null;
-        private Func<UInt32, T> constructor;
+        private Func<uint, T> constructor;
 
-        public StatefulAid(Func<UInt32, T> constructor)
+        public StatefulAid(Func<uint, T> constructor)
         {
             this.constructor = constructor;
         }
 
-        public T? Update(Int32 newLevel)
+        public T? Update(int newLevel)
         {
             switch (newLevel)
             {
@@ -749,7 +747,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                         current = current with { Active = true };
                     break;
                 default:
-                    current = constructor((UInt32)newLevel);
+                    current = constructor((uint)newLevel);
                     break;
             }
             return current;
