@@ -281,7 +281,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
                 CurrentDriver: new Driver(
-                    Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name) ?? "TODO"
+                    Name: FromNullTerminatedByteArray(driverData.DriverInfo.Name)
                 ),
                 Pit: new VehiclePit(
                     StopsDone: SafeUInt32(driverData.NumPitstops),
@@ -315,8 +315,6 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return null;
             var currentDriverData = sharedData.DriverData[driverDataIndex];
             var driverName = FromNullTerminatedByteArray(sharedData.PlayerName);
-            if (driverName == null)
-                return null;
 
             return new Vehicle(
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
@@ -689,11 +687,11 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private UInt32 PositiveOrZero(Int32 value) => value > 0 ? (UInt32)value : 0;
 
-        private String? FromNullTerminatedByteArray(byte[] nullTerminated)
+        private String FromNullTerminatedByteArray(byte[] nullTerminated)
         {
             var nullIndex = Array.IndexOf<byte>(nullTerminated, 0);
-            if (nullIndex <= 0)
-                return null;
+            if (nullIndex < 0)
+                nullIndex = nullTerminated.Length;
             return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
         }
 
