@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RaceDirector.Pipeline.Games.R3E
 {
-    internal class Telemetry
+    internal class TelemetryConverter
     {
         private const uint MaxLights = 5;
 

@@ -24,13 +24,15 @@ namespace RaceDirector.Pipeline.Games.R3E
         public IObservable<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetryObservable()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
-            var telemetry = new Telemetry();
+            var telemetryConverter = new TelemetryConverter();
             return Observable.Interval(_config.PollingInterval)
                 .SelectMany(_ =>
                 {
                     try
                     {
-                        return Observable.Return(telemetry.Transform(mmReader.Read()));
+                        var shared = mmReader.Read();
+                        var telemetry = telemetryConverter.Transform(shared);
+                        return Observable.Return(telemetry);
                     }
                     catch
                     {

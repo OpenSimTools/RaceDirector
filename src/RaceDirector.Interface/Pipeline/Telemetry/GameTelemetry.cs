@@ -11,7 +11,7 @@ namespace RaceDirector.Pipeline.Telemetry
     public record GameTelemetry
     (
         GameState GameState,
-        bool UsingVR,
+        bool? UsingVR,
         Event? Event,
         Session? Session,
         Vehicle[] Vehicles,

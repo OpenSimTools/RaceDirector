@@ -35,7 +35,7 @@ using System.Runtime.InteropServices;
 
 namespace RaceDirector.Pipeline.Games.R3E.Contrib
 {
-    public class Constant
+    public static class Constant
     {
         public const string SharedMemoryName = "$R3E";
 

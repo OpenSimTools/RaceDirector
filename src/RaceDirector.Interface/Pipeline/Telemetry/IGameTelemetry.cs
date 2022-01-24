@@ -23,7 +23,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             GameState GameState { get; }
 
-            bool UsingVR { get; }
+            bool? UsingVR { get; }
 
             /// <summary>
             /// Race event information.
