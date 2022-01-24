@@ -184,7 +184,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             var sessionTimeLength = sharedData.SessionTimeDuration;
 
             if (sharedData.SessionPhase == Contrib.Constant.SessionPhase.Checkered)
-                // TODO infer elapsed time after chequered flag by storing GameSimulationTime at t0
+                // TODO infer elapsed time after checkered flag by storing GameSimulationTime at t0
                 return (null, TimeSpan.Zero, TimeSpan.FromSeconds(timeRemaining));
 
             if (sessionTimeLength < 0 || timeRemaining < 0)
@@ -231,11 +231,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return null;
             if (startLights > MaxLights)
                 return new StartLights(
-                    Colour: Pipeline.Telemetry.V0.LightColour.Green,
+                    Color: Pipeline.Telemetry.V0.LightColor.Green,
                     Lit: new BoundedValue<uint>(MaxLights, MaxLights)
                 );
             return new StartLights(
-                Colour: Pipeline.Telemetry.V0.LightColour.Red,
+                Color: Pipeline.Telemetry.V0.LightColor.Red,
                 Lit: new BoundedValue<uint>((uint)startLights, MaxLights)
             );
         }
@@ -296,7 +296,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Blue: null,
                     Yellow: null,
                     White: null,
-                    Chequered: null,
+                    Checkered: null,
                     Black: null,
                     BlackWhite: null
                 ),
@@ -439,7 +439,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Blue: flags.Blue > 0 ? new BlueFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
                 Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown) : null,
                 White: flags.White > 0 ? new WhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
-                Chequered: flags.Checkered > 0 ? new Flag() : null,
+                Checkered: flags.Checkered > 0 ? new Flag() : null,
                 Black: flags.Black > 0 ? new Flag() : null,
                 BlackWhite: flags.BlackAndWhite switch {
                     -1 => null,
@@ -501,7 +501,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     SuspensionPercent: sharedData.CarDamage.Suspension,
                     TransmissionPercent: sharedData.CarDamage.Transmission
                 ),
-                Tyres: Tyres(sharedData),
+                Tires: Tires(sharedData),
                 Fuel: new Fuel
                 (
                     Max: sharedData.FuelCapacity,
@@ -562,8 +562,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (  2, Pipeline.Telemetry.V0.PlayerPitStop.ServingPenalty),
                 (  4, Pipeline.Telemetry.V0.PlayerPitStop.DriverChange),
                 (  8, Pipeline.Telemetry.V0.PlayerPitStop.Refuelling),
-                ( 16, Pipeline.Telemetry.V0.PlayerPitStop.ChangeFrontTyres),
-                ( 32, Pipeline.Telemetry.V0.PlayerPitStop.ChangeRearTyres),
+                ( 16, Pipeline.Telemetry.V0.PlayerPitStop.ChangeFrontTires),
+                ( 32, Pipeline.Telemetry.V0.PlayerPitStop.ChangeRearTires),
                 ( 64, Pipeline.Telemetry.V0.PlayerPitStop.RepairBody),
                 (128, Pipeline.Telemetry.V0.PlayerPitStop.RepairFrontWing),
                 (256, Pipeline.Telemetry.V0.PlayerPitStop.RepairRearWing),
@@ -606,39 +606,39 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Tyre[][] Tyres(Contrib.Data.Shared sharedData)
+        private Tire[][] Tires(Contrib.Data.Shared sharedData)
         {
-            return new Tyre[][]
+            return new Tire[][]
             {
-                new Tyre[] {
-                    Tyre(sharedData, new ITyreExtractor.FrontLeft()),
-                    Tyre(sharedData, new ITyreExtractor.FrontRight())
+                new Tire[] {
+                    Tire(sharedData, new ITireExtractor.FrontLeft()),
+                    Tire(sharedData, new ITireExtractor.FrontRight())
                 },
-                new Tyre[] {
-                    Tyre(sharedData, new ITyreExtractor.RearLeft()),
-                    Tyre(sharedData, new ITyreExtractor.RearRight())
+                new Tire[] {
+                    Tire(sharedData, new ITireExtractor.RearLeft()),
+                    Tire(sharedData, new ITireExtractor.RearRight())
                 }
             };
         }
 
-        private Tyre Tyre(Contrib.Data.Shared sharedData, ITyreExtractor extract)
+        private Tire Tire(Contrib.Data.Shared sharedData, ITireExtractor extract)
         {
-            var tyreTemps = extract.CurrentTyre(sharedData.TireTemp);
-            var brakeTemps = extract.CurrentTyre(sharedData.BrakeTemp);
-            return new Tyre(
-                Dirt: extract.CurrentTyre(sharedData.TireDirt),
-                Grip: extract.CurrentTyre(sharedData.TireGrip),
-                Wear: extract.CurrentTyre(sharedData.TireWear),
+            var tireTemps = extract.CurrentTire(sharedData.TireTemp);
+            var brakeTemps = extract.CurrentTire(sharedData.BrakeTemp);
+            return new Tire(
+                Dirt: extract.CurrentTire(sharedData.TireDirt),
+                Grip: extract.CurrentTire(sharedData.TireGrip),
+                Wear: extract.CurrentTire(sharedData.TireWear),
                 Temperatures: new TemperaturesMatrix
                 (
                     CurrentTemperatures: new ITemperature[][] { new ITemperature[] {
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Left),
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Center),
-                        ITemperature.FromC(tyreTemps.CurrentTemp.Right)
+                        ITemperature.FromC(tireTemps.CurrentTemp.Left),
+                        ITemperature.FromC(tireTemps.CurrentTemp.Center),
+                        ITemperature.FromC(tireTemps.CurrentTemp.Right)
                     }},
-                    OptimalTemperature: ITemperature.FromC(tyreTemps.OptimalTemp),
-                    ColdTemperature: ITemperature.FromC(tyreTemps.ColdTemp),
-                    HotTemperature: ITemperature.FromC(tyreTemps.HotTemp)
+                    OptimalTemperature: ITemperature.FromC(tireTemps.OptimalTemp),
+                    ColdTemperature: ITemperature.FromC(tireTemps.ColdTemp),
+                    HotTemperature: ITemperature.FromC(tireTemps.HotTemp)
                 ),
                 BrakeTemperatures: new TemperaturesSingle
                 (
@@ -650,28 +650,28 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private interface ITyreExtractor
+        private interface ITireExtractor
         {
-            T CurrentTyre<T>(Contrib.Data.TireData<T> outer);
+            T CurrentTire<T>(Contrib.Data.TireData<T> outer);
 
-            class FrontLeft : ITyreExtractor
+            class FrontLeft : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.FrontLeft;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontLeft;
             }
 
-            class FrontRight : ITyreExtractor
+            class FrontRight : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.FrontRight;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontRight;
             }
 
-            class RearLeft : ITyreExtractor
+            class RearLeft : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.RearLeft;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearLeft;
             }
 
-            class RearRight : ITyreExtractor
+            class RearRight : ITireExtractor
             {
-                T ITyreExtractor.CurrentTyre<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
+                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
             }
         }
 

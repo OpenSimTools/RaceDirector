@@ -212,8 +212,8 @@ namespace RaceDirector.Pipeline.Telemetry
             None       = 0,
             Fuel       = 1 << 0,
             DriverSwap = 1 << 1,
-            TwoTyres   = 1 << 2,
-            FourTyres  = 1 << 3
+            TwoTires   = 1 << 2,
+            FourTires  = 1 << 3
         }
 
         public interface IPitWindowBoundary : IComparable<IRaceInstant> { }
@@ -249,12 +249,12 @@ namespace RaceDirector.Pipeline.Telemetry
         // iR startHidden = null, startReady = Red 0/1, startSet = Red 1/1, startGo = Green 1/1
         public interface IStartLights
         {
-            LightColour Colour { get; }
+            LightColor Color { get; }
            
             IBoundedValue<uint> Lit { get; }
         }
 
-        public enum LightColour
+        public enum LightColor
         {
             Red,
             Green
@@ -294,7 +294,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// <summary>
             /// Finished the race.
             /// </summary>
-            Chequered
+            Checkered
         }
 
         public interface IVehicle
@@ -521,8 +521,8 @@ namespace RaceDirector.Pipeline.Telemetry
             IYellow? Yellow { get; }
             // IYellowRedStriped { get; }
             IWhite? White { get; }
-            IFlag? Chequered { get; }
-            // IGreenWhiteChequered GreenWhiteChequered { get; }
+            IFlag? Checkered { get; }
+            // IGreenWhiteCheckered GreenWhiteCheckered { get; }
             /// <summary>
             /// It can mean Disqualified (FIA, with white cross NASCAR and IndyCar) or ReturnToPits (NASCAR and IndyCar).
             /// </summary>
@@ -637,7 +637,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
             IVehicleDamage VehicleDamage { get; }
 
-            ITyre[][] Tyres { get; } // [[FL,FR],[RL,RR]]
+            ITire[][] Tires { get; } // [[FL,FR],[RL,RR]]
 
             IFuel Fuel { get; }
 
@@ -791,7 +791,7 @@ namespace RaceDirector.Pipeline.Telemetry
             double TransmissionPercent { get; }
         }
 
-        public interface ITyre
+        public interface ITire
         {
             // Compound
             // Pressure
@@ -873,8 +873,8 @@ namespace RaceDirector.Pipeline.Telemetry
             ServingPenalty   = 1 << 2,
             DriverChange     = 1 << 3,
             Refuelling       = 1 << 4,
-            ChangeFrontTyres = 1 << 5,
-            ChangeRearTyres  = 1 << 6,
+            ChangeFrontTires = 1 << 5,
+            ChangeRearTires  = 1 << 6,
             RepairBody       = 1 << 7,
             RepairFrontWing  = 1 << 8,
             RepairRearWing   = 1 << 9,

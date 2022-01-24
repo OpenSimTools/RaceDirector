@@ -254,7 +254,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     w.WriteNumber("Blue", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.Blue, raceOngoing)));
                     w.WriteNumber("Black", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Black)));
                     w.WriteNumber("Green", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.Green, raceOngoing)));
-                    w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Chequered)));
+                    w.WriteNumber("Checkered", ToInt32(gt.FocusedVehicle?.Flags, f => FlagAsInt32(f.Checkered)));
                     w.WriteNumber("White", ToInt32(gt.FocusedVehicle?.Flags, f => ConditionalFlagAsInt32(f.White, raceOngoing)));
                     w.WriteNumber("BlackAndWhite", ToInt32(gt.FocusedVehicle?.Flags,
                         f => BlackWhiteFlagAsInt32(f.BlackWhite, gt.Player?.Warnings.BlueFlagWarnings?.Value, raceOngoing)
@@ -491,17 +491,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("TireGrip", _ =>
                 {
-                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    ForEachTire(gt.Player?.Tires, (tireName, tire) =>
                     {
-                        w.WriteRoundedNumber(tyreName, tyre?.Grip ?? -1.0);
+                        w.WriteRoundedNumber(tireName, tire?.Grip ?? -1.0);
                     });
                 });
 
                 w.WriteObject("TireWear", _ =>
                 {
-                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    ForEachTire(gt.Player?.Tires, (tireName, tire) =>
                     {
-                        w.WriteRoundedNumber(tyreName, tyre?.Wear ?? -1.0);
+                        w.WriteRoundedNumber(tireName, tire?.Wear ?? -1.0);
                     });
                 });
 
@@ -516,19 +516,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("TireDirt", _ =>
                 {
-                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    ForEachTire(gt.Player?.Tires, (tireName, tire) =>
                     {
-                        w.WriteRoundedNumber(tyreName, tyre?.Dirt ?? -1.0);
+                        w.WriteRoundedNumber(tireName, tire?.Dirt ?? -1.0);
                     });
                 });
 
                 w.WriteObject("TireTemp", _ =>
                 {
-                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    ForEachTire(gt.Player?.Tires, (tireName, tire) =>
                     {
-                        w.WriteObject(tyreName, _ =>
+                        w.WriteObject(tireName, _ =>
                         {
-                            var temperatures = tyre?.Temperatures;
+                            var temperatures = tire?.Temperatures;
                             w.WriteObject("CurrentTemp", _ =>
                             {
                                 var currentTemperatures = temperatures?.CurrentTemperatures;
@@ -550,14 +550,14 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteObject("BrakeTemp", _ =>
                 {
-                    ForEachTyre(gt.Player?.Tyres, (tyreName, tyre) =>
+                    ForEachTire(gt.Player?.Tires, (tireName, tire) =>
                     {
-                        w.WriteObject(tyreName, _ =>
+                        w.WriteObject(tireName, _ =>
                         {
-                            w.WriteRoundedNumber("CurrentTemp", tyre?.BrakeTemperatures.CurrentTemperature.C ?? -1.0);
-                            w.WriteRoundedNumber("OptimalTemp", tyre?.BrakeTemperatures.OptimalTemperature.C ?? - 1.0);
-                            w.WriteRoundedNumber("ColdTemp", tyre?.BrakeTemperatures.ColdTemperature.C ?? - 1.0);
-                            w.WriteRoundedNumber("HotTemp", tyre?.BrakeTemperatures.HotTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("CurrentTemp", tire?.BrakeTemperatures.CurrentTemperature.C ?? -1.0);
+                            w.WriteRoundedNumber("OptimalTemp", tire?.BrakeTemperatures.OptimalTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("ColdTemp", tire?.BrakeTemperatures.ColdTemperature.C ?? - 1.0);
+                            w.WriteRoundedNumber("HotTemp", tire?.BrakeTemperatures.HotTemperature.C ?? - 1.0);
                         });
                     });
                 });
@@ -717,12 +717,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void ForEachTyre(ITyre[][]? tyres, Action<String, ITyre?> action)
+        private static void ForEachTire(ITire[][]? tires, Action<String, ITire?> action)
         {
-            action("FrontLeft", tyres?.GetValueOrNull(0, 0));
-            action("FrontRight", tyres?.GetValueOrNull(0, 1));
-            action("RearLeft", tyres?.GetValueOrNull(1, 0));
-            action("RearRight", tyres?.GetValueOrNull(1, 1));
+            action("FrontLeft", tires?.GetValueOrNull(0, 0));
+            action("FrontRight", tires?.GetValueOrNull(0, 1));
+            action("RearLeft", tires?.GetValueOrNull(1, 0));
+            action("RearRight", tires?.GetValueOrNull(1, 1));
         }
 
         private static T? GetValueOrNull<T>(this T[][] array, int i, int j) =>
@@ -763,7 +763,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             return ToInt32(startLights, sl =>
             {
-                if (sl.Colour == LightColour.Green)
+                if (sl.Color == LightColor.Green)
                     return 6;
                 else
                     return Convert.ToInt32(5 * sl.Lit.Value / sl.Lit.Total);
@@ -863,8 +863,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 (PlayerPitStop.ServingPenalty,   1 << 1),
                 (PlayerPitStop.DriverChange,     1 << 2),
                 (PlayerPitStop.Refuelling,       1 << 3),
-                (PlayerPitStop.ChangeFrontTyres, 1 << 4),
-                (PlayerPitStop.ChangeRearTyres,  1 << 5),
+                (PlayerPitStop.ChangeFrontTires, 1 << 4),
+                (PlayerPitStop.ChangeRearTires,  1 << 5),
                 (PlayerPitStop.RepairBody,       1 << 6),
                 (PlayerPitStop.RepairFrontWing,  1 << 7),
                 (PlayerPitStop.RepairRearWing,   1 << 8),

@@ -76,7 +76,7 @@ namespace RaceDirector.Pipeline.Telemetry
     ) : ISessionRequirements;
 
     public record StartLights(
-        LightColour Colour,
+        LightColor Color,
         BoundedValue<uint> Lit
     ) : IStartLights
     {
@@ -161,7 +161,7 @@ namespace RaceDirector.Pipeline.Telemetry
         BlueFlag? Blue,
         YellowFlag? Yellow,
         WhiteFlag? White,
-        Flag? Chequered,
+        Flag? Checkered,
         Flag? Black,
         BlackWhiteFlag? BlackWhite
     ) : IVehicleFlags
@@ -170,7 +170,7 @@ namespace RaceDirector.Pipeline.Telemetry
         IBlue? IVehicleFlags.Blue => Blue;
         IYellow? IVehicleFlags.Yellow => Yellow;
         IWhite? IVehicleFlags.White => White;
-        IFlag? IVehicleFlags.Chequered => Chequered;
+        IFlag? IVehicleFlags.Checkered => Checkered;
         IFlag? IVehicleFlags.Black => Black;
         IBlackWhite? IVehicleFlags.BlackWhite => BlackWhite;
     }
@@ -188,7 +188,7 @@ namespace RaceDirector.Pipeline.Telemetry
         DrivingAids DrivingAids,
         VehicleSettings VehicleSettings,
         VehicleDamage VehicleDamage,
-        Tyre[][] Tyres,
+        Tire[][] Tires,
         Fuel Fuel,
         Engine Engine,
         Vector3<IDistance> CgLocation,
@@ -209,7 +209,7 @@ namespace RaceDirector.Pipeline.Telemetry
         IDrivingAids IPlayer.DrivingAids => DrivingAids;
         IVehicleSettings IPlayer.VehicleSettings => VehicleSettings;
         IVehicleDamage IPlayer.VehicleDamage => VehicleDamage;
-        ITyre[][] IPlayer.Tyres => Tyres;
+        ITire[][] IPlayer.Tires => Tires;
         IFuel IPlayer.Fuel => Fuel;
         IEngine IPlayer.Engine => Engine;
         ILapTime? IPlayer.ClassBestLap => ClassBestLap;
@@ -272,17 +272,17 @@ namespace RaceDirector.Pipeline.Telemetry
         double TransmissionPercent
     ) : IVehicleDamage;
 
-    public record Tyre
+    public record Tire
     (
         double Dirt,
         double Grip,
         double Wear,
         TemperaturesMatrix Temperatures,
         TemperaturesSingle BrakeTemperatures
-    ) : ITyre
+    ) : ITire
     {
-        ITemperaturesMatrix ITyre.Temperatures => Temperatures;
-        ITemperaturesSingle ITyre.BrakeTemperatures => BrakeTemperatures;
+        ITemperaturesMatrix ITire.Temperatures => Temperatures;
+        ITemperaturesSingle ITire.BrakeTemperatures => BrakeTemperatures;
     }
 
     public record TemperaturesSingle

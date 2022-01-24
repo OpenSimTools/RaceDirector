@@ -37,7 +37,7 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private Bogus.Faker<Tyre> tyreFaker = new AutoFaker<Tyre>()
+        private Bogus.Faker<Tire> tireFaker = new AutoFaker<Tire>()
             .Configure(b => b.WithBinder<MoqBinder>());
 
         // Have to create one par test: concurrent access seems to confuse AutoBogus.
@@ -625,21 +625,21 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(-1, result.Path("PushToPass", "WaitTimeLeft").GetDouble());
             Assert.Equal(-1, result.Path("DrsNumActivationsTotal").GetInt32());
             Assert.Equal(-1, result.Path("PtPNumActivationsTotal").GetInt32());
-            foreach (var tyre in new[] { "FrontLeft", "FrontRight", "RearLeft", "RearRight" })
+            foreach (var tire in new[] { "FrontLeft", "FrontRight", "RearLeft", "RearRight" })
             {
-                Assert.Equal(-1.0, result.Path("TireGrip", tyre).GetDouble());
-                Assert.Equal(-1.0, result.Path("TireWear", tyre).GetDouble());
-                Assert.Equal(-1.0, result.Path("TireDirt", tyre).GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Left").GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Center").GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "CurrentTemp", "Right").GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "OptimalTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "ColdTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("TireTemp", tyre, "HotTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "CurrentTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "OptimalTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "ColdTemp").GetDouble());
-                Assert.Equal(-1.0, result.Path("BrakeTemp", tyre, "HotTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireGrip", tire).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireWear", tire).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireDirt", tire).GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "CurrentTemp", "Left").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "CurrentTemp", "Center").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "CurrentTemp", "Right").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "OptimalTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "ColdTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("TireTemp", tire, "HotTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tire, "CurrentTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tire, "OptimalTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tire, "ColdTemp").GetDouble());
+                Assert.Equal(-1.0, result.Path("BrakeTemp", tire, "HotTemp").GetDouble());
             }
             Assert.Equal(-1.0, result.Path("CarDamage", "Engine").GetDouble());
             Assert.Equal(-1.0, result.Path("CarDamage", "Transmission").GetDouble());
@@ -968,8 +968,8 @@ namespace HUD.Tests.Pipeline
         [InlineData(PlayerPitStop.ServingPenalty, 0, 2)]
         [InlineData(PlayerPitStop.DriverChange, 0, 4)]
         [InlineData(PlayerPitStop.Refuelling, 0, 8)]
-        [InlineData(PlayerPitStop.ChangeFrontTyres, 0, 16)]
-        [InlineData(PlayerPitStop.ChangeRearTyres, 0, 32)]
+        [InlineData(PlayerPitStop.ChangeFrontTires, 0, 16)]
+        [InlineData(PlayerPitStop.ChangeRearTires, 0, 32)]
         [InlineData(PlayerPitStop.RepairBody, 0, 64)]
         [InlineData(PlayerPitStop.RepairFrontWing, 0, 128)]
         [InlineData(PlayerPitStop.RepairRearWing, 0, 256)]
@@ -1051,16 +1051,16 @@ namespace HUD.Tests.Pipeline
         }
 
         [Fact]
-        public void Player_Tyres()
+        public void Player_Tires()
         {
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new[]
+                    Tires = new[]
                     {
                         new []
                         {
-                            tyreFaker.Generate() with {
+                            tireFaker.Generate() with {
                                 Dirt = 1.1,
                                 Grip = 1.2,
                                 Wear = 1.3,
@@ -1109,20 +1109,20 @@ namespace HUD.Tests.Pipeline
         [InlineData(1, 2, true, false, true, true)]
         [InlineData(2, 1, true, true, true, false)]
         [InlineData(3, 0, true, true, false, false)]
-        public void Player_Tyres__Present(int tyresFront, int tyresRear, bool frontLeftPresent,
+        public void Player_Tires__Present(int tiresFront, int tiresRear, bool frontLeftPresent,
             bool frontRightPresent, bool rearLeftPresent, bool rearRightPresent)
         {
             var grip = 2.2;
-            Func<int, Tyre[]> tyresWithGrip = (int n) => Enumerable.Range(0, n).Select(_ =>
-                tyreFaker.Generate() with { Grip = grip }
+            Func<int, Tire[]> tiresWithGrip = (int n) => Enumerable.Range(0, n).Select(_ =>
+                tireFaker.Generate() with { Grip = grip }
             ).ToArray();
 
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new[] {
-                        tyresWithGrip(tyresFront),
-                        tyresWithGrip(tyresRear)
+                    Tires = new[] {
+                        tiresWithGrip(tiresFront),
+                        tiresWithGrip(tiresRear)
                     }
                 })
             );
@@ -1139,13 +1139,13 @@ namespace HUD.Tests.Pipeline
         [InlineData(2, true, true, false)]
         [InlineData(3, true, true, true)]
         [InlineData(4, true, true, true)]
-        public void Player_Tyres_Temperatures_CurrentTemperatures__Present(int temperatures, bool leftPresent,
-            bool centrePresent, bool rightPresent)
+        public void Player_Tires_Temperatures_CurrentTemperatures__Present(int temperatures, bool leftPresent,
+            bool centerPresent, bool rightPresent)
         {
             var temp = 2.2;
-            Func<int, Tyre> tyreWithCurrentTemperatures = (int n) =>
+            Func<int, Tire> tireWithCurrentTemperatures = (int n) =>
             {
-                var t = tyreFaker.Generate();
+                var t = tireFaker.Generate();
                 var currentTemperatures = Enumerable.Range(0, n).Select(_ =>
                     ITemperature.FromC(temp)
                 ).ToArray();
@@ -1163,16 +1163,16 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
-                    Tyres = new[] {
+                    Tires = new[] {
                         new [] {
-                            tyreWithCurrentTemperatures(temperatures)
+                            tireWithCurrentTemperatures(temperatures)
                         }
                     }
                 })
             );
 
             Assert.Equal(leftPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Left").GetDouble());
-            Assert.Equal(centrePresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());
+            Assert.Equal(centerPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());
             Assert.Equal(rightPresent ? temp : -1.0, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Right").GetDouble());
         }
 
@@ -1442,20 +1442,20 @@ namespace HUD.Tests.Pipeline
         }
 
         [Theory]
-        [InlineData(LightColour.Green, 0, 5, 6)]
-        [InlineData(LightColour.Green, 3, 3, 6)]
-        [InlineData(LightColour.Red, 0, 5, 0)]
-        [InlineData(LightColour.Red, 1, 5, 1)]
-        [InlineData(LightColour.Red, 2, 5, 2)]
-        [InlineData(LightColour.Red, 3, 5, 3)]
-        [InlineData(LightColour.Red, 4, 5, 4)]
-        [InlineData(LightColour.Red, 5, 5, 5)]
-        [InlineData(LightColour.Red, 1, 3, 1)]
-        [InlineData(LightColour.Red, 2, 3, 3)]
-        [InlineData(LightColour.Red, 3, 3, 5)]
-        public void Session_StartLights(LightColour colour, uint lit, uint max, int expected)
+        [InlineData(LightColor.Green, 0, 5, 6)]
+        [InlineData(LightColor.Green, 3, 3, 6)]
+        [InlineData(LightColor.Red, 0, 5, 0)]
+        [InlineData(LightColor.Red, 1, 5, 1)]
+        [InlineData(LightColor.Red, 2, 5, 2)]
+        [InlineData(LightColor.Red, 3, 5, 3)]
+        [InlineData(LightColor.Red, 4, 5, 4)]
+        [InlineData(LightColor.Red, 5, 5, 5)]
+        [InlineData(LightColor.Red, 1, 3, 1)]
+        [InlineData(LightColor.Red, 2, 3, 3)]
+        [InlineData(LightColor.Red, 3, 3, 5)]
+        public void Session_StartLights(LightColor color, uint lit, uint max, int expected)
         {
-            var startLights = new StartLights(colour, new BoundedValue<uint>(lit, max));
+            var startLights = new StartLights(color, new BoundedValue<uint>(lit, max));
             var result = ToR3EDash(NewGt().WithSession(s => s with { StartLights = startLights }));
 
             Assert.Equal(expected, result.Path("StartLights").GetInt32());
@@ -1797,7 +1797,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionPhase.Over, -1, -1, 0, -1, 0, -1, -1)]
         public void Out_Flags__Null(SessionPhase sessionPhase,
             int yellow, int blue, int black, int green,
-            int chequered, int white, int blackAndWhite)
+            int checkered, int white, int blackAndWhite)
         {
             var result = ToR3EDash(NewGt()
                 .WithSession(s => s with
@@ -1810,7 +1810,7 @@ namespace HUD.Tests.Pipeline
                     Blue = null,
                     Yellow = null,
                     White = null,
-                    Chequered = null,
+                    Checkered = null,
                     Black = null,
                     BlackWhite = null
                 }));
@@ -1819,7 +1819,7 @@ namespace HUD.Tests.Pipeline
             Assert.Equal(blue, result.Path("Flags", "Blue").GetInt32());
             Assert.Equal(black, result.Path("Flags", "Black").GetInt32());
             Assert.Equal(green, result.Path("Flags", "Green").GetInt32());
-            Assert.Equal(chequered, result.Path("Flags", "Checkered").GetInt32());
+            Assert.Equal(checkered, result.Path("Flags", "Checkered").GetInt32());
             Assert.Equal(white, result.Path("Flags", "White").GetInt32());
             Assert.Equal(blackAndWhite, result.Path("Flags", "BlackAndWhite").GetInt32());
         }
@@ -1837,7 +1837,7 @@ namespace HUD.Tests.Pipeline
                     Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
                     Blue = new BlueFlag(IVehicleFlags.BlueReason.Unknown),
                     White = new WhiteFlag(IVehicleFlags.WhiteReason.Unknown),
-                    Chequered = new Flag(),
+                    Checkered = new Flag(),
                     Black = new Flag()
                 }));
 

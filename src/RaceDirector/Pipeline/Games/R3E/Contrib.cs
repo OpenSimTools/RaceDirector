@@ -116,11 +116,11 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
             // No mandatory pitstops
             Unavailable = -1,
 
-            // Mandatory pitstop for two tyres not served yet
-            UnservedTwoTyres = 0,
+            // Mandatory pitstop for two tires not served yet
+            UnservedTwoTires = 0,
 
-            // Mandatory pitstop for four tyres not served yet
-            UnservedFourTyres = 1,
+            // Mandatory pitstop for four tires not served yet
+            UnservedFourTires = 1,
 
             // Mandatory pitstop served
             Served = 2,
