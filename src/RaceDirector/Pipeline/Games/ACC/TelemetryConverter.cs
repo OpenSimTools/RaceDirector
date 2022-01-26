@@ -6,49 +6,58 @@ namespace RaceDirector.Pipeline.Games.ACC
 {
     internal class TelemetryConverter
     {
-        internal GameTelemetry Transform(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+
+        internal GameTelemetry Transform(ref Contrib.Data.Shared shared)
         {
-            if (staticData.SmVersionMajor != Contrib.Constant.SmVersionMajor)
+            if (shared.Static.SmVersionMajor != Contrib.Constant.SmVersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
-                GameState: GameState(physicsData, graphicData, staticData),
+                GameState: GameState(ref shared),
                 UsingVR: null,
-                Event: Event(physicsData, graphicData, staticData),
-                Session: Session(physicsData, graphicData, staticData),
-                Vehicles: Vehicles(physicsData, graphicData, staticData),
-                FocusedVehicle: FocusedVehicle(physicsData, graphicData, staticData),
-                Player: Player(physicsData, graphicData, staticData)
+                Event: Event(ref shared),
+                Session: Session(ref shared),
+                Vehicles: Vehicles(ref shared),
+                FocusedVehicle: FocusedVehicle(ref shared),
+                Player: Player(ref shared)
             );
         }
 
-        private Player? Player(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private GameState GameState(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return shared.Graphic.Status switch
+            {
+                Contrib.Constant.Status.Off => Telemetry.V0.GameState.Replay, // recorded replay
+                Contrib.Constant.Status.Replay => Telemetry.V0.GameState.Replay, // in-game replay
+                Contrib.Constant.Status.Live when shared.Static.AidMechanicalDamage < 0 => Telemetry.V0.GameState.Menu, // in-game menu
+                Contrib.Constant.Status.Live => Telemetry.V0.GameState.Driving,
+                Contrib.Constant.Status.Pause => Telemetry.V0.GameState.Paused, // single player game paused
+                _ => throw new ArgumentException("Unknown game state")
+            };
         }
 
-        private Vehicle? FocusedVehicle(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private Event? Event(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
-        private Vehicle[] Vehicles(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private Session? Session(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
-        private Session? Session(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private Vehicle[] Vehicles(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return Array.Empty<Vehicle>();
         }
 
-        private Event? Event(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private Vehicle? FocusedVehicle(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return null;
         }
 
-        private GameState GameState(Contrib.Data.SPageFilePhysics physicsData, Contrib.Data.SPageFileGraphic graphicData, Contrib.Data.SPageFileStatic staticData)
+        private Player? Player(ref Contrib.Data.Shared shared)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }

@@ -57,6 +57,17 @@ namespace HUD.Tests.Pipeline
         {
             var result = ToR3EDash(NewGt() with { GameState = GameState.Driving });
 
+            Assert.Equal(0, result.Path("GamePaused").GetInt32());
+            Assert.Equal(0, result.Path("GameInMenus").GetInt32());
+            Assert.Equal(0, result.Path("GameInReplay").GetInt32());
+        }
+
+        [Fact]
+        public void GameState__Paused()
+        {
+            var result = ToR3EDash(NewGt() with { GameState = GameState.Paused });
+
+            Assert.Equal(1, result.Path("GamePaused").GetInt32());
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
             Assert.Equal(0, result.Path("GameInReplay").GetInt32());
         }
@@ -66,6 +77,7 @@ namespace HUD.Tests.Pipeline
         {
             var result = ToR3EDash(NewGt() with { GameState = GameState.Menu });
 
+            Assert.Equal(0, result.Path("GamePaused").GetInt32());
             Assert.Equal(1, result.Path("GameInMenus").GetInt32());
             Assert.Equal(0, result.Path("GameInReplay").GetInt32());
         }
@@ -75,6 +87,7 @@ namespace HUD.Tests.Pipeline
         {
             var result = ToR3EDash(NewGt() with { GameState = GameState.Replay });
 
+            Assert.Equal(0, result.Path("GamePaused").GetInt32());
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
             Assert.Equal(1, result.Path("GameInReplay").GetInt32());
         }

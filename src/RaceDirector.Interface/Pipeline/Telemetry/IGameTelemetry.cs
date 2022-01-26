@@ -64,7 +64,7 @@ namespace RaceDirector.Pipeline.Telemetry
         public enum GameState
         {
             Driving,
-            //Paused,  // R3E GamePaused - is the clock ticking? (-1 in main menu, 0 in replay, 1 in single player menu, 0 in multi player menu)
+            Paused,  // R3E GamePaused - is the clock ticking? (-1 in main menu, 0 in replay, 1 in single player menu, 0 in multi player menu)
             Menu,    // R3E GameInMenus (-1 in main menu, 1 in single or multi player menu, 1 in monitor)
             Replay   // R3E GameInReplay (-1 in main menu, 1 in replay, 0 in monitor)
         }

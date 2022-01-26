@@ -12,7 +12,7 @@ It is an alternative to [RaceRoom's Dash](https://github.com/sector3studios/webh
 | VersionMinor | ✓ |
 | AllDriversOffset | |
 | DriverDataSize | |
-| GamePaused | |
+| GamePaused | ✓ |
 | GameInMenus | ✓ |
 | GameInReplay | ✓ |
 | GameUsingVr | ✓ |

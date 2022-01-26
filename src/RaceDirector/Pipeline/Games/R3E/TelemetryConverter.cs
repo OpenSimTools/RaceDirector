@@ -16,7 +16,7 @@ namespace RaceDirector.Pipeline.Games.R3E
         private readonly StatefulAid<Aid> _statefulEsp = StatefulAid.Generic();
         private readonly StatefulAid<Aid> _statefulCountersteer = StatefulAid.Generic();
         private readonly StatefulAid<Aid> _statefulCornering = StatefulAid.Generic();
-        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? _pitWindowState;
+        private Interval<Telemetry.V0.IPitWindowBoundary>? _pitWindowState = null;
 
         internal GameTelemetry Transform(ref Contrib.Data.Shared sharedData)
         {
@@ -33,13 +33,15 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.GameState GameState(ref Contrib.Data.Shared sharedData)
+        private Telemetry.V0.GameState GameState(ref Contrib.Data.Shared sharedData)
         {
+            if (sharedData.GamePaused > 0)
+                return Telemetry.V0.GameState.Paused;
             if (sharedData.GameInMenus > 0)
-                return Pipeline.Telemetry.V0.GameState.Menu;
+                return Telemetry.V0.GameState.Menu;
             if (sharedData.GameInReplay > 0)
-                return Pipeline.Telemetry.V0.GameState.Replay;
-            return Pipeline.Telemetry.V0.GameState.Driving;
+                return Telemetry.V0.GameState.Replay;
+            return Telemetry.V0.GameState.Driving; // TODO It should be in menu if no session
         }
 
         private Event? Event(ref Contrib.Data.Shared sharedData)
@@ -89,51 +91,52 @@ namespace RaceDirector.Pipeline.Games.R3E
                 BestLap: null, // TODO
                 BestSectors: null, // TODO
                 Flags: new SessionFlags( // TODO
-                    Track: Pipeline.Telemetry.V0.TrackFlags.None,
-                    Sectors: new Pipeline.Telemetry.V0.SectorFlags[0],
-                    Leader: Pipeline.Telemetry.V0.LeaderFlags.None
+                    Track: Telemetry.V0.TrackFlags.None,
+                    Sectors: new Telemetry.V0.SectorFlags[0],
+                    Leader: Telemetry.V0.LeaderFlags.None
                 )
             );
         }
 
-        private Pipeline.Telemetry.V0.SessionType? SessionType(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.SessionType? SessionType(ref Contrib.Data.Shared sharedData) =>
             sharedData.SessionType switch
             {
-                Contrib.Constant.Session.Practice => Pipeline.Telemetry.V0.SessionType.Practice,
-                Contrib.Constant.Session.Qualify => Pipeline.Telemetry.V0.SessionType.Qualify,
-                Contrib.Constant.Session.Warmup => Pipeline.Telemetry.V0.SessionType.Warmup,
-                Contrib.Constant.Session.Race => Pipeline.Telemetry.V0.SessionType.Race,
+                Contrib.Constant.Session.Practice => Telemetry.V0.SessionType.Practice,
+                Contrib.Constant.Session.Qualify => Telemetry.V0.SessionType.Qualify,
+                Contrib.Constant.Session.Warmup => Telemetry.V0.SessionType.Warmup,
+                Contrib.Constant.Session.Race => Telemetry.V0.SessionType.Race,
                 _ => null
             };
 
-        private Pipeline.Telemetry.V0.SessionPhase? SessionPhase(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.SessionPhase? SessionPhase(ref Contrib.Data.Shared sharedData) =>
             sharedData.SessionPhase switch
             {
-                Contrib.Constant.SessionPhase.Garage => Pipeline.Telemetry.V0.SessionPhase.Garage,
-                Contrib.Constant.SessionPhase.Gridwalk => Pipeline.Telemetry.V0.SessionPhase.GridWalk,
-                Contrib.Constant.SessionPhase.Formation => Pipeline.Telemetry.V0.SessionPhase.Formation,
-                Contrib.Constant.SessionPhase.Countdown => Pipeline.Telemetry.V0.SessionPhase.Countdown,
-                Contrib.Constant.SessionPhase.Green => Pipeline.Telemetry.V0.SessionPhase.Started,
-                Contrib.Constant.SessionPhase.Checkered => Pipeline.Telemetry.V0.SessionPhase.Over,
+
+                Contrib.Constant.SessionPhase.Garage => Telemetry.V0.SessionPhase.Garage,
+                Contrib.Constant.SessionPhase.Gridwalk => Telemetry.V0.SessionPhase.GridWalk,
+                Contrib.Constant.SessionPhase.Formation => Telemetry.V0.SessionPhase.Formation,
+                Contrib.Constant.SessionPhase.Countdown => Telemetry.V0.SessionPhase.Countdown,
+                Contrib.Constant.SessionPhase.Green => Telemetry.V0.SessionPhase.Started,
+                Contrib.Constant.SessionPhase.Checkered => Telemetry.V0.SessionPhase.Over,
                 _ => null
             };
 
-        private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.ISessionDuration? CurrentSessionLength(ref Contrib.Data.Shared sharedData) =>
             SessionLength(sharedData.SessionTimeDuration, sharedData.NumberOfLaps);
 
-        private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(double secondsOrNegative, int lapsOrNegative)
+        private Telemetry.V0.ISessionDuration? SessionLength(double secondsOrNegative, int lapsOrNegative)
         {
             if (lapsOrNegative >= 0)
             {
                 if (secondsOrNegative >= 0)
-                    return new Pipeline.Telemetry.V0.RaceDuration.TimePlusLapsDuration
+                    return new Telemetry.V0.RaceDuration.TimePlusLapsDuration
                     (
                         Time: TimeSpan.FromSeconds(secondsOrNegative),
                         ExtraLaps: Convert.ToUInt32(lapsOrNegative),
                         EstimatedLaps: null // TODO
                     );
                 else
-                    return new Pipeline.Telemetry.V0.RaceDuration.LapsDuration
+                    return new Telemetry.V0.RaceDuration.LapsDuration
                     (
                         Laps: Convert.ToUInt32(lapsOrNegative),
                         EstimatedTime: null // TODO
@@ -142,7 +145,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             else
             {
                 if (secondsOrNegative >= 0)
-                    return new Pipeline.Telemetry.V0.RaceDuration.TimeDuration
+                    return new Telemetry.V0.RaceDuration.TimeDuration
                     (
                         Time: TimeSpan.FromSeconds(secondsOrNegative),
                         EstimatedLaps: null // TODO
@@ -193,7 +196,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return (TimeSpan.FromSeconds(sessionTimeLength - timeRemaining), TimeSpan.FromSeconds(timeRemaining), null);
         }
 
-        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? PitWindow(ref Contrib.Data.Shared sharedData)
+        private Interval<Telemetry.V0.IPitWindowBoundary>? PitWindow(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
                 return null;
@@ -201,23 +204,23 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return sharedData.SessionLengthFormat switch
                 {
                     Contrib.Constant.SessionLengthFormat.LapBased =>
-                        new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
-                            new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
+                        new Interval<Telemetry.V0.IPitWindowBoundary>(
+                            new Telemetry.V0.RaceDuration.LapsDuration(
                                 Laps: Convert.ToUInt32(sharedData.PitWindowStart),
                                 EstimatedTime: null // TODO
                             ),
-                            new Pipeline.Telemetry.V0.RaceDuration.LapsDuration(
+                            new Telemetry.V0.RaceDuration.LapsDuration(
                                 Laps: Convert.ToUInt32(sharedData.PitWindowEnd),
                                 EstimatedTime: null // TODO
                             )
                         ),
                     _ =>
-                        new Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>(
-                            new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
+                        new Interval<Telemetry.V0.IPitWindowBoundary>(
+                            new Telemetry.V0.RaceDuration.TimeDuration(
                                 Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowStart)),
                                 EstimatedLaps: null // TODO
                             ),
-                            new Pipeline.Telemetry.V0.RaceDuration.TimeDuration(
+                            new Telemetry.V0.RaceDuration.TimeDuration(
                                 Time: TimeSpan.FromMinutes(Convert.ToDouble(sharedData.PitWindowEnd)),
                                 EstimatedLaps: null // TODO
                             )
@@ -231,11 +234,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 return null;
             if (startLights > MaxLights)
                 return new StartLights(
-                    Color: Pipeline.Telemetry.V0.LightColor.Green,
+                    Color: Telemetry.V0.LightColor.Green,
                     Lit: new BoundedValue<uint>(MaxLights, MaxLights)
                 );
             return new StartLights(
-                Color: Pipeline.Telemetry.V0.LightColor.Red,
+                Color: Telemetry.V0.LightColor.Red,
                 Lit: new BoundedValue<uint>((uint)startLights, MaxLights)
             );
         }
@@ -258,8 +261,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
                 ClassPerformanceIndex: driverData.DriverInfo.ClassPerformanceIndex,
                 RacingStatus: RacingStatus(driverData.FinishStatus),
-                EngineType: Pipeline.Telemetry.V0.EngineType.Unknown, // TODO
-                ControlType: Pipeline.Telemetry.V0.ControlType.Replay, // TODO
+                EngineType: Telemetry.V0.EngineType.Unknown, // TODO
+                ControlType: Telemetry.V0.ControlType.Replay, // TODO
                 Position: 42, // TODO
                 PositionClass: SafeUInt32(driverData.PlaceClass),
                 GapAhead: TimeSpan.FromSeconds(driverData.TimeDeltaFront),   // It can be negative!
@@ -374,38 +377,38 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.EngineType EngineType(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.EngineType EngineType(ref Contrib.Data.Shared sharedData) =>
             sharedData.VehicleInfo.EngineType switch
             {
-                Contrib.Constant.EngineType.Combustion => Pipeline.Telemetry.V0.EngineType.Combustion,
-                Contrib.Constant.EngineType.Electric => Pipeline.Telemetry.V0.EngineType.Electric,
-                Contrib.Constant.EngineType.Hybrid => Pipeline.Telemetry.V0.EngineType.Hybrid,
-                _ => Pipeline.Telemetry.V0.EngineType.Unknown
+                Contrib.Constant.EngineType.Combustion => Telemetry.V0.EngineType.Combustion,
+                Contrib.Constant.EngineType.Electric => Telemetry.V0.EngineType.Electric,
+                Contrib.Constant.EngineType.Hybrid => Telemetry.V0.EngineType.Hybrid,
+                _ => Telemetry.V0.EngineType.Unknown
             };
 
-        private Pipeline.Telemetry.V0.ControlType ControlType(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.ControlType ControlType(ref Contrib.Data.Shared sharedData) =>
             sharedData.ControlType switch
             {
-                Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
-                Contrib.Constant.Control.AI => Pipeline.Telemetry.V0.ControlType.AI,
-                Contrib.Constant.Control.Remote => Pipeline.Telemetry.V0.ControlType.RemotePlayer,
-                Contrib.Constant.Control.Replay => Pipeline.Telemetry.V0.ControlType.Replay,
-                _ => Pipeline.Telemetry.V0.ControlType.LocalPlayer // TODO
+                Contrib.Constant.Control.Player => Telemetry.V0.ControlType.LocalPlayer,
+                Contrib.Constant.Control.AI => Telemetry.V0.ControlType.AI,
+                Contrib.Constant.Control.Remote => Telemetry.V0.ControlType.RemotePlayer,
+                Contrib.Constant.Control.Replay => Telemetry.V0.ControlType.Replay,
+                _ => Telemetry.V0.ControlType.LocalPlayer // TODO
             };
 
-        private Pipeline.Telemetry.V0.LapValidState LapValid(int currentLapValid) => currentLapValid switch
+        private Telemetry.V0.LapValidState LapValid(int currentLapValid) => currentLapValid switch
         {
-            0 => Pipeline.Telemetry.V0.LapValidState.Invalid,
-            1 => Pipeline.Telemetry.V0.LapValidState.Valid,
-            _ => Pipeline.Telemetry.V0.LapValidState.Unknown
+            0 => Telemetry.V0.LapValidState.Invalid,
+            1 => Telemetry.V0.LapValidState.Valid,
+            _ => Telemetry.V0.LapValidState.Unknown
         };
 
-        private Pipeline.Telemetry.V0.PitLanePhase? PitLanePhase(ref Contrib.Data.Shared sharedData) =>
+        private Telemetry.V0.PitLanePhase? PitLanePhase(ref Contrib.Data.Shared sharedData) =>
             sharedData.PitState switch
             {
-                2 => Pipeline.Telemetry.V0.PitLanePhase.Entered,
-                3 => Pipeline.Telemetry.V0.PitLanePhase.Stopped,
-                4 => Pipeline.Telemetry.V0.PitLanePhase.Exiting,
+                2 => Telemetry.V0.PitLanePhase.Entered,
+                3 => Telemetry.V0.PitLanePhase.Stopped,
+                4 => Telemetry.V0.PitLanePhase.Exiting,
                 _ => null
             };
 
@@ -416,15 +419,15 @@ namespace RaceDirector.Pipeline.Games.R3E
         {
             var penalties = new List<Penalty>();
             if (cutTrackPenalties.DriveThrough > 0)
-                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.DriveThrough, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+                penalties.Add(new Penalty(Telemetry.V0.PenaltyType.DriveThrough, Telemetry.V0.PenaltyReason.Unknown));
             if (cutTrackPenalties.StopAndGo > 0)
-                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.StopAndGo10, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+                penalties.Add(new Penalty(Telemetry.V0.PenaltyType.StopAndGo10, Telemetry.V0.PenaltyReason.Unknown));
             if (cutTrackPenalties.PitStop > 0)
-                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.PitStop, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+                penalties.Add(new Penalty(Telemetry.V0.PenaltyType.PitStop, Telemetry.V0.PenaltyReason.Unknown));
             if (cutTrackPenalties.TimeDeduction > 0)
-                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.TimeDeduction, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+                penalties.Add(new Penalty(Telemetry.V0.PenaltyType.TimeDeduction, Telemetry.V0.PenaltyReason.Unknown));
             if (cutTrackPenalties.SlowDown > 0)
-                penalties.Add(new Penalty(Pipeline.Telemetry.V0.PenaltyType.SlowDown, Pipeline.Telemetry.V0.PenaltyReason.Unknown));
+                penalties.Add(new Penalty(Telemetry.V0.PenaltyType.SlowDown, Telemetry.V0.PenaltyReason.Unknown));
             return penalties.ToArray();
         }
 
@@ -435,34 +438,34 @@ namespace RaceDirector.Pipeline.Games.R3E
             // not sure when in menus
             return new VehicleFlags
             (
-                Green: flags.Green > 0 ? new GreenFlag(Pipeline.Telemetry.V0.IVehicleFlags.GreenReason.RaceStart) : null,
-                Blue: flags.Blue > 0 ? new BlueFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
-                Yellow: flags.Yellow > 0 ? new YellowFlag(Pipeline.Telemetry.V0.IVehicleFlags.YellowReason.Unknown) : null,
-                White: flags.White > 0 ? new WhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
+                Green: flags.Green > 0 ? new GreenFlag(Telemetry.V0.IVehicleFlags.GreenReason.RaceStart) : null,
+                Blue: flags.Blue > 0 ? new BlueFlag(Telemetry.V0.IVehicleFlags.BlueReason.Unknown) : null,
+                Yellow: flags.Yellow > 0 ? new YellowFlag(Telemetry.V0.IVehicleFlags.YellowReason.Unknown) : null,
+                White: flags.White > 0 ? new WhiteFlag(Telemetry.V0.IVehicleFlags.WhiteReason.SlowCarAhead) : null,
                 Checkered: flags.Checkered > 0 ? new Flag() : null,
                 Black: flags.Black > 0 ? new Flag() : null,
                 BlackWhite: flags.BlackAndWhite switch {
                     -1 => null,
                     0 => null,
-                    1 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
-                    2 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
-                    3 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.WrongWay),
-                    4 => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.Cutting),
-                    _ => new BlackWhiteFlag(Pipeline.Telemetry.V0.IVehicleFlags.BlackWhiteReason.Unknown),
+                    1 => new BlackWhiteFlag(Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
+                    2 => new BlackWhiteFlag(Telemetry.V0.IVehicleFlags.BlackWhiteReason.IgnoredBlueFlags),
+                    3 => new BlackWhiteFlag(Telemetry.V0.IVehicleFlags.BlackWhiteReason.WrongWay),
+                    4 => new BlackWhiteFlag(Telemetry.V0.IVehicleFlags.BlackWhiteReason.Cutting),
+                    _ => new BlackWhiteFlag(Telemetry.V0.IVehicleFlags.BlackWhiteReason.Unknown),
                 }
             );
         }
 
-        private Pipeline.Telemetry.V0.IRacingStatus RacingStatus(Contrib.Constant.FinishStatus finishStatus) =>
+        private Telemetry.V0.IRacingStatus RacingStatus(Contrib.Constant.FinishStatus finishStatus) =>
             finishStatus switch
             {
-                Contrib.Constant.FinishStatus.None => Pipeline.Telemetry.V0.IRacingStatus.Racing,
-                Contrib.Constant.FinishStatus.Finished => Pipeline.Telemetry.V0.IRacingStatus.Finished,
-                Contrib.Constant.FinishStatus.DNF => Pipeline.Telemetry.V0.IRacingStatus.DNF,
-                Contrib.Constant.FinishStatus.DNQ => Pipeline.Telemetry.V0.IRacingStatus.DNQ,
-                Contrib.Constant.FinishStatus.DNS => Pipeline.Telemetry.V0.IRacingStatus.DNS,
-                Contrib.Constant.FinishStatus.DQ => new Pipeline.Telemetry.V0.IRacingStatus.DQ(Pipeline.Telemetry.V0.IRacingStatus.DQReason.Unknown),
-                _ => Pipeline.Telemetry.V0.IRacingStatus.Unknown,
+                Contrib.Constant.FinishStatus.None => Telemetry.V0.IRacingStatus.Racing,
+                Contrib.Constant.FinishStatus.Finished => Telemetry.V0.IRacingStatus.Finished,
+                Contrib.Constant.FinishStatus.DNF => Telemetry.V0.IRacingStatus.DNF,
+                Contrib.Constant.FinishStatus.DNQ => Telemetry.V0.IRacingStatus.DNQ,
+                Contrib.Constant.FinishStatus.DNS => Telemetry.V0.IRacingStatus.DNS,
+                Contrib.Constant.FinishStatus.DQ => new Telemetry.V0.IRacingStatus.DQ(Telemetry.V0.IRacingStatus.DQReason.Unknown),
+                _ => Telemetry.V0.IRacingStatus.Unknown,
             };
 
 
@@ -547,27 +550,27 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.PlayerPitStop PlayerPitStop(ref Contrib.Data.Shared sharedData)
+        private Telemetry.V0.PlayerPitStop PlayerPitStop(ref Contrib.Data.Shared sharedData)
         {
-            var playerPitStop = Pipeline.Telemetry.V0.PlayerPitStop.None;
+            var playerPitStop = Telemetry.V0.PlayerPitStop.None;
             if (sharedData.PitState == 1)
-                playerPitStop |= Pipeline.Telemetry.V0.PlayerPitStop.Requested;
+                playerPitStop |= Telemetry.V0.PlayerPitStop.Requested;
             foreach (var (pitActionFlag, playerPitstopFlag) in PitActionFlags)
                 if ((sharedData.PitAction & pitActionFlag) != 0) playerPitStop |= playerPitstopFlag;
             return playerPitStop;
         }
 
-        private static readonly (int, Pipeline.Telemetry.V0.PlayerPitStop)[] PitActionFlags = {
-                (  1, Pipeline.Telemetry.V0.PlayerPitStop.Preparing),
-                (  2, Pipeline.Telemetry.V0.PlayerPitStop.ServingPenalty),
-                (  4, Pipeline.Telemetry.V0.PlayerPitStop.DriverChange),
-                (  8, Pipeline.Telemetry.V0.PlayerPitStop.Refuelling),
-                ( 16, Pipeline.Telemetry.V0.PlayerPitStop.ChangeFrontTires),
-                ( 32, Pipeline.Telemetry.V0.PlayerPitStop.ChangeRearTires),
-                ( 64, Pipeline.Telemetry.V0.PlayerPitStop.RepairBody),
-                (128, Pipeline.Telemetry.V0.PlayerPitStop.RepairFrontWing),
-                (256, Pipeline.Telemetry.V0.PlayerPitStop.RepairRearWing),
-                (512, Pipeline.Telemetry.V0.PlayerPitStop.RepairSuspension)
+        private static readonly (int, Telemetry.V0.PlayerPitStop)[] PitActionFlags = {
+                (  1, Telemetry.V0.PlayerPitStop.Preparing),
+                (  2, Telemetry.V0.PlayerPitStop.ServingPenalty),
+                (  4, Telemetry.V0.PlayerPitStop.DriverChange),
+                (  8, Telemetry.V0.PlayerPitStop.Refuelling),
+                ( 16, Telemetry.V0.PlayerPitStop.ChangeFrontTires),
+                ( 32, Telemetry.V0.PlayerPitStop.ChangeRearTires),
+                ( 64, Telemetry.V0.PlayerPitStop.RepairBody),
+                (128, Telemetry.V0.PlayerPitStop.RepairFrontWing),
+                (256, Telemetry.V0.PlayerPitStop.RepairRearWing),
+                (512, Telemetry.V0.PlayerPitStop.RepairSuspension)
             };
 
         private static Orientation Orientation<T>(ref Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>

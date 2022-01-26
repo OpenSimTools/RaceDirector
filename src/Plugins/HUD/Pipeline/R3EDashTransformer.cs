@@ -41,8 +41,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // AllDriversOffset
                 // DriverDataSize
 
-                // GamePaused
-
+                w.WriteNumber("GamePaused", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Paused));
                 w.WriteNumber("GameInMenus", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Menu));
                 w.WriteNumber("GameInReplay", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Replay));
                 w.WriteNumber("GameUsingVr", gt.Session is null ? -1 : ToInt32(gt.UsingVR));

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Utils;
+using System;
+using System.IO;
+using System.Reactive.Linq;
 using System.Runtime.Versioning;
-using System.Threading.Tasks.Dataflow;
-using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Games.ACC
 {
@@ -21,9 +23,39 @@ namespace RaceDirector.Pipeline.Games.ACC
             _config = config;
         }
 
-        public IObservable<IGameTelemetry> CreateTelemetryObservable()
+        public IObservable<Telemetry.V0.IGameTelemetry> CreateTelemetryObservable()
         {
-            throw new NotImplementedException();
+            var physicsMmReader = new MemoryMappedFileReader<Contrib.Data.SPageFilePhysics>(Contrib.Constant.SharedMemoryPhysicsName);
+            var graphicMmReader = new MemoryMappedFileReader<Contrib.Data.SPageFileGraphic>(Contrib.Constant.SharedMemoryGraphicName);
+            var staticMmReader = new MemoryMappedFileReader<Contrib.Data.SPageFileStatic>(Contrib.Constant.SharedMemoryStaticName);
+            var telemetryConverter = new TelemetryConverter();
+            return Observable.Interval(_config.PollingInterval)
+                .Select(_ =>
+                {
+                    try
+                    {
+                        Contrib.Data.Shared shared;
+                        shared.Physics = physicsMmReader.Read();
+                        shared.Graphic = graphicMmReader.Read();
+                        shared.Static = staticMmReader.Read();
+                        var telemetry = telemetryConverter.Transform(ref shared);
+                        return telemetry;
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        return NoMMFiles;
+                    }
+                });
         }
+
+        private static GameTelemetry NoMMFiles = new(
+            GameState: Telemetry.V0.GameState.Menu,
+            UsingVR: null,
+            Event: null,
+            Session: null,
+            Vehicles: Array.Empty<Vehicle>(),
+            FocusedVehicle: null,
+            Player: null
+        );
     }
 }

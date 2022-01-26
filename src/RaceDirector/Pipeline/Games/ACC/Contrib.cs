@@ -105,14 +105,6 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             Pause = 3
         }
 
-        public enum WheelsType
-        {
-            FrontLeft = 0,
-            FrontRight = 1,
-            RearLeft = 2,
-            RearRight = 3
-        }
-
         public enum TrackGripStatus
         {
             Green = 0,
@@ -137,6 +129,11 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
 
     namespace Data
     {
+        public struct Shared {
+            public SPageFilePhysics Physics;
+            public SPageFileGraphic Graphic;
+            public SPageFileStatic Static;
+        }
 
         /// <summary>
         /// The following members change at each graphic step. They all refer to
@@ -352,6 +349,7 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public int NumCars; // Number of cars
             [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string CarModel; // Player car model see Appendix 2
+            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string Track; // Track name
             [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string PlayerName; // Player name
