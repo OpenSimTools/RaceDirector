@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.Versioning;
 using System.Threading.Tasks.Dataflow;
+using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Games.ACC
 {
@@ -20,7 +21,7 @@ namespace RaceDirector.Pipeline.Games.ACC
             _config = config;
         }
 
-        public ISourceBlock<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetrySource()
+        public IObservable<IGameTelemetry> CreateTelemetryObservable()
         {
             throw new NotImplementedException();
         }

@@ -31,7 +31,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     try
                     {
                         var shared = mmReader.Read();
-                        var telemetry = telemetryConverter.Transform(shared);
+                        var telemetry = telemetryConverter.Transform(ref shared);
                         return Observable.Return(telemetry);
                     }
                     catch

@@ -18,22 +18,22 @@ namespace RaceDirector.Pipeline.Games.R3E
         private readonly StatefulAid<Aid> _statefulCornering = StatefulAid.Generic();
         private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? _pitWindowState;
 
-        internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
+        internal GameTelemetry Transform(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.VersionMajor != Contrib.Constant.VersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
-                GameState: GameState(sharedData),
+                GameState: GameState(ref sharedData),
                 UsingVR: sharedData.GameUsingVr > 0,
-                Event: Event(sharedData),
-                Session: Session(sharedData),
-                Vehicles: Vehicles(sharedData),
-                FocusedVehicle: FocusedVehicle(sharedData),
-                Player: Player(sharedData)
+                Event: Event(ref sharedData),
+                Session: Session(ref sharedData),
+                Vehicles: Vehicles(ref sharedData),
+                FocusedVehicle: FocusedVehicle(ref sharedData),
+                Player: Player(ref sharedData)
             );
         }
 
-        private Pipeline.Telemetry.V0.GameState GameState(Contrib.Data.Shared sharedData)
+        private Pipeline.Telemetry.V0.GameState GameState(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.GameInMenus > 0)
                 return Pipeline.Telemetry.V0.GameState.Menu;
@@ -42,9 +42,9 @@ namespace RaceDirector.Pipeline.Games.R3E
             return Pipeline.Telemetry.V0.GameState.Driving;
         }
 
-        private Event? Event(Contrib.Data.Shared sharedData)
+        private Event? Event(ref Contrib.Data.Shared sharedData)
         {
-            var track = Track(sharedData);
+            var track = Track(ref sharedData);
             if (track == null)
                 return null;
             return new Event(
@@ -53,26 +53,26 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private TrackLayout? Track(Contrib.Data.Shared sharedData)
+        private TrackLayout? Track(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.LayoutLength < 0)
                 return null;
             var layoutLength = IDistance.FromM(sharedData.LayoutLength);
-            var sectors = ValuesPerSector(sharedData.SectorStartFactors, i => DistanceFraction.FromTotal(layoutLength, i));
+            var sectors = ValuesPerSector(ref sharedData.SectorStartFactors, i => DistanceFraction.FromTotal(layoutLength, i));
             return new TrackLayout(
                 SectorsEnd: sectors
             );
         }
 
-        private Session? Session(Contrib.Data.Shared sharedData)
+        private Session? Session(ref Contrib.Data.Shared sharedData)
         {
-            var maybeSessionType = SessionType(sharedData);
-            var maybeSessionPhase = SessionPhase(sharedData);
+            var maybeSessionType = SessionType(ref sharedData);
+            var maybeSessionPhase = SessionPhase(ref sharedData);
             if (maybeSessionType is null || maybeSessionPhase is null)
                 return null;
-            var maybeSessionLength = CurrentSessionLength(sharedData);
-            var sessionRequirements = SessionRequirements(sharedData);
-            var (elapsedTime, timeRemaining, waitTime) = RemainingTime(sharedData);
+            var maybeSessionLength = CurrentSessionLength(ref sharedData);
+            var sessionRequirements = SessionRequirements(ref sharedData);
+            var (elapsedTime, timeRemaining, waitTime) = RemainingTime(ref sharedData);
 
             return new Session
             (
@@ -96,7 +96,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.SessionType? SessionType(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.SessionType? SessionType(ref Contrib.Data.Shared sharedData) =>
             sharedData.SessionType switch
             {
                 Contrib.Constant.Session.Practice => Pipeline.Telemetry.V0.SessionType.Practice,
@@ -106,7 +106,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private Pipeline.Telemetry.V0.SessionPhase? SessionPhase(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.SessionPhase? SessionPhase(ref Contrib.Data.Shared sharedData) =>
             sharedData.SessionPhase switch
             {
                 Contrib.Constant.SessionPhase.Garage => Pipeline.Telemetry.V0.SessionPhase.Garage,
@@ -118,7 +118,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => null
             };
 
-        private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.ISessionDuration? CurrentSessionLength(ref Contrib.Data.Shared sharedData) =>
             SessionLength(sharedData.SessionTimeDuration, sharedData.NumberOfLaps);
 
         private Pipeline.Telemetry.V0.ISessionDuration? SessionLength(double secondsOrNegative, int lapsOrNegative)
@@ -152,9 +152,9 @@ namespace RaceDirector.Pipeline.Games.R3E
             }
         }
 
-        private SessionRequirements SessionRequirements(Contrib.Data.Shared sharedData)
+        private SessionRequirements SessionRequirements(ref Contrib.Data.Shared sharedData)
         {
-            var currentPitWindow = PitWindow(sharedData);
+            var currentPitWindow = PitWindow(ref sharedData);
 
             // R3E removes the pit window when after it ends but we don't want that!
             var pitWindowIsCorrect = sharedData.PitWindowStatus switch {
@@ -178,7 +178,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private (TimeSpan?, TimeSpan?, TimeSpan?) RemainingTime(Contrib.Data.Shared sharedData)
+        private (TimeSpan?, TimeSpan?, TimeSpan?) RemainingTime(ref Contrib.Data.Shared sharedData)
         {
             var timeRemaining = sharedData.SessionTimeRemaining;
             var sessionTimeLength = sharedData.SessionTimeDuration;
@@ -193,7 +193,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return (TimeSpan.FromSeconds(sessionTimeLength - timeRemaining), TimeSpan.FromSeconds(timeRemaining), null);
         }
 
-        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? PitWindow(Contrib.Data.Shared sharedData)
+        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? PitWindow(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.PitWindowStart <= 0 || sharedData.PitWindowEnd <= 0)
                 return null;
@@ -240,19 +240,19 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Vehicle[] Vehicles(Contrib.Data.Shared sharedData)
+        private Vehicle[] Vehicles(ref Contrib.Data.Shared sharedData)
         {
             if (sharedData.NumCars <= 0)
                 return Array.Empty<Vehicle>();
             var vehicles = new Vehicle[sharedData.NumCars];
             for (var i = 0; i < sharedData.NumCars; i++)
             {
-                vehicles[i] = Vehicle(sharedData.DriverData[i], sharedData);
+                vehicles[i] = Vehicle(ref sharedData.DriverData[i], ref sharedData);
             }
             return vehicles;
         }
         
-        private Vehicle Vehicle(Contrib.Data.DriverData driverData, Contrib.Data.Shared sharedData)
+        private Vehicle Vehicle(ref Contrib.Data.DriverData driverData, ref Contrib.Data.Shared sharedData)
         {
             return new Vehicle(
                 Id: SafeUInt32(driverData.DriverInfo.SlotId),
@@ -272,12 +272,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Overall: TimeSpan.FromSeconds(42), // TODO
                     Sectors: new Sectors(
                         Individual: new TimeSpan[0], // TODO infer from cumulative
-                        Cumulative: ValuesPerSector(driverData.SectorTimeBestSelf, i => TimeSpan.FromSeconds(i))
+                        Cumulative: ValuesPerSector(ref driverData.SectorTimeBestSelf, i => TimeSpan.FromSeconds(i))
                     )
                 ),
                 BestSectors: null, // TODO
                 CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LayoutLength), IDistance.FromM(driverData.LapDistance)),
-                Location: Vector3(driverData.Position, i => IDistance.FromM(i)),
+                Location: Vector3(ref driverData.Position, i => IDistance.FromM(i)),
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
                 CurrentDriver: new Driver(
@@ -305,7 +305,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Vehicle? FocusedVehicle(Contrib.Data.Shared sharedData)
+        private Vehicle? FocusedVehicle(ref Contrib.Data.Shared sharedData)
         {
             int currentSlotId = sharedData.VehicleInfo.SlotId;
             if (currentSlotId < 0)
@@ -320,8 +320,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Id: SafeUInt32(sharedData.VehicleInfo.SlotId),
                 ClassPerformanceIndex: sharedData.VehicleInfo.ClassPerformanceIndex,
                 RacingStatus: RacingStatus(currentDriverData.FinishStatus), // TODO
-                EngineType: EngineType(sharedData),
-                ControlType: ControlType(sharedData),
+                EngineType: EngineType(ref sharedData),
+                ControlType: ControlType(ref sharedData),
                 Position: 42, // TODO
                 PositionClass: SafeUInt32(sharedData.PositionClass),
                 GapAhead: null, // TODO
@@ -333,7 +333,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Sectors: new Sectors
                     (
                         Individual: new TimeSpan[0], // TODO infer from cumulative
-                        Cumulative: ValuesPerSector(sharedData.SectorTimesCurrentSelf, i => TimeSpan.FromSeconds(i))
+                        Cumulative: ValuesPerSector(ref sharedData.SectorTimesCurrentSelf, i => TimeSpan.FromSeconds(i))
                     )
                 ),
                 PreviousLapTime: null, // TODO
@@ -342,13 +342,13 @@ namespace RaceDirector.Pipeline.Games.R3E
                     Sectors: new Sectors
                     (
                         Individual: new TimeSpan[0], // TODO infer from cumulative
-                        Cumulative: ValuesPerSector(sharedData.SectorTimesBestSelf, i => TimeSpan.FromSeconds(i))
+                        Cumulative: ValuesPerSector(ref sharedData.SectorTimesBestSelf, i => TimeSpan.FromSeconds(i))
                     )
                 ),
                 BestSectors: null, // TODO
                 CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
-                Location: Vector3(sharedData.CarCgLocation, i => IDistance.FromM(i)),
-                Orientation: Orientation(sharedData.CarOrientation, i => IAngle.FromRad(i)),
+                Location: Vector3(ref sharedData.CarCgLocation, i => IDistance.FromM(i)),
+                Orientation: Orientation(ref sharedData.CarOrientation, i => IAngle.FromRad(i)),
                 Speed: ISpeed.FromMPS(sharedData.CarSpeed),
                 CurrentDriver: new Driver
                 (
@@ -358,7 +358,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (
                     StopsDone: SafeUInt32(currentDriverData.NumPitstops),
                     MandatoryStopsDone: MandatoryStopsDone(currentDriverData.PitStopStatus),
-                    PitLanePhase: PitLanePhase(sharedData),
+                    PitLanePhase: PitLanePhase(ref sharedData),
                     PitLaneTime: TimeSpan.FromSeconds(sharedData.PitTotalDuration),
                     PitStallTime: TimeSpan.FromSeconds(sharedData.PitElapsedTime)
                 ),
@@ -374,7 +374,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.EngineType EngineType(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.EngineType EngineType(ref Contrib.Data.Shared sharedData) =>
             sharedData.VehicleInfo.EngineType switch
             {
                 Contrib.Constant.EngineType.Combustion => Pipeline.Telemetry.V0.EngineType.Combustion,
@@ -383,7 +383,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 _ => Pipeline.Telemetry.V0.EngineType.Unknown
             };
 
-        private Pipeline.Telemetry.V0.ControlType ControlType(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.ControlType ControlType(ref Contrib.Data.Shared sharedData) =>
             sharedData.ControlType switch
             {
                 Contrib.Constant.Control.Player => Pipeline.Telemetry.V0.ControlType.LocalPlayer,
@@ -400,7 +400,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             _ => Pipeline.Telemetry.V0.LapValidState.Unknown
         };
 
-        private Pipeline.Telemetry.V0.PitLanePhase? PitLanePhase(Contrib.Data.Shared sharedData) =>
+        private Pipeline.Telemetry.V0.PitLanePhase? PitLanePhase(ref Contrib.Data.Shared sharedData) =>
             sharedData.PitState switch
             {
                 2 => Pipeline.Telemetry.V0.PitLanePhase.Entered,
@@ -466,7 +466,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             };
 
 
-        private Player? Player(Contrib.Data.Shared sharedData)
+        private Player? Player(ref Contrib.Data.Shared sharedData)
         {
             // TODO some of this is present in replay/monitor
             if (sharedData.VehicleInfo.UserId < 0)
@@ -501,7 +501,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     SuspensionPercent: sharedData.CarDamage.Suspension,
                     TransmissionPercent: sharedData.CarDamage.Transmission
                 ),
-                Tires: Tires(sharedData),
+                Tires: Tires(ref sharedData),
                 Fuel: new Fuel
                 (
                     Max: sharedData.FuelCapacity,
@@ -514,29 +514,29 @@ namespace RaceDirector.Pipeline.Games.R3E
                     UpshiftSpeed: IAngularSpeed.FromRadPS(sharedData.UpshiftRps),
                     MaxSpeed: IAngularSpeed.FromRadPS(sharedData.MaxEngineRps)
                 ),
-                CgLocation: Vector3(sharedData.Player.Position, i => IDistance.FromM(i)),
+                CgLocation: Vector3(ref sharedData.Player.Position, i => IDistance.FromM(i)),
                 Orientation: new Orientation
                 (
                     Yaw: IAngle.FromDeg(0.0), // TODO
                     Pitch: IAngle.FromDeg(0.0), // TODO
                     Roll: IAngle.FromDeg(0.0) // TODO
                 ),
-                LocalAcceleration: Vector3(sharedData.Player.LocalAcceleration, i => IAcceleration.FromMPS2(i)),
+                LocalAcceleration: Vector3(ref sharedData.Player.LocalAcceleration, i => IAcceleration.FromMPS2(i)),
                 ClassBestLap: null, // TODO
                 ClassBestSectors: new Sectors // TODO are these the best sectors of the class leader or the best class sectors???
                 (
-                    Individual: ValuesPerSector(sharedData.BestIndividualSectorTimeLeaderClass, i => TimeSpan.FromSeconds(i)),
+                    Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeLeaderClass, i => TimeSpan.FromSeconds(i)),
                     Cumulative: new TimeSpan[0] // TODO
                 ),
                 PersonalBestSectors: new Sectors
                 (
-                    Individual: ValuesPerSector(sharedData.BestIndividualSectorTimeSelf, i => TimeSpan.FromSeconds(i)),
+                    Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeSelf, i => TimeSpan.FromSeconds(i)),
                     Cumulative: new TimeSpan[0] // TODO
                 ),
                 PersonalBestDelta: TimeSpan.FromSeconds(sharedData.TimeDeltaBestSelf),
-                Drs: ActivationToggled(sharedData.Drs, sharedData),
-                PushToPass: WaitTimeToggled(sharedData.PushToPass, sharedData),
-                PitStop: PlayerPitStop(sharedData),
+                Drs: Drs(ref sharedData),
+                PushToPass: Ptp(ref sharedData),
+                PitStop: PlayerPitStop(ref sharedData),
                 Warnings: new PlayerWarnings
                 (
                     IncidentPoints: null,
@@ -547,7 +547,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Pipeline.Telemetry.V0.PlayerPitStop PlayerPitStop(Contrib.Data.Shared sharedData)
+        private Pipeline.Telemetry.V0.PlayerPitStop PlayerPitStop(ref Contrib.Data.Shared sharedData)
         {
             var playerPitStop = Pipeline.Telemetry.V0.PlayerPitStop.None;
             if (sharedData.PitState == 1)
@@ -570,11 +570,12 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (512, Pipeline.Telemetry.V0.PlayerPitStop.RepairSuspension)
             };
 
-        private static Orientation Orientation<T>(Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>
+        private static Orientation Orientation<T>(ref Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>
             new(Yaw: f(value.Yaw), Pitch: f(value.Pitch), Roll: f(value.Roll));
 
-        private ActivationToggled? ActivationToggled(Contrib.Data.DRS drs, Contrib.Data.Shared sharedData)
+        private ActivationToggled? Drs(ref Contrib.Data.Shared sharedData)
         {
+            var drs = sharedData.Drs;
             if (drs.Equipped <= 0)
                 return null;
             return new ActivationToggled
@@ -588,8 +589,9 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
         
-        private WaitTimeToggled? WaitTimeToggled(Contrib.Data.PushToPass ptp, Contrib.Data.Shared sharedData)
+        private WaitTimeToggled? Ptp(ref Contrib.Data.Shared sharedData)
         {
+            var ptp = sharedData.PushToPass;
             if (ptp.Available < 0)
                 return null;
             return new WaitTimeToggled
@@ -606,29 +608,29 @@ namespace RaceDirector.Pipeline.Games.R3E
             );
         }
 
-        private Tire[][] Tires(Contrib.Data.Shared sharedData)
+        private Tire[][] Tires(ref Contrib.Data.Shared sharedData)
         {
             return new[]
             {
                 new[] {
-                    Tire(sharedData, new ITireExtractor.FrontLeft()),
-                    Tire(sharedData, new ITireExtractor.FrontRight())
+                    Tire(ref sharedData, new ITireExtractor.FrontLeft()),
+                    Tire(ref sharedData, new ITireExtractor.FrontRight())
                 },
                 new[] {
-                    Tire(sharedData, new ITireExtractor.RearLeft()),
-                    Tire(sharedData, new ITireExtractor.RearRight())
+                    Tire(ref sharedData, new ITireExtractor.RearLeft()),
+                    Tire(ref sharedData, new ITireExtractor.RearRight())
                 }
             };
         }
 
-        private Tire Tire(Contrib.Data.Shared sharedData, ITireExtractor extract)
+        private Tire Tire(ref Contrib.Data.Shared sharedData, ITireExtractor extract)
         {
-            var tireTemps = extract.CurrentTire(sharedData.TireTemp);
-            var brakeTemps = extract.CurrentTire(sharedData.BrakeTemp);
+            var tireTemps = extract.CurrentTire(ref sharedData.TireTemp);
+            var brakeTemps = extract.CurrentTire(ref sharedData.BrakeTemp);
             return new Tire(
-                Dirt: extract.CurrentTire(sharedData.TireDirt),
-                Grip: extract.CurrentTire(sharedData.TireGrip),
-                Wear: extract.CurrentTire(sharedData.TireWear),
+                Dirt: extract.CurrentTire(ref sharedData.TireDirt),
+                Grip: extract.CurrentTire(ref sharedData.TireGrip),
+                Wear: extract.CurrentTire(ref sharedData.TireWear),
                 Temperatures: new TemperaturesMatrix
                 (
                     CurrentTemperatures: new[]
@@ -653,26 +655,26 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private interface ITireExtractor
         {
-            T CurrentTire<T>(Contrib.Data.TireData<T> outer);
+            T CurrentTire<T>(ref Contrib.Data.TireData<T> outer);
 
             class FrontLeft : ITireExtractor
             {
-                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontLeft;
+                T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.FrontLeft;
             }
 
             class FrontRight : ITireExtractor
             {
-                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.FrontRight;
+                T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.FrontRight;
             }
 
             class RearLeft : ITireExtractor
             {
-                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearLeft;
+                T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.RearLeft;
             }
 
             class RearRight : ITireExtractor
             {
-                T ITireExtractor.CurrentTire<T>(Contrib.Data.TireData<T> outer) => outer.RearRight;
+                T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.RearRight;
             }
         }
 
@@ -696,13 +698,13 @@ namespace RaceDirector.Pipeline.Games.R3E
             return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
         }
 
-        private Vector3<TO> Vector3<TI, TO>(Contrib.Data.Vector3<TI> value, Func<TI, TO> f) =>
-            new Vector3<TO>(X: f(value.X), Y: f(value.Y), Z: f(value.Z));
+        private Vector3<TO> Vector3<TI, TO>(ref Contrib.Data.Vector3<TI> value, Func<TI, TO> f) =>
+            new(X: f(value.X), Y: f(value.Y), Z: f(value.Z));
 
-        private TO[] ValuesPerSector<TI, TO>(Contrib.Data.Sectors<TI> value, Func<TI, TO> f) =>
+        private TO[] ValuesPerSector<TI, TO>(ref Contrib.Data.Sectors<TI> value, Func<TI, TO> f) =>
             new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
-        private TO[] ValuesPerSector<TI, TO>(Contrib.Data.SectorStarts<TI> value, Func<TI, TO> f) =>
+        private TO[] ValuesPerSector<TI, TO>(ref Contrib.Data.SectorStarts<TI> value, Func<TI, TO> f) =>
             new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
         private uint SafeUInt32(int i, uint defaultValue = 0)
