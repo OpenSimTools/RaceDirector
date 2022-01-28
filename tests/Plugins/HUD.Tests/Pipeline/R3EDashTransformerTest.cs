@@ -1915,7 +1915,7 @@ static class GameTelemetryExensions
 
     public static GameTelemetry WithTrack(this GameTelemetry gt, Func<TrackLayout, TrackLayout> f)
     {
-        return gt.WithEvent(e => e with { Track = f( e.Track) });
+        return gt.WithEvent(e => e with { TrackLayout = f( e.TrackLayout) });
     }
 
     public static GameTelemetry WithSectorsEnd(this GameTelemetry gt, IFraction<IDistance>[] sectorsEnd)

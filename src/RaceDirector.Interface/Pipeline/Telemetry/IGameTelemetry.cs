@@ -71,7 +71,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IEvent
         {
-            ITrackLayout Track { get; }
+            ITrackLayout TrackLayout { get; }
 
             /// <summary>
             /// Fuel burning rate. 0.0 disabled, 1.0 is normal, 2.0 double, etc.

@@ -1,4 +1,5 @@
 ﻿using RaceDirector.Pipeline.Telemetry;
+using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using System;
 
@@ -12,52 +13,288 @@ namespace RaceDirector.Pipeline.Games.ACC
             if (shared.Static.SmVersionMajor != Contrib.Constant.SmVersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
-                GameState: GameState(ref shared),
+                GameState: ToGameState(ref shared),
                 UsingVR: null,
-                Event: Event(ref shared),
-                Session: Session(ref shared),
-                Vehicles: Vehicles(ref shared),
-                FocusedVehicle: FocusedVehicle(ref shared),
-                Player: Player(ref shared)
+                Event: ToEvent(ref shared),
+                Session: ToSession(ref shared),
+                Vehicles: ToVehicles(ref shared),
+                FocusedVehicle: ToFocusedVehicle(ref shared),
+                Player: ToPlayer(ref shared)
             );
         }
 
-        private GameState GameState(ref Contrib.Data.Shared shared)
+        private GameState ToGameState(ref Contrib.Data.Shared shared)
         {
             return shared.Graphic.Status switch
             {
-                Contrib.Constant.Status.Off => Telemetry.V0.GameState.Replay, // recorded replay
-                Contrib.Constant.Status.Replay => Telemetry.V0.GameState.Replay, // in-game replay
-                Contrib.Constant.Status.Live when shared.Static.AidMechanicalDamage < 0 => Telemetry.V0.GameState.Menu, // in-game menu
-                Contrib.Constant.Status.Live => Telemetry.V0.GameState.Driving,
-                Contrib.Constant.Status.Pause => Telemetry.V0.GameState.Paused, // single player game paused
+                Contrib.Constant.Status.Off => GameState.Replay, // recorded replay
+                Contrib.Constant.Status.Replay => GameState.Replay, // in-game replay
+                Contrib.Constant.Status.Live when shared.Physics.WaterTemp == 0 => GameState.Menu, // in-game menu
+                Contrib.Constant.Status.Live => GameState.Driving,
+                Contrib.Constant.Status.Pause => GameState.Paused, // single player game paused
                 _ => throw new ArgumentException("Unknown game state")
             };
         }
 
-        private Event? Event(ref Contrib.Data.Shared shared)
+        private Event? ToEvent(ref Contrib.Data.Shared shared)
         {
-            return null;
+            return new Event(
+                TrackLayout: new TrackLayout // TODO
+                (
+                    SectorsEnd: Array.Empty<IFraction<IDistance>>()
+                ),
+                FuelRate: 1 // TODO
+            );
         }
 
-        private Session? Session(ref Contrib.Data.Shared shared)
+        private Session? ToSession(ref Contrib.Data.Shared shared)
         {
-            return null;
+            var maybeSessionType = ToSessionType(shared.Graphic.Session);
+            if (maybeSessionType is null)
+                return null;
+
+            return new Session
+            (
+                Type: maybeSessionType.Value,
+                Phase: SessionPhase.Started, // TODO
+                Length: new RaceDuration.LapsDuration(10, null), // TODO
+                Requirements: new SessionRequirements // TODO
+                (
+                    0, MandatoryPitRequirements.None,
+                    new Interval<IPitWindowBoundary>
+                    (
+                        new RaceDuration.LapsDuration(Laps: Convert.ToUInt32(0), EstimatedTime: null),
+                        new RaceDuration.LapsDuration(Laps: Convert.ToUInt32(0), EstimatedTime: null)
+                    )
+                ),
+                PitSpeedLimit: ISpeed.FromMPS(0), // TODO
+                PitLaneOpen: true, // TODO
+                ElapsedTime: TimeSpan.Zero, // TODO
+                TimeRemaining: TimeSpan.Zero, // TODO
+                WaitTime: TimeSpan.Zero, // TODO
+                StartLights: new StartLights // TODO
+                (
+                    Color: LightColor.Green,
+                    Lit: new BoundedValue<uint>(0, 4)
+                ),
+                BestLap: null, // TODO
+                BestSectors: null, // TODO
+                Flags: new SessionFlags // TODO
+                (
+                    Track: TrackFlags.None,
+                    Sectors: new SectorFlags[0],
+                    Leader: LeaderFlags.None
+                )
+            );
         }
 
-        private Vehicle[] Vehicles(ref Contrib.Data.Shared shared)
+        private SessionType? ToSessionType(Contrib.Constant.SessionType session) => session switch
+        {
+            Contrib.Constant.SessionType.Practice => SessionType.Practice,
+            Contrib.Constant.SessionType.Qualify => SessionType.Qualify,
+            Contrib.Constant.SessionType.Race => SessionType.Race,
+            Contrib.Constant.SessionType.Hotlap => SessionType.HotLap,
+            Contrib.Constant.SessionType.Timeattack => SessionType.TimeAttack,
+            Contrib.Constant.SessionType.Drift => SessionType.Drift,
+            Contrib.Constant.SessionType.Drag => SessionType.Drag,
+            Contrib.Constant.SessionType.Hotstint => SessionType.HotStint,
+            Contrib.Constant.SessionType.HotstintSuperpole => SessionType.HotStintSuperPole,
+            _ => null
+        };
+
+        private Vehicle[] ToVehicles(ref Contrib.Data.Shared shared)
         {
             return Array.Empty<Vehicle>();
         }
 
-        private Vehicle? FocusedVehicle(ref Contrib.Data.Shared shared)
+        private Vehicle? ToVehicle(ref Contrib.Data.Shared shared)
         {
-            return null;
+            return new Vehicle
+            (
+                Id: 0, // TODO // TODO
+                ClassPerformanceIndex: -1, // TODO
+                RacingStatus: IRacingStatus.Unknown, // TODO
+                EngineType: EngineType.Unknown, // TODO
+                ControlType: ControlType.LocalPlayer, // TODO
+                Position: 0, // TODO
+                PositionClass: 0, // TODO
+                GapAhead: null, // TODO
+                GapBehind: null, // TODO
+                CompletedLaps: 0, // TODO
+                LapValid: LapValidState.Unknown, // TODO
+                CurrentLapTime: null, // TODO
+                PreviousLapTime: null, // TODO
+                BestLapTime: null, // TODO
+                BestSectors: null, // TODO
+                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(1), 0), // TODO
+                Location: new Vector3<IDistance> // TODO
+                (
+                    X: IDistance.FromM(0),
+                    Y: IDistance.FromM(0),
+                    Z: IDistance.FromM(0)
+                ),
+                Orientation: null, // TODO
+                Speed: ISpeed.FromMPS(0), // TODO
+                CurrentDriver: new Driver // TODO
+                (
+                    Name: ""
+                ),
+                Pit: new VehiclePit // TODO
+                (
+                    StopsDone: 0,
+                    MandatoryStopsDone: 0,
+                    PitLanePhase: null,
+                    PitLaneTime: null,
+                    PitStallTime: null
+                ),
+                Penalties: Array.Empty<Penalty>(), // TODO
+                Flags: new VehicleFlags // TODO
+                (
+                    Green: null,
+                    Blue: null,
+                    Yellow: null,
+                    White: null,
+                    Checkered: null,
+                    Black: null,
+                    BlackWhite: null
+                ),
+                Inputs: null // TODO
+            );
         }
 
-        private Player? Player(ref Contrib.Data.Shared shared)
+        private Vehicle? ToFocusedVehicle(ref Contrib.Data.Shared shared)
         {
-            return null;
+            return new Vehicle
+            (
+                Id: 0, // TODO // TODO
+                ClassPerformanceIndex: -1, // TODO
+                RacingStatus: IRacingStatus.Unknown, // TODO
+                EngineType: EngineType.Unknown, // TODO
+                ControlType: ControlType.LocalPlayer, // TODO
+                Position: 0, // TODO
+                PositionClass: 0, // TODO
+                GapAhead: null, // TODO
+                GapBehind: null, // TODO
+                CompletedLaps: 0, // TODO
+                LapValid: LapValidState.Unknown, // TODO
+                CurrentLapTime: null, // TODO
+                PreviousLapTime : null, // TODO
+                BestLapTime : null, // TODO
+                BestSectors : null, // TODO
+                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(1), 0), // TODO
+                Location: new Vector3<IDistance> // TODO
+                (
+                    X: IDistance.FromM(0),
+                    Y: IDistance.FromM(0),
+                    Z: IDistance.FromM(0)
+                ),
+                Orientation: null, // TODO
+                Speed: ISpeed.FromMPS(0), // TODO
+                CurrentDriver: new Driver // TODO
+                (
+                    Name:  ""
+                ),
+                Pit: new VehiclePit // TODO
+                (
+                    StopsDone: 0,
+                    MandatoryStopsDone: 0,
+                    PitLanePhase: null,
+                    PitLaneTime: null,
+                    PitStallTime: null
+                ),
+                Penalties: Array.Empty<Penalty>(), // TODO
+                Flags: new VehicleFlags // TODO
+                (
+                    Green : null,
+                    Blue : null,
+                    Yellow : null,
+                    White : null,
+                    Checkered : null,
+                    Black : null,
+                    BlackWhite : null
+                ),
+                Inputs: null // TODO
+            );
+        }
+
+        private Player? ToPlayer(ref Contrib.Data.Shared shared)
+        {
+            return new Player
+            (
+                RawInputs: new RawInputs // TODO
+                (
+                    Throttle: 0,
+                    Brake: 0,
+                    Clutch: 0,
+                    Steering: 0,
+                    SteerWheelRange: IAngle.FromDeg(0)
+                ),
+                DrivingAids: new DrivingAids // TODO
+                (
+                    Abs: null,
+                    Tc: null,
+                    Esp: null,
+                    Countersteer: null,
+                    Cornering: null
+                ),
+                VehicleSettings: new VehicleSettings // TODO
+                (
+                    EngineMap: null,
+                    EngineBrakeReduction: null
+                ),
+                VehicleDamage: new VehicleDamage // TODO
+                (
+                    AerodynamicsPercent: 0,
+                    EnginePercent: 0,
+                    SuspensionPercent: 0,
+                    TransmissionPercent: 0
+                ),
+                Tires: Array.Empty<Tire[]>(),
+                Fuel: new Fuel // TODO
+                (
+                    Max: 0,
+                    Left: 0,
+                    PerLap: null
+                ),
+                Engine: new Engine // TODO
+                (
+                    Speed: IAngularSpeed.FromRevPS(0),
+                    UpshiftSpeed: IAngularSpeed.FromRevPS(0),
+                    MaxSpeed: IAngularSpeed.FromRevPS(0)
+                ),
+                CgLocation: new Vector3<IDistance> // TODO
+                (
+                    X: IDistance.FromM(0),
+                    Y: IDistance.FromM(0),
+                    Z: IDistance.FromM(0)
+                ),
+                Orientation: new Orientation // TODO
+                (
+                    Yaw: IAngle.FromDeg(0),
+                    Pitch: IAngle.FromDeg(0),
+                    Roll: IAngle.FromDeg(0)
+                ),
+                LocalAcceleration: new Vector3<IAcceleration> // TODO
+                (
+                    X: IAcceleration.FromMPS2(0),
+                    Y: IAcceleration.FromMPS2(0),
+                    Z: IAcceleration.FromMPS2(0)
+                ),
+                ClassBestLap: null,
+                ClassBestSectors: null, // TODO
+                PersonalBestSectors: null, // TODO
+                PersonalBestDelta: null, // TODO
+                Drs: null, // TODO
+                PushToPass: null, // TODO
+                PitStop: PlayerPitStop.None,
+                Warnings: new PlayerWarnings // TODO
+                (
+                    IncidentPoints: null,
+                    BlueFlagWarnings: null,
+                    GiveBackPositions: 0
+                ),
+                OvertakeAllowed: null // TODO
+            );
         }
     }
 }
