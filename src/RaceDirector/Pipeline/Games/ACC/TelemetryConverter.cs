@@ -14,7 +14,7 @@ namespace RaceDirector.Pipeline.Games.ACC
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
                 GameState: ToGameState(ref shared),
-                UsingVR: null,
+                UsingVR: null, // TODO Check if it can be inferred from process parameters
                 Event: ToEvent(ref shared),
                 Session: ToSession(ref shared),
                 Vehicles: ToVehicles(ref shared),
@@ -39,11 +39,15 @@ namespace RaceDirector.Pipeline.Games.ACC
         private Event? ToEvent(ref Contrib.Data.Shared shared)
         {
             return new Event(
-                TrackLayout: new TrackLayout // TODO
+                TrackLayout: new TrackLayout
                 (
-                    SectorsEnd: Array.Empty<IFraction<IDistance>>()
+                    // Sector length can be inferred from TrackData.TrackMeters (UDP)
+                    // and SPageFileGraphic.NormalizedCarPosition (MM). Sectors in SM
+                    // are considered 1/3 of the total length, but that is incorrect.
+                    // Will have to record them on track and save them in config.
+                    SectorsEnd: Array.Empty<IFraction<IDistance>>() // TODO
                 ),
-                FuelRate: 1 // TODO
+                FuelRate: shared.Static.AidFuelRate
             );
         }
 
@@ -56,7 +60,14 @@ namespace RaceDirector.Pipeline.Games.ACC
             return new Session
             (
                 Type: maybeSessionType.Value,
-                Phase: SessionPhase.Started, // TODO
+                // It might be inferred from global flags, timers, etc.
+                Phase: SessionPhase.Unknown, // TODO
+                // Practice: timed (in race) or unlimited (SessionTimeLeft -1)
+                // Hotlap: unlimited
+                // HotstintSuperpole: 2 laps
+                // Hotstint: timed
+                // Qualify: timed
+                // Race: timed
                 Length: new RaceDuration.LapsDuration(10, null), // TODO
                 Requirements: new SessionRequirements // TODO
                 (

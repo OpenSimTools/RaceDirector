@@ -170,6 +170,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum SessionPhase
         {
+            Unknown = 0,
             Garage = 1,           // R3E, RF2
             GridWalk = 2,         // R3E, RF2
             Formation = 3,        // R3E, AMS2 (eSessionState), RF2
