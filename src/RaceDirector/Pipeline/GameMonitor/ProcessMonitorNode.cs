@@ -1,20 +1,19 @@
-﻿using Microsoft.Extensions.Logging;
-using RaceDirector.Pipeline.Utils;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks.Dataflow;
+using System.Reactive.Linq;
 
 namespace RaceDirector.Pipeline.GameMonitor
 {
-    public class ProcessMonitorNode : INode, IDisposable
+    public class ProcessMonitorNode : INode
     {
         private readonly ILogger<ProcessMonitorNode> _logger;
 
         public record Config(TimeSpan PollingInterval); // TODO remove when config done
 
-        public ISourceBlock<RunningGame> RunningGameSource
+        public IObservable<RunningGame> RunningGameSource
         {
             get;
         }
@@ -25,28 +24,28 @@ namespace RaceDirector.Pipeline.GameMonitor
             RunningGameSource = GameProcessPoller(config, gameProcessInfos);
         }
 
-        private ISourceBlock<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        private IObservable<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
+            // TODO Write this in a simpler way
+            // TODO Add BehaviorSubject to emit latest element on subscribe
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
-            var transformer = new TransformManyBlock<IEnumerable<string>, RunningGame>(
-                processNames => keepOne(processNames).Select(processName =>
-                {
-                    if (processName == null)
+            return Observable.Interval(config.PollingInterval)
+                .Select(_ => Process.GetProcesses().Select(p => p.ProcessName))
+                .SelectMany(processNames =>
+                    keepOne(processNames).Select(processName =>
                     {
-                        _logger.LogInformation("The game has been closed");
-                        return new RunningGame(null);
-                    }
+                        if (processName == null)
+                        {
+                            _logger.LogInformation("The game has been closed");
+                            return new RunningGame(null);
+                        }
 
-                    var game = gameByProcess.GetValueOrDefault(processName);
-                    _logger.LogInformation("Found game {string?} (process {string?})", game, processName);
-                    return new RunningGame(game);
-                })
-            );
-            var source = PollingSource.Create(config.PollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));
-            source.LinkTo(transformer);
-            transformer.Completion.ContinueWith(_ => source.Complete());
-            return transformer;
+                        var game = gameByProcess.GetValueOrDefault(processName);
+                        _logger.LogInformation("Found game {string?} (process {string?})", game, processName);
+                        return new RunningGame(game);
+                    })
+                );
         }
 
         private static Dictionary<string, string> GameByProcess(IEnumerable<IGameProcessInfo> gameProcessInfos)
@@ -54,11 +53,6 @@ namespace RaceDirector.Pipeline.GameMonitor
             return gameProcessInfos
                 .SelectMany(gpi => gpi.GameProcessNames.Select(p => KeyValuePair.Create(p, gpi.GameName)))
                 .ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        public void Dispose()
-        {
-            RunningGameSource.Complete();
         }
     }
 }

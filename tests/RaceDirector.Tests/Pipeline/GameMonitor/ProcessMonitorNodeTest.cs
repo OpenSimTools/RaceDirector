@@ -1,5 +1,4 @@
 using Xunit;
-using System.Threading.Tasks.Dataflow;
 using System;
 using System.Diagnostics;
 using Xunit.Categories;
@@ -7,6 +6,7 @@ using RaceDirector.Pipeline.GameMonitor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using System.Reactive.Linq;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
@@ -30,12 +30,14 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
             };
             var config = new ProcessMonitorNode.Config(PollingInterval);
             var processMonitorNode = new ProcessMonitorNode(TestLogger, config, gameProcessInfos);
-            var source = processMonitorNode.RunningGameSource;
+            var source = processMonitorNode.RunningGameSource.Timeout(Timeout);
             using (new RunningProcess(ProcessName, ProcessArgs))
             {
-                Assert.Equal(GameName, source.Receive(Timeout).Name);
+                var first = source.First(); // FIXME
+                Assert.Equal(GameName, first.Name);
             }
-            Assert.Null(source.Receive(Timeout).Name);
+            var second = source.First(); // FIXME
+            Assert.Null(second.Name);
         }
 
         private record GameProcessInfo(string GameName, string[] GameProcessNames) : IGameProcessInfo;

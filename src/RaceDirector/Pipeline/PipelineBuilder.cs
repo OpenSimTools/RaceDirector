@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks.Dataflow;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace RaceDirector.Pipeline
 {
@@ -15,32 +16,19 @@ namespace RaceDirector.Pipeline
         /// <param name="nodes">Nodes to inspect.</param>
         public static void LinkNodes(IEnumerable<INode> nodes)
         {
-            ForEachProperty(typeof(ISourceBlock<>), nodes, (sourceBlockType, sourceBlock) =>
+            ForEachProperty(typeof(IObservable<>), nodes, (sourceBlockType, sourceBlock) =>
             {
-                var targetBlocks = new List<dynamic>();
-                ForEachProperty(typeof(ITargetBlock<>), nodes, (targetBlockType, targetBlock) =>
+                ForEachProperty(typeof(IObserver<>), nodes, (targetBlockType, targetBlock) =>
                 {
-                    if (sourceBlockType.GenericTypeArguments[0].IsAssignableTo(targetBlockType.GenericTypeArguments[0]))
-                        targetBlocks.Add(targetBlock);
+                    var sourceGenericType = sourceBlockType.GenericTypeArguments[0];
+                    var targetGenericType = targetBlockType.GenericTypeArguments[0];
+                    if (targetGenericType.IsAssignableFrom(sourceGenericType))
+                    {
+                        sourceBlockType.InvokeMember("Subscribe", BindingFlags.InvokeMethod, null, sourceBlock, new[] { targetBlock });
+                    }
                 });
-                if (targetBlocks.Count > 1)
-                {
-                    var broadcastBlockType = typeof(BroadcastBlock<>).MakeGenericType(sourceBlockType.GenericTypeArguments);
-                    // CreateInstance can return null only for Nullable types
-                    dynamic broadcastBlock = Activator.CreateInstance(broadcastBlockType, new object?[] { null })!;
-                    DataflowBlock.LinkTo(sourceBlock, broadcastBlock);
-                    sourceBlock = broadcastBlock;
-                }
-                foreach (dynamic targetBlock in targetBlocks)
-                    DataflowBlock.LinkTo(sourceBlock, targetBlock);
             });
         }
-
-        /// <summary>
-        /// Convenience method for tests.
-        /// </summary>
-        /// <param name="nodes">Nodes to inspect.</param>
-        public static void LinkNodes(params INode[] nodes) => LinkNodes((IEnumerable<INode>) nodes);
 
         private static void ForEachProperty(Type genericTypeDefinition, IEnumerable<object> objects, Action<Type, dynamic> action)
         {

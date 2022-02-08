@@ -2,50 +2,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks.Dataflow;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
     public class TelemetryReaderNode : INode, IDisposable
     {
-        public ISourceBlock<V0.IGameTelemetry> GameTelemetrySource
+        public IObservable<V0.IGameTelemetry> GameTelemetrySource
         {
-            get;
+            get => _subject.SelectMany(rg => _createSource(rg) ?? Observable.Empty<V0.IGameTelemetry>());
         }
 
-        public ITargetBlock<IRunningGame> RunningGameTarget
+        public IObserver<IRunningGame> RunningGameTarget
         {
-            get;
+            get => _subject;
         }
 
-        private ISourceBlock<V0.IGameTelemetry>? _currentGameTelemetrySource;
+        private Subject<IRunningGame> _subject;
+        private Func<IRunningGame, IObservable<V0.IGameTelemetry>?> _createSource;
 
         public TelemetryReaderNode(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
-            var createSource = TelemetrySourceSelector(telemetrySourceFactories);
-            var externalGameTelemetrySource = new BufferBlock<V0.IGameTelemetry>();
-            GameTelemetrySource = externalGameTelemetrySource;
-            RunningGameTarget = new ActionBlock<IRunningGame>(runningGame =>
-            {
-                _currentGameTelemetrySource?.Complete();
-                _currentGameTelemetrySource = createSource(runningGame.Name);
-                _currentGameTelemetrySource?.LinkTo(externalGameTelemetrySource, new DataflowLinkOptions());
-            });
+            _createSource = telemetrySourceSelector(telemetrySourceFactories);
+            _subject = new Subject<IRunningGame>();
         }
 
-        private Func<string?, ISourceBlock<V0.IGameTelemetry>?> TelemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
+        private Func<IRunningGame, IObservable<V0.IGameTelemetry>?> telemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
-            return gameName =>
+            return runningGame =>
                 telemetrySourceFactories
-                    .Where(tsf => tsf.GameName.Equals(gameName))
+                    .Where(tsf => tsf.GameName.Equals(runningGame.Name))
                     .Select(tsf => tsf.CreateTelemetrySource())
                     .FirstOrDefault();
         }
 
         public void Dispose()
         {
-            GameTelemetrySource.Complete();
-            RunningGameTarget.Complete();
+            _subject.Dispose();
         }
     }
 }
