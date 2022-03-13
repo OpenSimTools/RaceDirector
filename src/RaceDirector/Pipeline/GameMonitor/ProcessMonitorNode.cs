@@ -28,13 +28,16 @@ namespace RaceDirector.Pipeline.GameMonitor
         {
             // TODO Write this in a simpler way
             // TODO Add BehaviorSubject to emit latest element on subscribe
+
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
+
             return Observable.Interval(config.PollingInterval)
                 .Select(_ => Process.GetProcesses().Select(p => p.ProcessName))
                 .SelectMany(processNames =>
                     keepOne(processNames).Select(processName =>
                     {
+                        Console.WriteLine($"Found process {processName}");
                         if (processName == null)
                         {
                             _logger.LogInformation("The game has been closed");

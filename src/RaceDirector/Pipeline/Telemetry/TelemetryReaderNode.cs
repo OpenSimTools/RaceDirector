@@ -11,7 +11,7 @@ namespace RaceDirector.Pipeline.Telemetry
     {
         public IObservable<V0.IGameTelemetry> GameTelemetrySource
         {
-            get => _subject.SelectMany(rg => _createSource(rg) ?? Observable.Empty<V0.IGameTelemetry>());
+            get => _subject.SelectMany(rg => _createSource(rg));
         }
 
         public IObserver<IRunningGame> RunningGameTarget
@@ -20,7 +20,7 @@ namespace RaceDirector.Pipeline.Telemetry
         }
 
         private Subject<IRunningGame> _subject;
-        private Func<IRunningGame, IObservable<V0.IGameTelemetry>?> _createSource;
+        private Func<IRunningGame, IObservable<V0.IGameTelemetry>> _createSource;
 
         public TelemetryReaderNode(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
@@ -28,13 +28,16 @@ namespace RaceDirector.Pipeline.Telemetry
             _subject = new Subject<IRunningGame>();
         }
 
-        private Func<IRunningGame, IObservable<V0.IGameTelemetry>?> telemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
+        private Func<IRunningGame, IObservable<V0.IGameTelemetry>> telemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
             return runningGame =>
                 telemetrySourceFactories
                     .Where(tsf => tsf.GameName.Equals(runningGame.Name))
-                    .Select(tsf => tsf.CreateTelemetrySource())
-                    .FirstOrDefault();
+                    .Select(tsf => {
+                        Console.Write("X");
+                        return tsf.CreateTelemetrySource();
+                    })
+                    .FirstOrDefault() ?? Observable.Empty<V0.IGameTelemetry>();
         }
 
         public void Dispose()

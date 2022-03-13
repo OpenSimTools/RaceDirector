@@ -12,8 +12,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
-        private static readonly uint MajorVersion = 2;
-        private static readonly uint MinorVersion = 11;
+        public static readonly uint MajorVersion = 2;
+        public static readonly uint MinorVersion = 8; // TODO restore it to 11
 
         private static readonly int DecimalDigits = 3;
 

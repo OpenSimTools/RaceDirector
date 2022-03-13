@@ -26,7 +26,19 @@ namespace RaceDirector.Pipeline.Games.R3E
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
             var telemetry = new Telemetry();
             return Observable.Interval(_config.PollingInterval)
-                .Select(_ => telemetry.Transform(mmReader.Read()));
+                .SelectMany(_ =>
+                {
+                    try
+                    {
+                        Console.Write("x");
+                        return Observable.Return(telemetry.Transform(mmReader.Read()));
+                    }
+                    catch
+                    {
+                        Console.WriteLine("@");
+                        return Observable.Empty<Pipeline.Telemetry.GameTelemetry>();
+                    }
+                });
         }
     }
 }

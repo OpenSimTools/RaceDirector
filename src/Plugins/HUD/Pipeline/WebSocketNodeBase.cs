@@ -19,13 +19,15 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         protected WebSocketNodeBase(IEnumerable<IWsServer<TData>> servers)
         {
             TriggerTarget = Observer.Create<TTrigger>(trigger => {
+                Console.Write("O");
                 if (ServerShouldRun(trigger))
-                    foreach (var s in servers) s.Start();
+                    foreach (var s in servers) s.Start(); // FIXME Address already in use!
                 else
                     foreach (var s in servers) s.Stop();
             });
             DataTarget = Observer.Create<TData>(data =>
             {
+                Console.Write("o");
                 foreach (var s in servers) s.Multicast(data);
             });
         }
