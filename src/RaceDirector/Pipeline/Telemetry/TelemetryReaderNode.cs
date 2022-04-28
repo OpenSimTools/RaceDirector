@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using RaceDirector.Pipeline.Utils;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
@@ -11,7 +12,7 @@ namespace RaceDirector.Pipeline.Telemetry
     {
         public IObservable<V0.IGameTelemetry> GameTelemetrySource
         {
-            get => _subject.SelectMany(rg => _createSource(rg));
+            get => _subject.SelectManyUntilNext(rg => _createSource(rg));
         }
 
         public IObserver<IRunningGame> RunningGameTarget
@@ -32,12 +33,9 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             return runningGame =>
                 telemetrySourceFactories
-                    .Where(tsf => tsf.GameName.Equals(runningGame.Name))
-                    .Select(tsf => {
-                        Console.Write("X");
-                        return tsf.CreateTelemetrySource();
-                    })
-                    .FirstOrDefault() ?? Observable.Empty<V0.IGameTelemetry>();
+                    .FirstOrDefault(tsf => tsf.GameName.Equals(runningGame.Name))
+                    ?.CreateTelemetrySource()
+                    ?? Observable.Empty<V0.IGameTelemetry>();
         }
 
         public void Dispose()
