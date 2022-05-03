@@ -6,31 +6,31 @@ using Xunit.Categories;
 namespace RaceDirector.Tests.Pipeline.Utils
 {
     [UnitTest]
-    public class ObserverExtensionsTest : ReactiveTest
+    public class SelectManyUntilNextTest : ReactiveTest
     {
         [Fact]
-        public void SelectorsTerminateWhenSourceEmits()
+        public void SelectorsStopEmittingWhenSourceEmits()
         {
             var scheduler = new TestScheduler();
             const long sourceStart = Subscribed + 5;
             const long sourceEmitOffset = 21;
             const long sourceCompleteOffset = 100;
+            const long selectorCompleteOffset = 50;
+
             var source = scheduler.CreateHotObservable(
                 OnNext(sourceStart, 0),
                 OnNext(sourceStart + sourceEmitOffset, 0),
                 OnCompleted<int>(sourceStart + sourceCompleteOffset)
             );
-            const long selectorCompleteOffset = 50;
-            var selector = scheduler.CreateColdObservable(
-                OnNext(10, 1),
-                OnNext(20, 2),
-                OnNext(30, 3),
-                OnNext(40, 4),
-                OnCompleted<int>(selectorCompleteOffset)
-            );
 
             var res = scheduler.Start(() =>
-                source.SelectManyUntilNext(_ => selector)
+                source.SelectManyUntilNext(_ => scheduler.CreateColdObservable(
+                    OnNext(10, 1),
+                    OnNext(20, 2),
+                    OnNext(30, 3),
+                    OnNext(40, 4),
+                    OnCompleted<int>(selectorCompleteOffset)
+                ))
             );
             
             source.Subscriptions.AssertEqual(
@@ -45,23 +45,23 @@ namespace RaceDirector.Tests.Pipeline.Utils
         }
         
         [Fact]
-        public void SelectorDoesNotTerminateWhenSourceCompletes()
+        public void SelectorKeepsEmittingWhenSourceCompletes()
         {
             var scheduler = new TestScheduler();
             const long sourceStart = Subscribed + 5;
             const long sourceCompleteOffset = 25;
+
             var source = scheduler.CreateHotObservable(
                 OnNext(sourceStart, 0),
                 OnCompleted<int>(sourceStart + sourceCompleteOffset)
             );
-            var selector = scheduler.CreateColdObservable(
-                OnNext(10, 1),
-                OnNext(20, 2),
-                OnNext(30, 3)
-            );
 
             var res = scheduler.Start(() =>
-                source.SelectManyUntilNext(_ => selector)
+                source.SelectManyUntilNext(_ => scheduler.CreateColdObservable(
+                    OnNext(10, 1),
+                    OnNext(20, 2),
+                    OnNext(30, 3)
+                ))
             );
             
             source.Subscriptions.AssertEqual(
