@@ -19,16 +19,16 @@ namespace RaceDirector.Tests.Pipeline.Utils
 
             var source = scheduler.CreateHotObservable(
                 OnNext(sourceStart, 0),
-                OnNext(sourceStart + sourceEmitOffset, 0),
+                OnNext(sourceStart + sourceEmitOffset, 1),
                 OnCompleted<int>(sourceStart + sourceCompleteOffset)
             );
 
             var res = scheduler.Start(() =>
-                source.SelectManyUntilNext(_ => scheduler.CreateColdObservable(
-                    OnNext(10, 1),
-                    OnNext(20, 2),
-                    OnNext(30, 3),
-                    OnNext(40, 4),
+                source.SelectManyUntilNext(i => scheduler.CreateColdObservable(
+                    OnNext(10, 10*i+1),
+                    OnNext(20, 10*i+2),
+                    OnNext(30, 10*i+3),
+                    OnNext(40, 10*i+4),
                     OnCompleted<int>(selectorCompleteOffset)
                 ))
             );
@@ -41,7 +41,15 @@ namespace RaceDirector.Tests.Pipeline.Utils
                 Subscribe(sourceStart + sourceEmitOffset, sourceStart + sourceEmitOffset + selectorCompleteOffset)
             );
             
-            res.ReceivedValues().AssertEqual(1, 2, 1, 2, 3, 4);
+            res.Messages.AssertEqual(
+                OnNext(sourceStart + 10, 1),
+                OnNext(sourceStart + 20, 2),
+                OnNext(sourceStart + sourceEmitOffset + 10, 11),
+                OnNext(sourceStart + sourceEmitOffset + 20, 12),
+                OnNext(sourceStart + sourceEmitOffset + 30, 13),
+                OnNext(sourceStart + sourceEmitOffset + 40, 14),
+                OnCompleted<int>(sourceStart + sourceCompleteOffset)
+            );
         }
         
         [Fact]
@@ -50,6 +58,7 @@ namespace RaceDirector.Tests.Pipeline.Utils
             var scheduler = new TestScheduler();
             const long sourceStart = Subscribed + 5;
             const long sourceCompleteOffset = 25;
+            const long selectorCompleteOffset = 50;
 
             var source = scheduler.CreateHotObservable(
                 OnNext(sourceStart, 0),
@@ -60,7 +69,8 @@ namespace RaceDirector.Tests.Pipeline.Utils
                 source.SelectManyUntilNext(_ => scheduler.CreateColdObservable(
                     OnNext(10, 1),
                     OnNext(20, 2),
-                    OnNext(30, 3)
+                    OnNext(30, 3),
+                    OnCompleted<int>(selectorCompleteOffset)
                 ))
             );
             
@@ -71,7 +81,12 @@ namespace RaceDirector.Tests.Pipeline.Utils
                 Subscribe(sourceStart, sourceStart + sourceCompleteOffset)
             );
             
-            res.ReceivedValues().AssertEqual(1, 2, 3);
+            res.Messages.AssertEqual(
+                OnNext(sourceStart + 10, 1),
+                OnNext(sourceStart + 20, 2),
+                OnNext(sourceStart + 30, 3),
+                OnCompleted<int>(sourceStart + selectorCompleteOffset)
+            );
         }
     }
 }
