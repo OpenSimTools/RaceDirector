@@ -18,10 +18,10 @@ namespace HUD.Tests.Pipeline
     [UnitTest]
     public class R3EDashTransformerTest
     {
-        private IAutoFaker faker = AutoFaker.Create();
+        private IAutoFaker _faker = AutoFaker.Create();
 
         // Note: these cannot be created concurrently, so cannot be static.
-        private Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
+        private Bogus.Faker<GameTelemetry> _gtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -29,7 +29,7 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private Bogus.Faker<Vehicle> vehicleFaker = new AutoFaker<Vehicle>()
+        private Bogus.Faker<Vehicle> _vehicleFaker = new AutoFaker<Vehicle>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -37,11 +37,11 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private Bogus.Faker<Tire> tireFaker = new AutoFaker<Tire>()
+        private Bogus.Faker<Tire> _tireFaker = new AutoFaker<Tire>()
             .Configure(b => b.WithBinder<MoqBinder>());
 
         // Have to create one par test: concurrent access seems to confuse AutoBogus.
-        private GameTelemetry NewGt() => gtFaker.Generate();
+        private GameTelemetry NewGt() => _gtFaker.Generate();
 
         [Fact]
         public void VersionInformation()
@@ -259,7 +259,7 @@ namespace HUD.Tests.Pipeline
                         CurrentLapTime = new LapTime(
                             TimeSpan.FromSeconds(1.2),
                             new Sectors(
-                                new TimeSpan[0],
+                                Array.Empty<TimeSpan>(),
                                 new[] {
                                     TimeSpan.FromSeconds(3.4),
                                     TimeSpan.FromSeconds(5.6),
@@ -422,7 +422,7 @@ namespace HUD.Tests.Pipeline
                         BestLapTime = new LapTime(
                             TimeSpan.FromSeconds(1.2),
                             new Sectors(
-                                new TimeSpan[0],
+                                Array.Empty<TimeSpan>(),
                                 new[] {
                                     TimeSpan.FromSeconds(3.4),
                                     TimeSpan.FromSeconds(5.6),
@@ -540,7 +540,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt()
                     .WithFocusedVehicle(v => v with
                     {
-                        Penalties = new Penalty[]
+                        Penalties = new[]
                         {
                             new Penalty(penaltyType, PenaltyReason.Unknown)
                         }
@@ -690,7 +690,7 @@ namespace HUD.Tests.Pipeline
                             TimeSpan.FromSeconds(3.4),
                             TimeSpan.FromSeconds(5.6)
                         },
-                        new TimeSpan[0]
+                        Array.Empty<TimeSpan>()
                     )
                 })
             );
@@ -951,7 +951,7 @@ namespace HUD.Tests.Pipeline
                             TimeSpan.FromSeconds(3.4),
                             TimeSpan.FromSeconds(5.6)
                         },
-                        new TimeSpan[0]
+                        Array.Empty<TimeSpan>()
                     )
                 })
             );
@@ -1060,7 +1060,7 @@ namespace HUD.Tests.Pipeline
                     {
                         new []
                         {
-                            tireFaker.Generate() with {
+                            _tireFaker.Generate() with {
                                 Dirt = 1.1,
                                 Grip = 1.2,
                                 Wear = 1.3,
@@ -1113,16 +1113,14 @@ namespace HUD.Tests.Pipeline
             bool frontRightPresent, bool rearLeftPresent, bool rearRightPresent)
         {
             var grip = 2.2;
-            Func<int, Tire[]> tiresWithGrip = (int n) => Enumerable.Range(0, n).Select(_ =>
-                tireFaker.Generate() with { Grip = grip }
-            ).ToArray();
+            Tire[] TiresWithGrip(int n) => Enumerable.Range(0, n).Select(_ => _tireFaker.Generate() with { Grip = grip }).ToArray();
 
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
                     Tires = new[] {
-                        tiresWithGrip(tiresFront),
-                        tiresWithGrip(tiresRear)
+                        TiresWithGrip(tiresFront),
+                        TiresWithGrip(tiresRear)
                     }
                 })
             );
@@ -1143,29 +1141,20 @@ namespace HUD.Tests.Pipeline
             bool centerPresent, bool rightPresent)
         {
             var temp = 2.2;
-            Func<int, Tire> tireWithCurrentTemperatures = (int n) =>
+
+            Tire TireWithCurrentTemperatures(int n)
             {
-                var t = tireFaker.Generate();
-                var currentTemperatures = Enumerable.Range(0, n).Select(_ =>
-                    ITemperature.FromC(temp)
-                ).ToArray();
-                return t with
-                {
-                    Temperatures = t.Temperatures with
-                    {
-                        CurrentTemperatures = new[] {
-                            currentTemperatures
-                        }
-                    }
-                };
-            };
+                var t = _tireFaker.Generate();
+                var currentTemperatures = Enumerable.Range(0, n).Select(_ => ITemperature.FromC(temp)).ToArray();
+                return t with { Temperatures = t.Temperatures with { CurrentTemperatures = new[] { currentTemperatures } } };
+            }
 
             var result = ToR3EDash(NewGt()
                 .WithPlayer(p => p with
                 {
                     Tires = new[] {
                         new [] {
-                            tireWithCurrentTemperatures(temperatures)
+                            TireWithCurrentTemperatures(temperatures)
                         }
                     }
                 })
@@ -1489,7 +1478,7 @@ namespace HUD.Tests.Pipeline
         {
             var result = ToR3EDash(NewGt() with {
                 Vehicles = new[] {
-                    vehicleFaker.Generate() with
+                    _vehicleFaker.Generate() with
                     {
                         Id = 2,
                         ClassPerformanceIndex = 3,
@@ -1527,7 +1516,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt() with
             {
                 Vehicles = new[] {
-                    vehicleFaker.Generate() with
+                    _vehicleFaker.Generate() with
                     {
                         BestLapTime = null
                     }
@@ -1547,7 +1536,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt() with
             {
                 Vehicles = new[] {
-                    vehicleFaker.Generate() with
+                    _vehicleFaker.Generate() with
                     {
                         BestLapTime = new LapTime(
                             Overall: TimeSpan.FromSeconds(0), // <==
@@ -1578,7 +1567,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt() with
             {
                 Vehicles = new[] {
-                    vehicleFaker.Generate() with
+                    _vehicleFaker.Generate() with
                     {
                         GapAhead = null,
                         GapBehind = null
@@ -1598,7 +1587,7 @@ namespace HUD.Tests.Pipeline
             var result = ToR3EDash(NewGt() with
             {
                 Vehicles = new[] {
-                    vehicleFaker.Generate() with
+                    _vehicleFaker.Generate() with
                     {
                         GapAhead = TimeSpan.FromSeconds(0.05),
                         GapBehind = TimeSpan.FromSeconds(0.06)
@@ -1693,7 +1682,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__FocusedVehicle_Pit_MandatoryStopsDone()
         {
-            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
             var result = ToR3EDash(NewGt()
                 .WithSession(s => s with
                 {
@@ -1723,7 +1712,7 @@ namespace HUD.Tests.Pipeline
         public void Out_PitWindowStatus__Session_Requirements_PitWindow__Laps(
             uint start, uint finish, uint completedLaps, int pitWindowStatus)
         {
-            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
             var result = ToR3EDash(NewGt()
                     .WithSession(s => s with
                     {
@@ -1758,7 +1747,7 @@ namespace HUD.Tests.Pipeline
         public void Out_PitWindowStatus__Session_Requirements_PitWindow__Time(
             uint start, uint finish, uint elapsedTime, int pitWindowStatus)
         {
-            var mandatoryPitStopsDone = faker.Generate<UInt16>();
+            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
             var result = ToR3EDash(NewGt()
                     .WithSession(s => s with
                     {
@@ -1834,9 +1823,9 @@ namespace HUD.Tests.Pipeline
                 })
                 .WithFocusedVehicleFlags(f => f with
                 {
-                    Green = new GreenFlag(IVehicleFlags.GreenReason.Unknown),
-                    Blue = new BlueFlag(IVehicleFlags.BlueReason.Unknown),
-                    White = new WhiteFlag(IVehicleFlags.WhiteReason.Unknown),
+                    Green = new GreenFlag(GreenReason.Unknown),
+                    Blue = new BlueFlag(BlueReason.Unknown),
+                    White = new WhiteFlag(WhiteReason.Unknown),
                     Checkered = new Flag(),
                     Black = new Flag()
                 }));
@@ -1856,7 +1845,7 @@ namespace HUD.Tests.Pipeline
                 .WithSession(s => s with { Phase = SessionPhase.Started })
                 .WithFocusedVehicleFlags(f => f with
                 {
-                    Yellow = new YellowFlag(IVehicleFlags.YellowReason.Unknown)
+                    Yellow = new YellowFlag(YellowReason.Unknown)
                 }));
 
             Assert.Equal(1, result.Path("Flags", "Yellow").GetInt32());
