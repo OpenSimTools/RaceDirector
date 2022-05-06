@@ -12,10 +12,10 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 {
     public static class R3EDashTransformer
     {
-        public static readonly uint MajorVersion = 2;
-        public static readonly uint MinorVersion = 11;
+        private static readonly uint MajorVersion = 2;
+        private static readonly uint MinorVersion = 11;
 
-        public static readonly int DecimalDigits = 3;
+        private static readonly int DecimalDigits = 3;
 
         private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
 
@@ -149,16 +149,16 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteNumber("SessionLengthFormat", gt.Session?.Length switch
                 {
-                    RaceDuration.TimeDuration => 0,
-                    RaceDuration.LapsDuration => 1,
-                    RaceDuration.TimePlusLapsDuration => 2,
+                    TimeDuration => 0,
+                    LapsDuration => 1,
+                    TimePlusLapsDuration => 2,
                     _ => -1
                 });
                 w.WriteRoundedNumber("SessionPitSpeedLimit", gt.Session?.PitSpeedLimit.MPS ?? -1.0);
                 w.WriteNumber("SessionPhase", gt.Session?.Phase switch
                 {
                     SessionPhase.Garage => 1,
-                    SessionPhase.Gridwalk => 2,
+                    SessionPhase.GridWalk => 2,
                     SessionPhase.Formation => 3,
                     SessionPhase.Countdown => 4,
                     SessionPhase.Started => 5,
@@ -400,7 +400,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                 w.WriteCoordinates("CarCgLocation", gt.FocusedVehicle?.Location, d => d.M);
 
-                w.WriteOrientationPYR("CarOrientation", gt.FocusedVehicle?.Orientation, a => a.Rad);
+                w.WriteOrientationPyr("CarOrientation", gt.FocusedVehicle?.Orientation, a => a.Rad);
 
                 // LocalAcceleration.X
                 // LocalAcceleration.Y
@@ -661,17 +661,17 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         private static Interval<int> PitWindowBoundaries(IGameTelemetry gt) =>
             (gt.Session?.Requirements.PitWindow) switch
             {
-                Interval<IPitWindowBoundary>(LapsDuration start, LapsDuration finish)
+                (LapsDuration start, LapsDuration finish)
                         when gt.FocusedVehicle?.CompletedLaps.CompareTo(finish.Laps) < 0 =>
                     new Interval<int>(Convert.ToInt32(start.Laps), Convert.ToInt32(finish.Laps)),
-                Interval<IPitWindowBoundary>(TimeDuration start, TimeDuration finish)
+                (TimeDuration start, TimeDuration finish)
                         when gt.Session.ElapsedTime < finish.Time =>
                     new Interval<int>(Convert.ToInt32(start.Time.TotalMinutes), Convert.ToInt32(finish.Time.TotalMinutes)),
                 _ =>
                     new Interval<int>(-1, -1)
             };
 
-        public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, double value)
+        private static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, double value)
         {
             writer.WriteNumber(propertyName, value, DecimalDigits);
         }
@@ -697,7 +697,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void WriteOrientationPYR(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, double> f)
+        private static void WriteOrientationPyr(this Utf8JsonWriter writer, string propertyName, Orientation? v, Func<IAngle, double> f)
         {
             writer.WriteObject(propertyName, _ =>
             {
@@ -707,17 +707,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             });
         }
 
-        private static void WriteOrientationXYZ(this Utf8JsonWriter writer, String propertyName, Orientation? v, Func<IAngle, double> f)
-        {
-            writer.WriteObject(propertyName, _ =>
-            {
-                writer.WriteRoundedNumber("X", v is not null ? f(v.Pitch) : 0.0);
-                writer.WriteRoundedNumber("Y", v is not null ? f(v.Yaw) : 0.0);
-                writer.WriteRoundedNumber("Z", v is not null ? f(v.Roll) : 0.0);
-            });
-        }
-
-        private static void ForEachTire(ITire[][]? tires, Action<String, ITire?> action)
+        private static void ForEachTire(ITire[][]? tires, Action<string, ITire?> action)
         {
             action("FrontLeft", tires?.GetValueOrNull(0, 0));
             action("FrontRight", tires?.GetValueOrNull(0, 1));
@@ -729,7 +719,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
 
 
-        private static byte[] NullTerminated(String? value) => Encoding.UTF8.GetBytes($"{value ?? ""}\0");
+        private static byte[] NullTerminated(string? value) => Encoding.UTF8.GetBytes($"{value ?? ""}\0");
 
         private static uint ToUInt32(double? value)
         {
@@ -756,7 +746,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static int MatchAsInt32<T>(T? value, T constant)
         {
-            return ToInt32(value, v => ToInt32(v.Equals(constant)));
+            return ToInt32(value, v => ToInt32(v?.Equals(constant)));
         }
 
         private static int ToInt32(IStartLights? startLights)
@@ -852,13 +842,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             if (player is null)
                 return -1;
-            int pitAction = 0;
-            foreach (var (playerPitstopFlag, pitActionFlag) in pitActionMapping)
-                if (player.PitStopStatus.HasFlag(playerPitstopFlag)) pitAction += pitActionFlag;
+            var pitAction = 0;
+            foreach (var (playerPitStopFlag, pitActionFlag) in PitActionMapping)
+                if (player.PitStopStatus.HasFlag(playerPitStopFlag)) pitAction += pitActionFlag;
             return pitAction;
         }
 
-        private static readonly (PlayerPitStop, int)[] pitActionMapping = {
+        private static readonly (PlayerPitStop, int)[] PitActionMapping = {
                 (PlayerPitStop.Preparing,        1 << 0),
                 (PlayerPitStop.ServingPenalty,   1 << 1),
                 (PlayerPitStop.DriverChange,     1 << 2),

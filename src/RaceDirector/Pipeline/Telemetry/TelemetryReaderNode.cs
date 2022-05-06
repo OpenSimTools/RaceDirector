@@ -35,7 +35,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         private Func<string?, ISourceBlock<V0.IGameTelemetry>?> TelemetrySourceSelector(IEnumerable<ITelemetrySourceFactory> telemetrySourceFactories)
         {
-            return (string? gameName) =>
+            return gameName =>
                 telemetrySourceFactories
                     .Where(tsf => tsf.GameName.Equals(gameName))
                     .Select(tsf => tsf.CreateTelemetrySource())

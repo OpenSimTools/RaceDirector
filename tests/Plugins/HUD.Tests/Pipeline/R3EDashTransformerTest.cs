@@ -1199,7 +1199,7 @@ namespace HUD.Tests.Pipeline
 
         [Theory]
         [InlineData(SessionPhase.Garage, -1)]
-        [InlineData(SessionPhase.Gridwalk, -1)]
+        [InlineData(SessionPhase.GridWalk, -1)]
         [InlineData(SessionPhase.Formation, -1)]
         [InlineData(SessionPhase.Countdown, -1)]
         [InlineData(SessionPhase.Started, 3)]
@@ -1344,7 +1344,7 @@ namespace HUD.Tests.Pipeline
 
         [Theory]
         [InlineData(SessionPhase.Garage, 1)]
-        [InlineData(SessionPhase.Gridwalk, 2)]
+        [InlineData(SessionPhase.GridWalk, 2)]
         [InlineData(SessionPhase.Formation, 3)]
         [InlineData(SessionPhase.Countdown, 4)]
         [InlineData(SessionPhase.Started, 5)]
@@ -1467,7 +1467,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionType.Qualify, 1)]
         [InlineData(SessionType.Warmup, 3)]
         [InlineData(SessionType.Race, 2)]
-        [InlineData(SessionType.Hotlap, -1)]
+        [InlineData(SessionType.HotLap, -1)]
         [InlineData(SessionType.TimeAttack, -1)]
         [InlineData(SessionType.Drift, -1)]
         [InlineData(SessionType.Drag, -1)]
@@ -1788,7 +1788,7 @@ namespace HUD.Tests.Pipeline
 
         [Theory]
         [InlineData(SessionPhase.Garage, -1, -1, 0, -1, 0, -1, -1)]
-        [InlineData(SessionPhase.Gridwalk, -1, -1, 0, -1, 0, -1, -1)]
+        [InlineData(SessionPhase.GridWalk, -1, -1, 0, -1, 0, -1, -1)]
         [InlineData(SessionPhase.Formation, -1, -1, 0, -1, 0, -1, -1)]
         [InlineData(SessionPhase.Countdown, -1, -1, 0, -1, 0, -1, -1)]
         [InlineData(SessionPhase.Started, 0, 0, 0, 0, 0, 0, 0)]

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace RaceDirector.Pipeline.GameMonitor
@@ -9,7 +8,7 @@ namespace RaceDirector.Pipeline.GameMonitor
         private readonly IEnumerable<T> _options;
         private T? _current;
 
-        static private readonly IEnumerable<T> NoOutput = Enumerable.Empty<T>();
+        private static readonly IEnumerable<T> NoOutput = Enumerable.Empty<T>();
 
         public KeepOne(IEnumerable<T> options)
         {

@@ -10,7 +10,7 @@ namespace RaceDirector.Tests.Pipeline
     [IntegrationTest]
     public class PipelineBuilderTest
     {
-        protected static TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
+        private static TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
 
         [Fact]
         public void LinksSourceToTargetsOfAssignableType()
@@ -55,31 +55,30 @@ namespace RaceDirector.Tests.Pipeline
 
         #region Test setup
 
-        public interface IV0<T> { T P1 { get; } }
-        public interface IV1<T, V> : IV0<T> { V P2 { get; } }
+        public interface IV0<T1> { T1 P1 { get; } }
+        public interface IV1<T1, T2> : IV0<T1> { T2 P2 { get; } }
 
-        public record V1<T, V>(T P1, V P2) : IV1<T, V>;
+        public record V1<T1, T2>(T1 P1, T2 P2) : IV1<T1, T2>;
 
-        public class OneSourceNode<O1> : INode
+        public class OneSourceNode<TO1> : INode
         {
-            public ISourceBlock<O1> S1 => _s1;
-            private BufferBlock<O1> _s1 = new BufferBlock<O1>();
-            public void Post1(O1 o1) => _s1.Post(o1);
+            public ISourceBlock<TO1> S1 => _s1;
+            private BufferBlock<TO1> _s1 = new();
+            public void Post1(TO1 o1) => _s1.Post(o1);
         }
 
-        public class OneTargetNode<I1> : INode
+        public class OneTargetNode<TI1> : INode
         {
-            public ITargetBlock<I1> T1 => _t1;
-            private BufferBlock<I1> _t1 = new BufferBlock<I1>();
-            public I1 EventuallyReceive1() => _t1.Receive(Timeout);
+            public ITargetBlock<TI1> T1 => _t1;
+            private BufferBlock<TI1> _t1 = new();
+            public TI1 EventuallyReceive1() => _t1.Receive(Timeout);
         }
 
-        public class TwoTargetsNode<T, V> : OneTargetNode<T>
+        public class TwoTargetsNode<TI1, TI2> : OneTargetNode<TI1>
         {
-            public ITargetBlock<V> T2 => _t2;
-            private BufferBlock<V> _t2 = new BufferBlock<V>();
-            public V Receive2() => _t2.Receive(Timeout);
-            public V? TryReceive2()
+            public ITargetBlock<TI2> T2 => _t2;
+            private BufferBlock<TI2> _t2 = new();
+            public TI2? TryReceive2()
             {
                 try
                 {
@@ -87,18 +86,18 @@ namespace RaceDirector.Tests.Pipeline
                 }
                 catch
                 {
-                    return default(V);
+                    return default;
                 };
             }
         }
 
-        public class TransformationNode<I, O> : INode
+        public class TransformationNode<TI, TO> : INode
         {
-            public TransformBlock<I, O> SourceAndTarget { get; private set; }
+            public TransformBlock<TI, TO> SourceAndTarget { get; private set; }
             
-            public TransformationNode(Func<I, O> f)
+            public TransformationNode(Func<TI, TO> f)
             {
-                SourceAndTarget = new TransformBlock<I, O>(f);
+                SourceAndTarget = new TransformBlock<TI, TO>(f);
             }
         }
 

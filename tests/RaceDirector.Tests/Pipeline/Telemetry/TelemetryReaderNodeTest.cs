@@ -41,13 +41,11 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
             Assert.Equal(Telemetry[2], trn.GameTelemetrySource.Receive(Timeout));
         }
 
-        private record TestTelemetrySourceFactory(string gameName, params IGameTelemetry[] elements) : ITelemetrySourceFactory
+        private record TestTelemetrySourceFactory(string GameName, params IGameTelemetry[] Elements) : ITelemetrySourceFactory
         {
-            public string GameName => gameName;
-
             public ISourceBlock<IGameTelemetry> CreateTelemetrySource()
             {
-                return StaticSourceBlock(elements);
+                return StaticSourceBlock(Elements);
             }
         }
 

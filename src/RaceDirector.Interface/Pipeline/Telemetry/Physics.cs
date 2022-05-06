@@ -6,8 +6,8 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
     public interface IDistance
     {
-        private static double s_KmToMRatio = 1000d;
-        private static double s_MiToMRatio = 1609.344d;
+        private static readonly double KmToMRatio = 1000d;
+        private static readonly double MiToMRatio = 1609.344d;
 
         /// <summary>
         /// Distance in m
@@ -32,17 +32,17 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
         public static IDistance operator /(IDistance distance, double factor) => distance.Div(factor);
         public static double operator /(IDistance distance, IDistance other) => distance.Div(other);
 
-        public static IDistance FromM(double M) => new DistanceM(M);
-        public static IDistance FromKm(double Km) => new DistanceKm(Km);
-        public static IDistance FromMi(double Mi) => new DistanceMi(Mi);
+        public static IDistance FromM(double m) => new DistanceM(m);
+        public static IDistance FromKm(double km) => new DistanceKm(km);
+        public static IDistance FromMi(double mi) => new DistanceMi(mi);
 
         private record DistanceM(double M) : IDistance
         {
-            private static double s_MToKmRatio = 1d / s_KmToMRatio;
-            private static double s_MToMiRatio = 1d / s_MiToMRatio;
+            private static readonly double MToKmRatio = 1d / KmToMRatio;
+            private static readonly double MToMiRatio = 1d / MiToMRatio;
 
-            public double Km => M * s_MToKmRatio;
-            public double Mi => M * s_MToMiRatio;
+            public double Km => M * MToKmRatio;
+            public double Mi => M * MToMiRatio;
 
             public IDistance Mul(double factor) => new DistanceM(M * factor);
             public IDistance Div(double factor) => new DistanceM(M / factor);
@@ -51,10 +51,10 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
         private record DistanceKm(double Km) : IDistance
         {
-            private static double s_KmToMiRatio = s_KmToMRatio / s_MiToMRatio;
+            private static readonly double KmToMiRatio = KmToMRatio / MiToMRatio;
 
-            public double M => Km * s_KmToMRatio;
-            public double Mi => Km * s_KmToMiRatio;
+            public double M => Km * KmToMRatio;
+            public double Mi => Km * KmToMiRatio;
 
             public IDistance Mul(double factor) => new DistanceKm(Km * factor);
             public IDistance Div(double factor) => new DistanceKm(Km / factor);
@@ -63,10 +63,10 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
         private record DistanceMi(double Mi) : IDistance
         {
-            private static double s_MiToKmRatio = s_MiToMRatio / s_KmToMRatio;
+            private static readonly double MiToKmRatio = MiToMRatio / KmToMRatio;
 
-            public double M => Mi * s_MiToMRatio;
-            public double Km => Mi * s_MiToKmRatio;
+            public double M => Mi * MiToMRatio;
+            public double Km => Mi * MiToKmRatio;
 
             public IDistance Mul(double factor) => new DistanceMi(Mi * factor);
             public IDistance Div(double factor) => new DistanceMi(Mi / factor);
@@ -80,16 +80,16 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
         double KmPH { get; }
         double MiPH { get; }
 
-        static ISpeed FromMPS(double MPS) => new Speed(IDistance.FromM(MPS), TimeSpan.FromSeconds(1));
-        static ISpeed FromKmPH(double KmPH) => new Speed(IDistance.FromKm(KmPH), TimeSpan.FromHours(1));
-        static ISpeed FromMiPH(double MiPH) => new Speed(IDistance.FromMi(MiPH), TimeSpan.FromHours(1));
+        static ISpeed FromMPS(double mps) => new Speed(IDistance.FromM(mps), TimeSpan.FromSeconds(1));
+        static ISpeed FromKmPH(double kmPh) => new Speed(IDistance.FromKm(kmPh), TimeSpan.FromHours(1));
+        static ISpeed FromMiPH(double miPh) => new Speed(IDistance.FromMi(miPh), TimeSpan.FromHours(1));
 
         private class Speed : ISpeed
         {
-            public Speed(IDistance Distance, TimeSpan Time)
+            public Speed(IDistance distance, TimeSpan time)
             {
-                this.Distance = Distance;
-                this.Time = Time;
+                Distance = distance;
+                Time = time;
             }
 
             private readonly IDistance Distance;
@@ -103,47 +103,47 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
     public interface IAcceleration
     {
-        private static double s_GToMPS2 = 9.80665d;
-        private static double s_ApproxGToMPS2 = 9.81d;
+        private static readonly double GToMPS2 = 9.80665d;
+        private static readonly double ApproxGToMPS2 = 9.81d;
 
         double MPS2 { get; }
         double G { get; }
         double ApproxG { get; }
 
-        static IAcceleration FromMPS2(double MPS2) => new AccelerationMPS2(MPS2);
-        static IAcceleration FromG(double G) => new AccelerationG(G);
-        static IAcceleration FromApproxG(double G) => new AccelerationApproxG(G);
+        static IAcceleration FromMPS2(double value) => new AccelerationMPS2(value);
+        static IAcceleration FromG(double value) => new AccelerationG(value);
+        static IAcceleration FromApproxG(double value) => new AccelerationApproxG(value);
 
         private record AccelerationMPS2(double MPS2) : IAcceleration
         {
-            private static double s_MPS2ToG = 1d / s_GToMPS2;
-            private static double s_MPS2ToApproxG = 1d / s_ApproxGToMPS2;
+            private static readonly double MPS2ToG = 1d / GToMPS2;
+            private static readonly double MPS2ToApproxG = 1d / ApproxGToMPS2;
 
-            public double G => MPS2 * s_MPS2ToG;
-            public double ApproxG => MPS2 * s_MPS2ToApproxG;
+            public double G => MPS2 * MPS2ToG;
+            public double ApproxG => MPS2 * MPS2ToApproxG;
         }
 
         private record AccelerationG(double G) : IAcceleration
         {
-            private static double s_GToApproxG = s_ApproxGToMPS2 / s_GToMPS2;
+            private static readonly double GToApproxG = ApproxGToMPS2 / GToMPS2;
 
-            public double MPS2 => G * s_GToMPS2;
-            public double ApproxG => G * s_GToApproxG;
+            public double MPS2 => G * GToMPS2;
+            public double ApproxG => G * GToApproxG;
         }
 
         private record AccelerationApproxG(double ApproxG) : IAcceleration
         {
-            private static double s_ApproxGToG = s_GToMPS2 / s_ApproxGToMPS2;
+            private static readonly double ApproxGToG = GToMPS2 / ApproxGToMPS2;
 
-            public double MPS2 => G * s_GToMPS2;
-            public double G => ApproxG * s_ApproxGToG;
+            public double MPS2 => G * GToMPS2;
+            public double G => ApproxG * ApproxGToG;
         }
     }
 
     public interface IAngle
     {
-        private static double s_RevToRadRatio = 2d * Math.PI;
-        private static double s_RevToDegRatio = 360d;
+        private static readonly double RevToRadRatio = 2d * Math.PI;
+        private static readonly double RevToDegRatio = 360d;
 
         /// <summary>
         /// Angle in degrees.
@@ -160,32 +160,32 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
         /// </summary>
         double Rev { get; }
 
-        static IAngle FromDeg(double Deg) => new AngleDegrees(Deg);
-        static IAngle FromRad(double Rad) => new AngleRadians(Rad);
-        static IAngle FromRev(double Rev) => new AngleRevolutions(Rev);
+        static IAngle FromDeg(double value) => new AngleDegrees(value);
+        static IAngle FromRad(double value) => new AngleRadians(value);
+        static IAngle FromRev(double value) => new AngleRevolutions(value);
 
         private record AngleRadians(double Rad) : IAngle
         {
-            private static double s_DegRatio = s_RevToDegRatio / s_RevToRadRatio;
-            private static double s_RevRatio = 1d / s_RevToRadRatio;
+            private static readonly double DegRatio = RevToDegRatio / RevToRadRatio;
+            private static readonly double RevRatio = 1d / RevToRadRatio;
 
-            public double Deg => Rad * s_DegRatio;
-            public double Rev => Rad * s_RevRatio;
+            public double Deg => Rad * DegRatio;
+            public double Rev => Rad * RevRatio;
         }
 
         private record AngleDegrees(double Deg) : IAngle
         {
-            private static double s_RadRatio = s_RevToRadRatio / s_RevToDegRatio;
-            private static double s_RevRatio = 1d / s_RevToDegRatio;
+            private static readonly double RadRatio = RevToRadRatio / RevToDegRatio;
+            private static readonly double RevRatio = 1d / RevToDegRatio;
 
-            public double Rad => Deg * s_RadRatio;
-            public double Rev => Deg * s_RevRatio;
+            public double Rad => Deg * RadRatio;
+            public double Rev => Deg * RevRatio;
         }
 
         private record AngleRevolutions(double Rev) : IAngle
         {
-            public double Deg => Rev * s_RevToDegRatio;
-            public double Rad => Rev * s_RevToRadRatio;
+            public double Deg => Rev * RevToDegRatio;
+            public double Rad => Rev * RevToRadRatio;
         }
     }
 
@@ -194,20 +194,20 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
         double RadPS { get; }
         double RevPS { get; }
 
-        static IAngularSpeed FromRadPS(double RadPS) => new AngularSpeed(IAngle.FromRad(RadPS));
-        static IAngularSpeed FromRevPS(double RevPS) => new AngularSpeed(IAngle.FromRev(RevPS));
+        static IAngularSpeed FromRadPS(double value) => new AngularSpeed(IAngle.FromRad(value));
+        static IAngularSpeed FromRevPS(double value) => new AngularSpeed(IAngle.FromRev(value));
 
         private class AngularSpeed : IAngularSpeed
         {
-            public AngularSpeed(IAngle Angle)
+            public AngularSpeed(IAngle angle)
             {
-                this.Angle = Angle;
+                _angle = angle;
             }
 
-            private readonly IAngle Angle;
+            private readonly IAngle _angle;
 
-            public double RadPS => Angle.Rad;
-            public double RevPS => Angle.Rev;
+            public double RadPS => _angle.Rad;
+            public double RevPS => _angle.Rev;
         }
     }
 
@@ -219,36 +219,36 @@ namespace RaceDirector.Pipeline.Telemetry.Physics
 
     public interface ITemperature
     {
-        private static double s_CToKDiff = 273.15d;
-        private static double s_CToFDiff = 32d;
-        private static double s_KCToFRatio = 9d / 5d;
+        private static readonly double CToKDiff = 273.15d;
+        private static readonly double CToFDiff = 32d;
+        private static readonly double KCToFRatio = 9d / 5d;
 
         double K { get; }
         double C { get; }
         double F { get; }
 
-        static ITemperature FromK(double K) => new TemperatureKelvin(K);
-        static ITemperature FromC(double C) => new TemperatureCelsius(C);
-        static ITemperature FromF(double F) => new TemperatureFahrenheit(F);
+        static ITemperature FromK(double value) => new TemperatureKelvin(value);
+        static ITemperature FromC(double value) => new TemperatureCelsius(value);
+        static ITemperature FromF(double value) => new TemperatureFahrenheit(value);
 
         public record TemperatureKelvin(double K) : ITemperature
         {
-            public double C => K - s_CToKDiff;
-            public double F => C * s_KCToFRatio + s_CToFDiff;
+            public double C => K - CToKDiff;
+            public double F => C * KCToFRatio + CToFDiff;
         }
 
         public record TemperatureCelsius(double C) : ITemperature
         {
-            public double K => C + s_CToKDiff;
-            public double F => C * s_KCToFRatio + s_CToFDiff;
+            public double K => C + CToKDiff;
+            public double F => C * KCToFRatio + CToFDiff;
         }
 
         public record TemperatureFahrenheit(double F) : ITemperature
         {
-            private static double s_FToKCRatio = 1 / s_KCToFRatio;
+            private static readonly double FToKCRatio = 1 / KCToFRatio;
 
-            public double K => C + s_CToKDiff;
-            public double C => (F - s_CToFDiff) * s_FToKCRatio;
+            public double K => C + CToKDiff;
+            public double C => (F - CToFDiff) * FToKCRatio;
         }
     }
 }

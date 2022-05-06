@@ -1,26 +1,28 @@
+using System;
 using Xunit;
 using RaceDirector.Pipeline.GameMonitor;
 using System.Linq;
 using Xunit.Categories;
-using System.Collections.Generic;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
     [UnitTest]
     public class KeepOneTest
     {
-        private static string?[] NoOutput = new string?[0];
-        private static string?[] NullOutput = new string?[] { null };
+        private static readonly string?[] NoOutput = Array.Empty<string?>();
+        private static readonly string?[] NullOutput = { null };
 
         [Fact]
         public void EmitsWhenFirstMatched()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "a" }
                 },
-                expectedOutput: new string?[][] {
-                    new string?[] { "a" }
+                expectedOutput: new[]
+                {
+                    new[] { "a" }
                 }
             );
         }
@@ -29,10 +31,12 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void DoesntEmitIfFirstNotMatched()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "x" },
                 },
-                expectedOutput: new string?[][] {
+                expectedOutput: new[]
+                {
                     NoOutput
                 }
             );
@@ -42,13 +46,15 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void EmitsWhenMatchAfterNoMatch()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "x" },
                     new[] { "a" },
                 },
-                expectedOutput: new string?[][] {
+                expectedOutput: new[]
+                {
                     NoOutput,
-                    new string?[] { "a" }
+                    new[] { "a" }
                 }
             );
         }
@@ -57,11 +63,13 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void EmitsTheFirstWhenMultipleFound()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "x", "b", "a" }
                 },
-                expectedOutput: new string?[][] {
-                    new string?[] { "b" }
+                expectedOutput: new[]
+                {
+                    new[] { "b" }
                 }
             );
         }
@@ -70,12 +78,14 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void EmitsWhenNotMatchingAnymore()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "a" },
                     new[] { "x" }
                 },
-                expectedOutput: new string?[][] {
-                    new string?[] { "a" },
+                expectedOutput: new[]
+                {
+                    new[] { "a" },
                     NullOutput
                 }
             );
@@ -85,15 +95,17 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void DoesntEmitWhenPreviousMatchPresent()
         {
             AssertIOKeepOneAB(
-                input: new[] {
+                input: new[]
+                {
                     new[] { "a" },
                     new[] { "a", "b" },
                     new[] { "b" }
                 },
-                expectedOutput: new string?[][] {
-                    new string?[] { "a" },
+                expectedOutput: new[]
+                {
+                    new[] { "a" },
                     NoOutput,
-                    new string?[] { "b" }
+                    new[] { "b" }
                 }
             );
         }
@@ -106,9 +118,8 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         private void AssertIO(string[] config, string[][] input, string?[][] expectedOutput)
         {
             var kos = new KeepOne<string>(config);
-            var enumerableInput = Enumerable.OfType<IEnumerable<string>>(input);
-            var output = enumerableInput.Select(kos.Call).ToArray();
-            Assert.Equal(expectedOutput, output);
+            var output = input.AsEnumerable().Select(kos.Call).ToArray();
+            Assert.Equal(expectedOutput.AsEnumerable(), output);
         }
     }
 }
