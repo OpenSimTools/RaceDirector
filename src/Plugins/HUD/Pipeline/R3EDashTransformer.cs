@@ -746,7 +746,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static int MatchAsInt32<T>(T? value, T constant)
         {
-            return ToInt32(value, v => ToInt32(v?.Equals(constant)));
+            return ToInt32(value, v => ToInt32(constant.Equals(v)));
         }
 
         private static int ToInt32(IStartLights? startLights)
