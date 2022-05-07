@@ -24,11 +24,11 @@ namespace HUD.Tests.Pipeline
         public void ServesR3ETelemetryEndpoint()
         {
             using var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort));
-            server.Start();
+            Assert.True(server.Start(), "Server did not start");
             using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
             var telemetry = gtFaker.Generate();
 
-            Assert.True(client.ConnectAndWait());
+            Assert.True(client.ConnectAndWait(), "Client could not connect"););
             server.Multicast(telemetry);
             var message = client.nextJson();
             Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);

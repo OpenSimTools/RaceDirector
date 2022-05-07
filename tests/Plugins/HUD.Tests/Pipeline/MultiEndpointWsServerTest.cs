@@ -31,7 +31,7 @@ namespace HUD.Tests.Pipeline
             };
             WithServerClient(endpoints, "/bar", (server, client) =>
             {
-                Assert.True(client.ConnectAndWait());
+                Assert.True(client.ConnectAndWait(), "Client could not connect"););
                 server.Multicast(42);
                 Assert.Equal("42", client.nextString());
             });
