@@ -3,9 +3,11 @@ using RaceDirector.DependencyInjection;
 using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
 using System;
+using System.Runtime.Versioning;
 
 namespace RaceDirector.Plugin
 {
+    [SupportedOSPlatform("windows")]
     public class DefaultPlugin : IPlugin
     {
         public void Init(IServiceCollection services)

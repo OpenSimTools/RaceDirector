@@ -11,12 +11,12 @@ namespace RaceDirector.Pipeline.Games.R3E
         private const uint MaxLights = 5;
 
         // TODO what about passing the previous telemetry to the transform method?
-        private StatefulAid<Aid> statefulAbs = StatefulAid.Generic();
-        private StatefulAid<TractionControl> statefulTc = StatefulAid.Tc();
-        private StatefulAid<Aid> statefulEsp = StatefulAid.Generic();
-        private StatefulAid<Aid> statefulCountersteer = StatefulAid.Generic();
-        private StatefulAid<Aid> statefulCornering = StatefulAid.Generic();
-        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? pitWindowState = null;
+        private readonly StatefulAid<Aid> _statefulAbs = StatefulAid.Generic();
+        private readonly StatefulAid<TractionControl> _statefulTc = StatefulAid.Tc();
+        private readonly StatefulAid<Aid> _statefulEsp = StatefulAid.Generic();
+        private readonly StatefulAid<Aid> _statefulCountersteer = StatefulAid.Generic();
+        private readonly StatefulAid<Aid> _statefulCornering = StatefulAid.Generic();
+        private Interval<Pipeline.Telemetry.V0.IPitWindowBoundary>? _pitWindowState;
 
         internal GameTelemetry Transform(Contrib.Data.Shared sharedData)
         {
@@ -110,7 +110,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             sharedData.SessionPhase switch
             {
                 Contrib.Constant.SessionPhase.Garage => Pipeline.Telemetry.V0.SessionPhase.Garage,
-                Contrib.Constant.SessionPhase.Gridwalk => Pipeline.Telemetry.V0.SessionPhase.Gridwalk,
+                Contrib.Constant.SessionPhase.Gridwalk => Pipeline.Telemetry.V0.SessionPhase.GridWalk,
                 Contrib.Constant.SessionPhase.Formation => Pipeline.Telemetry.V0.SessionPhase.Formation,
                 Contrib.Constant.SessionPhase.Countdown => Pipeline.Telemetry.V0.SessionPhase.Countdown,
                 Contrib.Constant.SessionPhase.Green => Pipeline.Telemetry.V0.SessionPhase.Started,
@@ -166,15 +166,15 @@ namespace RaceDirector.Pipeline.Games.R3E
 
             // Keep the  previous pit window if null and unsure
             if (currentPitWindow != null || pitWindowIsCorrect)
-                pitWindowState = currentPitWindow;
+                _pitWindowState = currentPitWindow;
 
             // R3E only supports a single mandatory pit stop
-            var mandatoryPitStops = pitWindowState is null ? 0u : 1u;
+            var mandatoryPitStops = _pitWindowState is null ? 0u : 1u;
 
             return new SessionRequirements(
                 MandatoryPitStops: mandatoryPitStops,
                 MandatoryPitRequirements: 0, // TODO
-                PitWindow: pitWindowState
+                PitWindow: _pitWindowState
             );
         }
 
@@ -483,11 +483,11 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 DrivingAids: new DrivingAids
                 (
-                    Abs: statefulAbs.Update(sharedData.AidSettings.Abs),
-                    Tc: statefulTc.Update(sharedData.AidSettings.Tc),
-                    Esp: statefulEsp.Update(sharedData.AidSettings.Esp),
-                    Countersteer: statefulCountersteer.Update(sharedData.AidSettings.Countersteer),
-                    Cornering: statefulCornering.Update(sharedData.AidSettings.Cornering)
+                    Abs: _statefulAbs.Update(sharedData.AidSettings.Abs),
+                    Tc: _statefulTc.Update(sharedData.AidSettings.Tc),
+                    Esp: _statefulEsp.Update(sharedData.AidSettings.Esp),
+                    Countersteer: _statefulCountersteer.Update(sharedData.AidSettings.Countersteer),
+                    Cornering: _statefulCornering.Update(sharedData.AidSettings.Cornering)
                 ),
                 VehicleSettings: new VehicleSettings
                 (
@@ -552,12 +552,12 @@ namespace RaceDirector.Pipeline.Games.R3E
             var playerPitStop = Pipeline.Telemetry.V0.PlayerPitStop.None;
             if (sharedData.PitState == 1)
                 playerPitStop |= Pipeline.Telemetry.V0.PlayerPitStop.Requested;
-            foreach (var (pitActionFlag, playerPitstopFlag) in pitActionFlags)
+            foreach (var (pitActionFlag, playerPitstopFlag) in PitActionFlags)
                 if ((sharedData.PitAction & pitActionFlag) != 0) playerPitStop |= playerPitstopFlag;
             return playerPitStop;
         }
 
-        private readonly (int, Pipeline.Telemetry.V0.PlayerPitStop)[] pitActionFlags = {
+        private static readonly (int, Pipeline.Telemetry.V0.PlayerPitStop)[] PitActionFlags = {
                 (  1, Pipeline.Telemetry.V0.PlayerPitStop.Preparing),
                 (  2, Pipeline.Telemetry.V0.PlayerPitStop.ServingPenalty),
                 (  4, Pipeline.Telemetry.V0.PlayerPitStop.DriverChange),
@@ -570,8 +570,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 (512, Pipeline.Telemetry.V0.PlayerPitStop.RepairSuspension)
             };
 
-        private Orientation Orientation<I>(Contrib.Data.Orientation<I> value, Func<I, IAngle> f) =>
-            new Orientation(Yaw: f(value.Yaw), Pitch: f(value.Pitch), Roll: f(value.Roll));
+        private static Orientation Orientation<T>(Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>
+            new(Yaw: f(value.Yaw), Pitch: f(value.Pitch), Roll: f(value.Roll));
 
         private ActivationToggled? ActivationToggled(Contrib.Data.DRS drs, Contrib.Data.Shared sharedData)
         {
@@ -608,13 +608,13 @@ namespace RaceDirector.Pipeline.Games.R3E
 
         private Tire[][] Tires(Contrib.Data.Shared sharedData)
         {
-            return new Tire[][]
+            return new[]
             {
-                new Tire[] {
+                new[] {
                     Tire(sharedData, new ITireExtractor.FrontLeft()),
                     Tire(sharedData, new ITireExtractor.FrontRight())
                 },
-                new Tire[] {
+                new[] {
                     Tire(sharedData, new ITireExtractor.RearLeft()),
                     Tire(sharedData, new ITireExtractor.RearRight())
                 }
@@ -631,7 +631,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Wear: extract.CurrentTire(sharedData.TireWear),
                 Temperatures: new TemperaturesMatrix
                 (
-                    CurrentTemperatures: new ITemperature[][] { new ITemperature[] {
+                    CurrentTemperatures: new[]
+                    { new[] {
                         ITemperature.FromC(tireTemps.CurrentTemp.Left),
                         ITemperature.FromC(tireTemps.CurrentTemp.Center),
                         ITemperature.FromC(tireTemps.CurrentTemp.Right)
@@ -675,7 +676,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             }
         }
 
-        private IBoundedValue<uint>? BlueFlagWarnings(int blackAndWhite)
+        private IBoundedValue<uint> BlueFlagWarnings(int blackAndWhite)
         {
             uint blueWarnings = blackAndWhite switch {
                 1 => 1,
@@ -695,14 +696,14 @@ namespace RaceDirector.Pipeline.Games.R3E
             return Encoding.UTF8.GetString(nullTerminated, 0, nullIndex);
         }
 
-        private Vector3<O> Vector3<I, O>(Contrib.Data.Vector3<I> value, Func<I, O> f) =>
-            new Vector3<O>(X: f(value.X), Y: f(value.Y), Z: f(value.Z));
+        private Vector3<TO> Vector3<TI, TO>(Contrib.Data.Vector3<TI> value, Func<TI, TO> f) =>
+            new Vector3<TO>(X: f(value.X), Y: f(value.Y), Z: f(value.Z));
 
-        private O[] ValuesPerSector<I, O>(Contrib.Data.Sectors<I> value, Func<I, O> f) =>
-            new O[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
+        private TO[] ValuesPerSector<TI, TO>(Contrib.Data.Sectors<TI> value, Func<TI, TO> f) =>
+            new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
-        private O[] ValuesPerSector<I, O>(Contrib.Data.SectorStarts<I> value, Func<I, O> f) =>
-            new O[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
+        private TO[] ValuesPerSector<TI, TO>(Contrib.Data.SectorStarts<TI> value, Func<TI, TO> f) =>
+            new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
 
         private uint SafeUInt32(int i, uint defaultValue = 0)
         {
@@ -727,7 +728,7 @@ namespace RaceDirector.Pipeline.Games.R3E
     /// </summary>
     public class StatefulAid<T> where T : Aid
     {
-        private T? current = null;
+        private T? _current;
         private Func<uint, T> constructor;
 
         public StatefulAid(Func<uint, T> constructor)
@@ -740,17 +741,17 @@ namespace RaceDirector.Pipeline.Games.R3E
             switch (newLevel)
             {
                 case < 0:
-                    current = null;
+                    _current = null;
                     break;
                 case 5:
-                    if (current != null)
-                        current = current with { Active = true };
+                    if (_current != null)
+                        _current = _current with { Active = true };
                     break;
                 default:
-                    current = constructor((uint)newLevel);
+                    _current = constructor((uint)newLevel);
                     break;
             }
-            return current;
+            return _current;
         }
     }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using RaceDirector.Pipeline.Telemetry.Physics;
-using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
@@ -161,7 +160,7 @@ namespace RaceDirector.Pipeline.Telemetry
             Qualify,          // R3E, ACC, AC, AMS2
             Warmup,           // R3E, RF2 (rF2GamePhase)
             Race,             // R3E, ACC, AC, AMS2
-            Hotlap,           // ACC, AC
+            HotLap,           // ACC, AC
             TimeAttack,       // ACC, AC, AMS2
             Drift,            // ACC, AC
             Drag,             // ACC, AC
@@ -172,7 +171,7 @@ namespace RaceDirector.Pipeline.Telemetry
         public enum SessionPhase
         {
             Garage = 1,           // R3E, RF2
-            Gridwalk = 2,         // R3E, RF2
+            GridWalk = 2,         // R3E, RF2
             Formation = 3,        // R3E, AMS2 (eSessionState), RF2
             Countdown = 4,        // R3E, RF2
             Started = 5,          // R3E, AMS2 (eRaceState), RF2
@@ -379,12 +378,12 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IRacingStatus
         {
-            public static IRacingStatus Unknown = new SimpleStatus();
-            public static IRacingStatus Racing = new SimpleStatus();
-            public static IRacingStatus Finished = new SimpleStatus();
-            public static IRacingStatus DNF = new SimpleStatus();
-            public static IRacingStatus DNQ = new SimpleStatus();
-            public static IRacingStatus DNS = new SimpleStatus();
+            public static readonly IRacingStatus Unknown = new SimpleStatus();
+            public static readonly IRacingStatus Racing = new SimpleStatus();
+            public static readonly IRacingStatus Finished = new SimpleStatus();
+            public static readonly IRacingStatus DNF = new SimpleStatus();
+            public static readonly IRacingStatus DNQ = new SimpleStatus();
+            public static readonly IRacingStatus DNS = new SimpleStatus();
 
             private class SimpleStatus : IRacingStatus { };
 

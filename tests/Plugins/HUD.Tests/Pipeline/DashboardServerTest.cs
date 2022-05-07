@@ -23,25 +23,21 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void ServesR3ETelemetryEndpoint()
         {
-            using (var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort)))
-            {
-                server.Start();
-                using (var client = new JsonWsClient(Timeout, _serverPort, "/r3e"))
-                {
-                    var telemetry = gtFaker.Generate();
+            using var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort));
+            server.Start();
+            using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
+            var telemetry = gtFaker.Generate();
 
-                    Assert.True(client.ConnectAndWait());
-                    server.Multicast(telemetry);
-                    var message = client.nextJson();
-                    Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);
-                    Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMinor").ValueKind);
-                }
-            }
+            Assert.True(client.ConnectAndWait());
+            server.Multicast(telemetry);
+            var message = client.nextJson();
+            Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);
+            Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMinor").ValueKind);
         }
 
         #region Test setup
 
-        int _serverPort = Tcp.FreePort();
+        private readonly int _serverPort = Tcp.FreePort();
 
         #endregion
     }

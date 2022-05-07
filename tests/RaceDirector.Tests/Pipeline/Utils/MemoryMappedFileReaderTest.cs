@@ -19,15 +19,13 @@ namespace RaceDirector.Tests.Pipeline.Utils
         [Fact]
         public void ThrowsExceptionOnReadWhenPathDoesntExist()
         {
-            using (var reader = new MemoryMappedFileReader<TestStruct>(FileName))
-            {
-                Assert.Throws<FileNotFoundException>(() => reader.Read());
+            using var reader = new MemoryMappedFileReader<TestStruct>(FileName);
+            Assert.Throws<FileNotFoundException>(() => reader.Read());
 
-                WithMMFile(FileName, new TestStruct(), (_, _) => {
-                    // Verify that file is opened when available
-                    reader.Read();
-                });
-            }
+            WithMMFile(FileName, new TestStruct(), (_, _) => {
+                // Verify that file is opened when available
+                reader.Read();
+            });
         }
 
         [Fact]
@@ -52,15 +50,11 @@ namespace RaceDirector.Tests.Pipeline.Utils
         {
             var structSize = Marshal.SizeOf(typeof(T));
             Assert.Equal(FieldSize, structSize);
-            using (var file = MemoryMappedFile.CreateNew(path, FieldSize))
-            {
-                using (var viewStream = file.CreateViewStream())
-                {
-                    var writer = new BinaryWriter(viewStream);
-                    writer.Write(Serialize(data));
-                    action(path, data);
-                }
-            }
+            using var file = MemoryMappedFile.CreateNew(path, FieldSize);
+            using var viewStream = file.CreateViewStream();
+            var writer = new BinaryWriter(viewStream);
+            writer.Write(Serialize(data));
+            action(path, data);
         }
 
         private byte[] SequentialByteArray(int size)

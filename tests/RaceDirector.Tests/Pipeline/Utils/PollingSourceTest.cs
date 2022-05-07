@@ -12,7 +12,7 @@ namespace RaceDirector.Tests.Pipeline.Utils
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan Timeout = PollingInterval * 3;
 
-        private static readonly int DecimalDigitPrecision = 1;
+        private const int DecimalDigitPrecision = 1;
 
         [Fact]
         public void PollsAtTheConfiguredInterval()

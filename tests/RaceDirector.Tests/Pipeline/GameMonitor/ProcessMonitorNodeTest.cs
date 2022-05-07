@@ -22,31 +22,29 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         public void OutputGameNameWhenProcessRunning()
         {
             var gameProcessInfos = new [] {
-                new GameProcessInfo(GameName, new string[] { ProcessName })
+                new GameProcessInfo(GameName, new[] { ProcessName })
             };
             var config = new ProcessMonitorNode.Config(PollingInterval);
-            using (var processMonitorNode = new ProcessMonitorNode(config, gameProcessInfos))
+            using var processMonitorNode = new ProcessMonitorNode(config, gameProcessInfos);
+            var source = processMonitorNode.RunningGameSource;
+            using (new RunningProcess(ProcessName, ProcessArgs))
             {
-                var source = processMonitorNode.RunningGameSource;
-                using (new RunningProcess(ProcessName, ProcessArgs))
-                {
-                    Assert.Equal(GameName, source.Receive(Timeout).Name);
-                }
-                Assert.Null(source.Receive(Timeout).Name);
+                Assert.Equal(GameName, source.Receive(Timeout).Name);
             }
+            Assert.Null(source.Receive(Timeout).Name);
         }
 
         private record GameProcessInfo(string GameName, string[] GameProcessNames) : IGameProcessInfo;
 
         private record RunningProcess(string Name, string Args) : IDisposable
         {
-            public static string DotExe = ".exe";
+            private const string DotExe = ".exe";
 
-            private readonly Process process = Process.Start(Name + DotExe, Args);
+            private readonly Process _process = Process.Start(Name + DotExe, Args);
 
             public void Dispose()
             {
-                process.Kill();
+                _process.Kill();
             }
         }
     }
