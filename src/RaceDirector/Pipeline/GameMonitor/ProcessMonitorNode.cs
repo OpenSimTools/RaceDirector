@@ -34,12 +34,12 @@ namespace RaceDirector.Pipeline.GameMonitor
                 {
                     if (processName == null)
                     {
-                        _logger.LogInformation("No matching game");
+                        _logger.LogInformation("The game has been closed");
                         return new RunningGame(null);
                     }
 
                     var game = gameByProcess.GetValueOrDefault(processName);
-                    _logger.LogInformation("Found game {string?} for process {string?}", game, processName);
+                    _logger.LogInformation("Found game {string?} (process {string?})", game, processName);
                     return new RunningGame(game);
                 })
             );
