@@ -28,9 +28,9 @@ namespace HUD.Tests.Pipeline
             using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
             var telemetry = gtFaker.Generate();
 
-            Assert.True(client.ConnectAndWait(), "Client could not connect"););
+            Assert.True(client.ConnectAndWait(), "Client could not connect");
             server.Multicast(telemetry);
-            var message = client.nextJson();
+            var message = client.NextJson();
             Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);
             Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMinor").ValueKind);
         }
