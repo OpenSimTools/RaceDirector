@@ -30,18 +30,17 @@ namespace RaceDirector.Pipeline.GameMonitor
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
             var transformer = new TransformManyBlock<IEnumerable<string>, RunningGame>(
-                processNames => keepOne(processNames).Select(processName => {
+                processNames => keepOne(processNames).Select(processName =>
+                {
                     if (processName == null)
                     {
                         _logger.LogInformation("No matching game");
                         return new RunningGame(null);
                     }
-                    else
-                    {
-                        var game = gameByProcess.GetValueOrDefault(processName);
-                        _logger.LogInformation($"Found game {game} for process {processName}");
-                        return new RunningGame(game);
-                    }
+
+                    var game = gameByProcess.GetValueOrDefault(processName);
+                    _logger.LogInformation("Found game {string?} for process {string?}", game, processName);
+                    return new RunningGame(game);
                 })
             );
             var source = PollingSource.Create(config.PollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));

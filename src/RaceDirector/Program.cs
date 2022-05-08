@@ -19,9 +19,8 @@ namespace RaceDirector
                 {
                     foreach (var p in plugins)
                         p.Init(services);
-                }).Build();
-
-            Console.WriteLine("Starting pipeline");
+                })
+                .Build();
 
             var nodes = host.Services.GetServices<INode>();
             PipelineBuilder.LinkNodes(nodes);
