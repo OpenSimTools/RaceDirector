@@ -20,7 +20,7 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         [Fact]
         public void DoesNotEmitWhenGameNotMatching()
         {
-            var trn = new TelemetryReaderNode(new ITelemetrySourceFactory[0]);
+            var trn = new TelemetryReaderNode(Array.Empty<ITelemetrySourceFactory>());
             trn.RunningGameTarget.Post(new RunningGame(null));
             trn.RunningGameTarget.Post(new RunningGame("any"));
             Assert.Throws<TimeoutException>(() => trn.GameTelemetrySource.Receive(Timeout));

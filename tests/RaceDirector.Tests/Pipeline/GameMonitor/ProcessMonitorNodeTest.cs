@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Xunit.Categories;
 using RaceDirector.Pipeline.GameMonitor;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
@@ -19,7 +20,7 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         private static readonly string ProcessName = "RaceDirector.Tests.Ext.Process";
         private static readonly string ProcessArgs = Timeout.Multiply(3).Seconds.ToString();
 
-        private readonly Mock<ILogger<ProcessMonitorNode>> _loggerMock = new();
+        private static readonly ILogger<ProcessMonitorNode> TestLogger = NullLogger<ProcessMonitorNode>.Instance;
 
         [Fact]
         public void OutputGameNameWhenProcessRunning()
@@ -28,7 +29,7 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
                 new GameProcessInfo(GameName, new[] { ProcessName })
             };
             var config = new ProcessMonitorNode.Config(PollingInterval);
-            var processMonitorNode = new ProcessMonitorNode(_loggerMock.Object, config, gameProcessInfos);
+            var processMonitorNode = new ProcessMonitorNode(TestLogger, config, gameProcessInfos);
             var source = processMonitorNode.RunningGameSource;
             using (new RunningProcess(ProcessName, ProcessArgs))
             {

@@ -1,10 +1,10 @@
 ﻿using NetCoreServer;
-using RaceDirector.Plugin.HUD.Server;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Microsoft.Extensions.Logging;
 
-namespace RaceDirector.Plugin.HUD.Pipeline
+namespace RaceDirector.Plugin.HUD.Server
 {
     /// <summary>
     /// WebSocket server that serialises messages differently based on the endpoint that was requested.
@@ -14,18 +14,20 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     public class MultiEndpointWsServer<T> : WsServer, IWsServer<T>
     {
         private readonly List<IEndpoint<T>> _endpoints;
+        protected readonly ILogger Logger;
 
-        public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<IEndpoint<T>> endpoints)
+        public MultiEndpointWsServer(ILogger logger, IPAddress address, int port, IEnumerable<IEndpoint<T>> endpoints)
             : base(address, port)
         {
             _endpoints = endpoints.ToList();
+            Logger = logger;
         }
 
         protected override TcpSession CreateSession()
         {
             return new MultiEndpointWsSession(this);
         }
-
+        
         /// <summary>
         /// Multicasts data to all clients connected. Serialisation depends on the endpoint that
         /// clients are connected to.
@@ -34,8 +36,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         public bool Multicast(T t)
         {
             if (!IsStarted)
+            {
+                Logger.LogTrace("Server stopped; skipping message {T}", t);
                 return false;
+            }
 
+            Logger.LogTrace("Sending message {T}", t);
             foreach (var session in Sessions.Values)
             {
                 if (session is MultiEndpointWsSession mewsSession)
@@ -49,22 +55,23 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private class MultiEndpointWsSession : WsSession
         {
-            private readonly List<IEndpoint<T>> _endpoints;
+            private readonly MultiEndpointWsServer<T> _server;
             private IEndpoint<T>? _matchedEndpoint;
             private bool _wsHandshaked;
 
             public MultiEndpointWsSession(MultiEndpointWsServer<T> server) : base(server)
             {
-                _endpoints = server._endpoints;
+                _server = server;
                 _wsHandshaked = false;
             }
 
             public override bool OnWsConnecting(HttpRequest request, HttpResponse response) {
-                _matchedEndpoint = _endpoints.Find(e => e.Matches(request));
+                _matchedEndpoint = _server._endpoints.Find(e => e.Matches(request));
                 return _matchedEndpoint != null;
             }
 
             public override void OnWsConnected(HttpRequest request) {
+                _server.Logger.LogDebug("Client connected");
                 _wsHandshaked = true;
             }
 
@@ -76,7 +83,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     return false;
             }
 
-            public bool SendTextAsync(byte[] buffer)
+            private bool SendTextAsync(byte[] buffer)
             {
                 return SendTextAsync(buffer, 0L, buffer.LongLength);
             }

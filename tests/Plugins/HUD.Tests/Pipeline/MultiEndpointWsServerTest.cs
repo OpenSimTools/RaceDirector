@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace HUD.Tests.Pipeline
@@ -42,7 +43,7 @@ namespace HUD.Tests.Pipeline
         private void WithServerClient<T>(IEnumerable<IEndpoint<T>> endpoints, string path, Action<IWsServer<T>, JsonWsClient> action)
         {
             var serverPort = Tcp.FreePort();
-            using (var server = new MultiEndpointWsServer<T>(IPAddress.Any, serverPort, endpoints))
+            using (var server = new MultiEndpointWsServer<T>(NullLogger.Instance, IPAddress.Any, serverPort, endpoints))
             {
                 server.Start();
                 using (var client = new JsonWsClient(Timeout, serverPort, path))

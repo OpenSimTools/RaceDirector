@@ -4,6 +4,7 @@ using RaceDirector.Plugin.HUD.Pipeline;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks.Dataflow;
+using RaceDirector.Plugin.HUD.Server;
 using Xunit;
 
 namespace HUD.Tests.Pipeline

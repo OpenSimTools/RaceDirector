@@ -3,6 +3,7 @@ using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using System.Threading.Tasks.Dataflow;
 using RaceDirector.Pipeline;
 using System.Collections.Generic;
+using RaceDirector.Plugin.HUD.Server;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {

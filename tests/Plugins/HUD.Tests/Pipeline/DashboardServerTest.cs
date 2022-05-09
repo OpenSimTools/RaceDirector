@@ -6,6 +6,8 @@ using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Plugin.HUD.Pipeline;
 using System.Net;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace HUD.Tests.Pipeline
@@ -23,7 +25,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void ServesR3ETelemetryEndpoint()
         {
-            using var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort));
+            using var server = new DashboardServer(TestLogger, new DashboardServer.Config(IPAddress.Any, _serverPort));
             Assert.True(server.Start(), "Server did not start");
             using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
             var telemetry = gtFaker.Generate();
@@ -38,6 +40,7 @@ namespace HUD.Tests.Pipeline
         #region Test setup
 
         private readonly int _serverPort = Tcp.FreePort();
+        private static readonly ILogger<DashboardServer> TestLogger = NullLogger<DashboardServer>.Instance;
 
         #endregion
     }
