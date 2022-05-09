@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RaceDirector.Plugin.HUD.Pipeline
+namespace RaceDirector.Plugin.HUD.Server
 {
     public interface ITcpServer : IDisposable
     {

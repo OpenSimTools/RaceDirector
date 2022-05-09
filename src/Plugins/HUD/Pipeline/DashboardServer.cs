@@ -2,11 +2,8 @@
 using RaceDirector.Plugin.HUD.Server;
 using static RaceDirector.Plugin.HUD.Server.Endpoint;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.IO;
 using System.Net;
-using System;
-using RaceDirector.Plugin.HUD.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -15,12 +12,23 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     public class DashboardServer : MultiEndpointWsServer<IGameTelemetry>
     {
-        public record Config(IPAddress address, int port = 8070); // TODO remove when config done
+        public record Config(IPAddress Address, int Port = 8070); // TODO remove when config done
 
-        private static readonly IEnumerable<IEndpoint<IGameTelemetry>> _endpoints = new[] {
+        private static readonly IEnumerable<IEndpoint<IGameTelemetry>> DashboardEndpoints = new[] {
             new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), R3EDashTransformer.ToR3EDash)
         };
 
-        public DashboardServer(Config config) : base(config.address, config.port, _endpoints) { }
+        public DashboardServer(ILogger<DashboardServer> logger, Config config) : base(logger, config.Address, config.Port, DashboardEndpoints) { }
+        
+        protected override void OnStarted()
+        {
+            Logger.LogInformation("Dashboard server started");
+        }
+
+        protected override void OnStopped()
+        {
+            Logger.LogInformation("Dashboard server stopped");
+        }
+
     }
 }
