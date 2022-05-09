@@ -31,15 +31,15 @@ namespace HUD.Tests.TestUtils
 
         public T? next<T>()
         {
-            return JsonSerializer.Deserialize<T>(nextString());
+            return JsonSerializer.Deserialize<T>(NextString());
         }
 
-        public JsonDocument nextJson()
+        public JsonDocument NextJson()
         {
-            return JsonDocument.Parse(nextString());
+            return JsonDocument.Parse(NextString());
         }
 
-        public string nextString()
+        public string NextString()
         {
             return _received.Receive(_timeout);
         }
@@ -51,6 +51,7 @@ namespace HUD.Tests.TestUtils
             request.SetHeader("Upgrade", "websocket");
             request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
             request.SetHeader("Sec-WebSocket-Version", "13");
+            request.SetBody();
         }
 
         public override void OnWsConnected(HttpResponse response)

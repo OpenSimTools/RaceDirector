@@ -15,7 +15,7 @@ namespace HUD.Tests.Pipeline
         {
             _webSocketNode.PostTrigger(true);
             foreach (var sm in _serverMocks)
-                Eventually(() => sm.Verify(s => s.Start()));
+                Eventually(() => sm.Verify(s => s.Start()), "Server wasn't started");
         }
 
         [Fact]
@@ -23,7 +23,7 @@ namespace HUD.Tests.Pipeline
         {
             _webSocketNode.PostTrigger(false);
             foreach (var sm in _serverMocks)
-                Eventually(() => sm.Verify(s => s.Stop()));
+                Eventually(() => sm.Verify(s => s.Stop(), "Server didn't stop"));
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace HUD.Tests.Pipeline
         {
             _webSocketNode.PostData(2);
             foreach (var sm in _serverMocks)
-                Eventually(() => sm.Verify(s => s.Multicast(2)));
+                Eventually(() => sm.Verify(s => s.Multicast(2)), "Data wasn't broadcasted");
         }
 
         #region Test setup

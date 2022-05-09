@@ -10,7 +10,9 @@ namespace HUD.Tests.Base
         protected static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
         protected static TimeSpan PollingInterval { get => TimeSpan.FromMilliseconds(50); }
 
-        protected void Eventually(Action f)
+        protected void Eventually(Action f) => Eventually(f, "Not satisfied within timeout");
+
+        protected void Eventually(Action f, string message)
         {
             var end = DateTime.Now.Add(Timeout);
             while (true)
@@ -23,7 +25,7 @@ namespace HUD.Tests.Base
                 catch (Exception e)
                 {
                     if (DateTime.Now > end)
-                        throw new TimeoutException("Not satisfied within timeout", e);
+                        throw new TimeoutException(message, e);
                     else
                         Thread.Sleep(PollingInterval);
                 }
