@@ -1,4 +1,5 @@
-﻿using RaceDirector.Pipeline.Utils;
+﻿using Microsoft.Extensions.Logging;
+using RaceDirector.Pipeline.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +10,8 @@ namespace RaceDirector.Pipeline.GameMonitor
 {
     public class ProcessMonitorNode : INode, IDisposable
     {
+        private readonly ILogger<ProcessMonitorNode> _logger;
+
         public record Config(TimeSpan PollingInterval); // TODO remove when config done
 
         public ISourceBlock<RunningGame> RunningGameSource
@@ -16,8 +19,9 @@ namespace RaceDirector.Pipeline.GameMonitor
             get;
         }
 
-        public ProcessMonitorNode(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
+        public ProcessMonitorNode(ILogger<ProcessMonitorNode> logger, Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
+            _logger = logger;
             RunningGameSource = GameProcessPoller(config, gameProcessInfos);
         }
 
@@ -26,11 +30,17 @@ namespace RaceDirector.Pipeline.GameMonitor
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
             var transformer = new TransformManyBlock<IEnumerable<string>, RunningGame>(
-                processNames => keepOne(processNames).Select(processName => {
+                processNames => keepOne(processNames).Select(processName =>
+                {
                     if (processName == null)
+                    {
+                        _logger.LogInformation("The game has been closed");
                         return new RunningGame(null);
-                    else
-                        return new RunningGame(gameByProcess.GetValueOrDefault(processName));
+                    }
+
+                    var game = gameByProcess.GetValueOrDefault(processName);
+                    _logger.LogInformation("Found game {string?} (process {string?})", game, processName);
+                    return new RunningGame(game);
                 })
             );
             var source = PollingSource.Create(config.PollingInterval, () => Process.GetProcesses().Select(p => p.ProcessName));
