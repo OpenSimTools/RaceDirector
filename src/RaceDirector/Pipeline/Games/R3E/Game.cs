@@ -30,12 +30,10 @@ namespace RaceDirector.Pipeline.Games.R3E
                 {
                     try
                     {
-                        Console.Write("x");
                         return Observable.Return(telemetry.Transform(mmReader.Read()));
                     }
                     catch
                     {
-                        Console.WriteLine("@");
                         return Observable.Empty<Pipeline.Telemetry.GameTelemetry>();
                     }
                 });

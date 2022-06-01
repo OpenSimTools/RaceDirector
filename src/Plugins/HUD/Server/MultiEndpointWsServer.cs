@@ -78,7 +78,6 @@ namespace RaceDirector.Plugin.HUD.Server
 
             public bool SendAsync(T t)
             {
-                Console.Write(".");
                 if (_wsHandshaked && _matchedEndpoint != null)
                     return SendTextAsync(_matchedEndpoint.Transform(t));
                 else

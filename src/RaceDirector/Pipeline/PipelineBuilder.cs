@@ -23,7 +23,7 @@ namespace RaceDirector.Pipeline
                     var targetGenericType = targetBlockType.GenericTypeArguments[0];
                     if (targetGenericType.IsAssignableFrom(sourceGenericType))
                     {
-                        sourceBlockType.InvokeMember("Subscribe", BindingFlags.InvokeMethod, null, sourceBlock, new[] { targetBlock });
+                        sourceBlockType.InvokeMember(nameof(IObservable<object>.Subscribe), BindingFlags.InvokeMethod, null, sourceBlock, new[] { targetBlock });
                     }
                 });
             });
