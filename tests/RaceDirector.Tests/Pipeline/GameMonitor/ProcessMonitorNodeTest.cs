@@ -1,17 +1,21 @@
 using Xunit;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Xunit.Categories;
 using RaceDirector.Pipeline.GameMonitor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Reactive.Linq;
+using Microsoft.Reactive.Testing;
+using RaceDirector.Pipeline.Games;
+using RaceDirector.Tests.Pipeline.Utils;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
-     [IntegrationTest]
-     public class ProcessMonitorNodeTest
+    [IntegrationTest]
+    public class ProcessMonitorNodeTest
     {
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan Timeout = PollingInterval * 3;
@@ -25,18 +29,24 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         [Fact]
         public void OutputGameNameWhenProcessRunning()
         {
-            var gameProcessInfos = new [] {
-                new GameProcessInfo(GameName, new[] { ProcessName })
+            var testScheduler = new TestScheduler();
+            var gameProcessInfos = new[]
+            {
+                new GameProcessInfo(GameName, new[] {ProcessName})
             };
             var config = new ProcessMonitorNode.Config(PollingInterval);
-            var processMonitorNode = new ProcessMonitorNode(TestLogger, config, gameProcessInfos);
-            var source = processMonitorNode.RunningGameSource.Timeout(Timeout);
+            var processMonitorNode = new TestProcessMonitorNode(config, gameProcessInfos, testScheduler);
+            var observer = testScheduler.CreateObserver<RunningGame>();
+            processMonitorNode.RunningGameSource.Subscribe(observer);
             using (new RunningProcess(ProcessName, ProcessArgs))
             {
-                var first = source.First(); // FIXME
+                testScheduler.AdvanceTo(PollingInterval.Ticks);
+                var first = Assert.Single(observer.ReceivedValues());
                 Assert.Equal(GameName, first.Name);
             }
-            var second = source.First(); // FIXME
+
+            testScheduler.AdvanceBy(PollingInterval.Ticks);
+            var second = Assert.Single(observer.ReceivedValues().Skip(1));
             Assert.Null(second.Name);
         }
 

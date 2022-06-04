@@ -17,6 +17,7 @@ using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.Plugin.HUD.Pipeline;
 using RaceDirector.Plugin.HUD.Server;
+using RaceDirector.Tests.Pipeline.Utils;
 
 namespace RaceDirector.Tests.Pipeline
 {
@@ -151,22 +152,20 @@ namespace RaceDirector.Tests.Pipeline
         }
     }
 
-    public class FakeProcessMonitorNode : ProcessMonitorNode
+    public class FakeProcessMonitorNode : TestProcessMonitorNode
     {
         private readonly Dictionary<long, string[]> _simulatedProcessNames;
-        private readonly TestScheduler _testScheduler;
 
         public FakeProcessMonitorNode(IEnumerable<IGameProcessInfo> gameProcessInfos,
             Dictionary<long, string[]> simulatedProcessNames, TestScheduler testScheduler) :
-            base(NullLogger<ProcessMonitorNode>.Instance, new Config(TimeSpan.FromTicks(1)), gameProcessInfos)
+            base(new Config(TimeSpan.FromTicks(1)), gameProcessInfos, testScheduler)
         {
             _simulatedProcessNames = simulatedProcessNames;
-            _testScheduler = testScheduler;
         }
 
         protected override IEnumerable<string> CurrentProcessNames()
         {
-            var currentTicks = _testScheduler.Now.Ticks;
+            var currentTicks = TestScheduler.Now.Ticks;
             var maxPastTickInSimulation = _simulatedProcessNames
                 .Select(p => p.Key)
                 .Where(t => t <= currentTicks)
@@ -174,8 +173,5 @@ namespace RaceDirector.Tests.Pipeline
                 .Max();
             return _simulatedProcessNames.GetValueOrDefault(maxPastTickInSimulation, Array.Empty<string>());
         }
-
-        protected override IObservable<long> ObservableInterval(Config config) =>
-            Observable.Interval(config.PollingInterval, _testScheduler);
     }
 }
