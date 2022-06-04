@@ -29,7 +29,7 @@ namespace RaceDirector.Tests.Pipeline
             var testScheduler = new TestScheduler();
 
             var fakeGame = new FakeGame(callCount =>
-                testScheduler.CreateColdObservable(FakeTelemetry(3, callCount, 0.1))
+                testScheduler.CreateColdObservable(FakeTelemetry(3, 50, callCount, 0.01))
             );
 
             var fakeProcesses = new Dictionary<long, string[]>
@@ -50,16 +50,43 @@ namespace RaceDirector.Tests.Pipeline
                 }
             );
 
-            // TODO write proper assertions
-            testScheduler.AdvanceTo(100);
+            testScheduler.AdvanceTo(20);
             wsServerMock.Verify(s => s.Start());
+            wsServerMock.VerifyNoOtherCalls();
+            wsServerMock.Reset();
+
+            testScheduler.AdvanceTo(39);
+            wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+            wsServerMock.Reset();
+
+            testScheduler.AdvanceTo(40);
+            wsServerMock.Verify(s => s.Stop());
+            testScheduler.AdvanceTo(59);
+            wsServerMock.VerifyNoOtherCalls();
+            wsServerMock.Reset();
+
+            testScheduler.AdvanceTo(60);
+            wsServerMock.Verify(s => s.Start());
+            wsServerMock.VerifyNoOtherCalls();
+            wsServerMock.Reset();
+
+            testScheduler.AdvanceTo(79);
+            wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+            wsServerMock.Reset();
+
+            testScheduler.AdvanceTo(80);
+            wsServerMock.Verify(s => s.Stop());
+            testScheduler.AdvanceTo(99);
+            wsServerMock.VerifyNoOtherCalls();
+            wsServerMock.Reset();
         }
 
-        Recorded<Notification<TestGameTelemetry>>[] FakeTelemetry(long tickIncrements, double baseValue,
+        Recorded<Notification<TestGameTelemetry>>[] FakeTelemetry(long tickIncrements, long maxTick, double baseValue,
             double valueIncrements)
         {
             var maxGenerated = 10;
             return Enumerable.Range(1, maxGenerated)
+                .TakeWhile(i => i * tickIncrements <= maxTick)
                 .Select(i => OnNext(i * tickIncrements, new TestGameTelemetry(baseValue + i * valueIncrements)))
                 .ToArray();
         }
