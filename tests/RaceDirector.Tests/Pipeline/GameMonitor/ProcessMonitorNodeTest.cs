@@ -1,16 +1,11 @@
-using Xunit;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using Xunit.Categories;
-using RaceDirector.Pipeline.GameMonitor;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using System.Reactive.Linq;
 using Microsoft.Reactive.Testing;
-using RaceDirector.Pipeline.Games;
+using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Tests.Pipeline.Utils;
+using Xunit;
+using Xunit.Categories;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
@@ -23,8 +18,6 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         private static readonly string GameName = "TestGame";
         private static readonly string ProcessName = "RaceDirector.Tests.Ext.Process";
         private static readonly string ProcessArgs = Timeout.Multiply(3).Seconds.ToString();
-
-        private static readonly ILogger<ProcessMonitorNode> TestLogger = NullLogger<ProcessMonitorNode>.Instance;
 
         [Fact]
         public void OutputGameNameWhenProcessRunning()

@@ -16,14 +16,16 @@ namespace RaceDirector.Pipeline.GameMonitor
 
         public IObservable<RunningGame> RunningGameSource
         {
-            get;
+            get => _lazyRunningGameSource.Value;
         }
+
+        private readonly Lazy<IObservable<RunningGame>> _lazyRunningGameSource;
 
         public ProcessMonitorNode(ILogger<ProcessMonitorNode> logger, Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             _logger = logger;
-            // TODO don't create a poller for each subscription
-            RunningGameSource = Observable.Defer(() => GameProcessPoller(config, gameProcessInfos));
+            _lazyRunningGameSource =
+                new Lazy<IObservable<RunningGame>>(() => GameProcessPoller(config, gameProcessInfos));
         }
 
         private IObservable<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)

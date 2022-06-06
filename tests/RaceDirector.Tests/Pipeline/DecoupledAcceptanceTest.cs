@@ -1,23 +1,20 @@
-using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Threading;
-using Xunit.Categories;
-using RaceDirector.Pipeline.GameMonitor;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Reactive.Testing;
 using Moq;
 using RaceDirector.Pipeline;
+using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.Plugin.HUD.Pipeline;
 using RaceDirector.Plugin.HUD.Server;
 using RaceDirector.Tests.Pipeline.Utils;
+using Xunit;
+using Xunit.Categories;
 
 namespace RaceDirector.Tests.Pipeline
 {
@@ -82,8 +79,8 @@ namespace RaceDirector.Tests.Pipeline
             wsServerMock.Reset();
         }
 
-        Recorded<Notification<TestGameTelemetry>>[] FakeTelemetry(long tickIncrements, long maxTick, double baseValue,
-            double valueIncrements)
+        private Recorded<Notification<TestGameTelemetry>>[] FakeTelemetry(long tickIncrements, long maxTick,
+            double baseValue, double valueIncrements)
         {
             var maxGenerated = 10;
             return Enumerable.Range(1, maxGenerated)
@@ -93,19 +90,13 @@ namespace RaceDirector.Tests.Pipeline
         }
     }
 
-    record FakeGame(Func<double, IObservable<IGameTelemetry>> CreateTelemetrySourceF) : IGame
+    internal record FakeGame(Func<double, IObservable<IGameTelemetry>> CreateTelemetrySourceF) : IGame
     {
-        public string GameName
-        {
-            get => "TestGame";
-        }
+        private int _createTelemetryCallCounter;
 
-        public string[] GameProcessNames
-        {
-            get => new[] {"TestProcess.exe"};
-        }
+        public string GameName => "TestGame";
 
-        private int _createTelemetryCallCounter = 0;
+        public string[] GameProcessNames => new[] {"TestProcess.exe"};
 
         public IObservable<IGameTelemetry> CreateTelemetrySource()
         {
@@ -116,40 +107,19 @@ namespace RaceDirector.Tests.Pipeline
 
     public record TestGameTelemetry(double Identifier) : IGameTelemetry
     {
-        public GameState GameState
-        {
-            get => GameState.Menu;
-        }
+        public GameState GameState => GameState.Menu;
 
-        public bool UsingVR
-        {
-            get => false;
-        }
+        public bool UsingVR => false;
 
-        public IEvent? Event
-        {
-            get => null;
-        }
+        public IEvent? Event => null;
 
-        public ISession? Session
-        {
-            get => null;
-        }
+        public ISession? Session => null;
 
-        public IVehicle[] Vehicles
-        {
-            get => Array.Empty<IVehicle>();
-        }
+        public IVehicle[] Vehicles => Array.Empty<IVehicle>();
 
-        public IFocusedVehicle? FocusedVehicle
-        {
-            get => null;
-        }
+        public IFocusedVehicle? FocusedVehicle => null;
 
-        public IPlayer? Player
-        {
-            get => null;
-        }
+        public IPlayer? Player => null;
     }
 
     public class FakeProcessMonitorNode : TestProcessMonitorNode

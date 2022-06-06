@@ -7,6 +7,9 @@ using RaceDirector.Pipeline.GameMonitor;
 
 namespace RaceDirector.Tests.Pipeline.Utils
 {
+    /// <summary>
+    /// ProcessMonitorNode that runs on a test scheduler and null logger.
+    /// </summary>
     public class TestProcessMonitorNode : ProcessMonitorNode
     {
         protected readonly TestScheduler TestScheduler;
