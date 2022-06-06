@@ -18,7 +18,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), R3EDashTransformer.ToR3EDash)
         };
 
-        public DashboardServer(ILogger<DashboardServer> logger, Config config) : base(logger, config.Address, config.Port, DashboardEndpoints) { }
+        public DashboardServer(Config config, ILogger<DashboardServer> logger) : base(config.Address, config.Port, DashboardEndpoints, logger) { }
         
         protected override void OnStarted()
         {

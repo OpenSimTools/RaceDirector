@@ -17,7 +17,7 @@ namespace RaceDirector.Plugin.HUD.Server
         private readonly List<IEndpoint<T>> _endpoints;
         protected readonly ILogger Logger;
 
-        public MultiEndpointWsServer(ILogger logger, IPAddress address, int port, IEnumerable<IEndpoint<T>> endpoints)
+        public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<IEndpoint<T>> endpoints, ILogger logger)
             : base(address, port)
         {
             _endpoints = endpoints.ToList();
