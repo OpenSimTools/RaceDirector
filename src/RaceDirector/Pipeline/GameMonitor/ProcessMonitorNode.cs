@@ -25,13 +25,13 @@ namespace RaceDirector.Pipeline.GameMonitor
         {
             _logger = logger;
             _lazyRunningGameSource =
-                new Lazy<IObservable<RunningGame>>(() => GameProcessPoller(config, gameProcessInfos));
+                new Lazy<IObservable<RunningGame>>(() => GameProcessPoller(config, gameProcessInfos).Publish().RefCount());
         }
 
         private IObservable<RunningGame> GameProcessPoller(Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             // TODO Write this in a simpler way
-            // TODO Add BehaviorSubject to emit latest element on subscribe
+            // TODO Add BehaviorSubject to emit latest element on subscribe or support ConnectableObservables in the framework?
             Dictionary<string, string> gameByProcess = GameByProcess(gameProcessInfos);
             Func<IEnumerable<string>, IEnumerable<string?>> keepOne = new KeepOne<string>(gameByProcess.Keys).Call;
 
