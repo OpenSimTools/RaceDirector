@@ -30,7 +30,7 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
             var config = new ProcessMonitorNode.Config(PollingInterval);
             var processMonitorNode = new TestProcessMonitorNode(config, gameProcessInfos, testScheduler);
             var observer = testScheduler.CreateObserver<RunningGame>();
-            processMonitorNode.RunningGameSource.Subscribe(observer);
+            processMonitorNode.RunningGameObservable.Subscribe(observer);
             using (new RunningProcess(ProcessName, ProcessArgs))
             {
                 testScheduler.AdvanceTo(PollingInterval.Ticks);

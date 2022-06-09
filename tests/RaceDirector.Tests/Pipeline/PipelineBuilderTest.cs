@@ -19,42 +19,42 @@ namespace RaceDirector.Tests.Pipeline
         private readonly TestScheduler testScheduler = new ();
 
         [Fact]
-        public void LinksSourceToTargetsOfAssignableType()
+        public void LinksObservableToObserversOfAssignableType()
         {
             var message = new V1<int, long>(1, 2);
 
-            var sourceNodeV1 = new OneSourceNode<V1<int, long>>(testScheduler, message);
-            var targetNodeIV0 = new OneTargetNode<IV0<int>>(testScheduler);
-            var targetNodeIV1 = new OneTargetNode<IV1<int, long>>(testScheduler);
+            var observableNodeV1 = new OneObservableNode<V1<int, long>>(testScheduler, message);
+            var observerNodeIV0 = new OneObserverNode<IV0<int>>(testScheduler);
+            var observerNodeIV1 = new OneObserverNode<IV1<int, long>>(testScheduler);
 
-            LinkAndRun(testScheduler, sourceNodeV1, targetNodeIV0, targetNodeIV1);
+            LinkAndRun(testScheduler, observableNodeV1, observerNodeIV0, observerNodeIV1);
 
-            Assert.Equal(message, targetNodeIV0.T1.ReceivedValues().First());
-            Assert.Equal(message, targetNodeIV1.T1.ReceivedValues().First());
+            Assert.Equal(message, observerNodeIV0.T1.ReceivedValues().First());
+            Assert.Equal(message, observerNodeIV1.T1.ReceivedValues().First());
         }
 
         [Fact]
-        public void DoesNotLinkSourceWhenTargetTypeUnssignable()
+        public void DoesNotLinkObservableWhenObserverTypeUnssignable()
         {
-            var sourceNode = new OneSourceNode<int>(testScheduler, 42);
-            var targetNode = new TwoTargetsNode<int, string>(testScheduler);
+            var observableNode = new OneObservableNode<int>(testScheduler, 42);
+            var observerNode = new TwoObserversNode<int, string>(testScheduler);
 
-            LinkAndRun(testScheduler, sourceNode, targetNode);
+            LinkAndRun(testScheduler, observableNode, observerNode);
 
-            Assert.Equal(42, targetNode.T1.ReceivedValues().First());
-            Assert.Empty(targetNode.T2.ReceivedValues());
+            Assert.Equal(42, observerNode.T1.ReceivedValues().First());
+            Assert.Empty(observerNode.T2.ReceivedValues());
         }
 
         [Fact]
-        public void SupportsBlocksThatAreBothSourceAndTarget()
+        public void SupportsBlocksThatAreBothObservableAndObserver()
         {
-            var sourceNode = new OneSourceNode<int>(testScheduler, 42);
+            var observableNode = new OneObservableNode<int>(testScheduler, 42);
             var transformationNode = new TransformationNode<int, string>(i => i.ToString());
-            var targetNode = new OneTargetNode<string>(testScheduler);
+            var observerNode = new OneObserverNode<string>(testScheduler);
 
-            LinkAndRun(testScheduler, sourceNode, transformationNode, targetNode);
+            LinkAndRun(testScheduler, observableNode, transformationNode, observerNode);
 
-            Assert.Equal("42", targetNode.T1.ReceivedValues().First());
+            Assert.Equal("42", observerNode.T1.ReceivedValues().First());
         }
 
         #region Test setup
@@ -64,11 +64,11 @@ namespace RaceDirector.Tests.Pipeline
 
         public record V1<T1, T2>(T1 P1, T2 P2) : IV1<T1, T2>;
 
-        public class OneSourceNode<T> : INode
+        public class OneObservableNode<T> : INode
         {
             public ITestableObservable<T> S1  { get; private set; }
 
-            public OneSourceNode(TestScheduler testScheduler, params T[] messages)
+            public OneObservableNode(TestScheduler testScheduler, params T[] messages)
             {
                 var recordedNotifications = messages.Select(m =>
                     new Recorded<Notification<T>>(EventsTimestamp, Notification.CreateOnNext(m))
@@ -77,21 +77,21 @@ namespace RaceDirector.Tests.Pipeline
             }
         }
 
-        public class OneTargetNode<T> : INode
+        public class OneObserverNode<T> : INode
         {
             public ITestableObserver<T> T1 { get; private set; }
 
-            public OneTargetNode(TestScheduler testScheduler)
+            public OneObserverNode(TestScheduler testScheduler)
             {
                 T1 = testScheduler.CreateObserver<T>();
             }
         }
 
-        public class TwoTargetsNode<TI1, TI2> : OneTargetNode<TI1>
+        public class TwoObserversNode<TI1, TI2> : OneObserverNode<TI1>
         {
             public ITestableObserver<TI2> T2 { get; private set; }
 
-            public TwoTargetsNode(TestScheduler testScheduler) : base(testScheduler)
+            public TwoObserversNode(TestScheduler testScheduler) : base(testScheduler)
             {
                 T2 = testScheduler.CreateObserver<TI2>();
             }
@@ -99,12 +99,12 @@ namespace RaceDirector.Tests.Pipeline
 
         public class TransformationNode<TI, TO> : INode
         {
-            public ISubject<TI, TO> SourceAndTarget { get; private set; }
+            public ISubject<TI, TO> ObservableAndObserver { get; private set; }
             
             public TransformationNode(Func<TI, TO> f)
             {
                 var subject = new Subject<TI>();
-                SourceAndTarget = Subject.Create(subject, subject.Select(f));
+                ObservableAndObserver = Subject.Create(subject, subject.Select(f));
             }
         }
 

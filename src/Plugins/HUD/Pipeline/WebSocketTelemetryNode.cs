@@ -12,19 +12,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, IGameTelemetry>, INode
     {
-        public IObserver<IRunningGame> RunningGameTarget
-        {
-            get { return TriggerTarget; }
-        }
+        public IObserver<IRunningGame> RunningGameObserver => TriggerObserver;
 
-        public IObserver<IGameTelemetry> GameTelemetryTarget
-        {
-            get { return DataTarget; }
-        }
+        public IObserver<IGameTelemetry> GameTelemetryObserver => DataObserver;
 
         public WebSocketTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers) : base(servers) { }
 
-        override protected bool ServerShouldRun(IRunningGame runningGame) {
+        protected override bool ServerShouldRun(IRunningGame runningGame) {
             return runningGame.IsRunning();
         }
     }

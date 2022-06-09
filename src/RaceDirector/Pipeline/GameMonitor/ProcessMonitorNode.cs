@@ -14,17 +14,17 @@ namespace RaceDirector.Pipeline.GameMonitor
 
         public record Config(TimeSpan PollingInterval); // TODO remove when config done
 
-        public IObservable<RunningGame> RunningGameSource
+        public IObservable<RunningGame> RunningGameObservable
         {
-            get => _lazyRunningGameSource.Value;
+            get => _lazyRunningGameObservable.Value;
         }
 
-        private readonly Lazy<IObservable<RunningGame>> _lazyRunningGameSource;
+        private readonly Lazy<IObservable<RunningGame>> _lazyRunningGameObservable;
 
         public ProcessMonitorNode(ILogger<ProcessMonitorNode> logger, Config config, IEnumerable<IGameProcessInfo> gameProcessInfos)
         {
             _logger = logger;
-            _lazyRunningGameSource =
+            _lazyRunningGameObservable =
                 new Lazy<IObservable<RunningGame>>(() => GameProcessPoller(config, gameProcessInfos).Publish().RefCount());
         }
 

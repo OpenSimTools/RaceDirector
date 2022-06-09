@@ -31,11 +31,11 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         [Fact]
         public void DoesNotEmitWhenGameNotMatching()
         {
-            var trn = new TelemetryReaderNode(Array.Empty<ITelemetrySourceFactory>());
-            trn.GameTelemetrySource.Subscribe(_testObserver);
+            var trn = new TelemetryReaderNode(Array.Empty<ITelemetryObservableFactory>());
+            trn.GameTelemetryObservable.Subscribe(_testObserver);
 
-            trn.RunningGameTarget.OnNext(new RunningGame(null));
-            trn.RunningGameTarget.OnNext(new RunningGame("any"));
+            trn.RunningGameObserver.OnNext(new RunningGame(null));
+            trn.RunningGameObserver.OnNext(new RunningGame("any"));
 
             Assert.Empty(_testObserver.ReceivedValues());
         }
@@ -43,26 +43,26 @@ namespace RaceDirector.Tests.Pipeline.Telemetry
         [Fact]
         public void SwitchesSourcesWhenGameChanges()
         {
-            var trn = new TelemetryReaderNode(new ITelemetrySourceFactory[]
+            var trn = new TelemetryReaderNode(new ITelemetryObservableFactory[]
             {
-                    new TestTelemetrySourceFactory("a", Telemetry[0]),
-                    new TestTelemetrySourceFactory("b", Telemetry[1], Telemetry[2])
+                    new TestTelemetryObservableFactory("a", Telemetry[0]),
+                    new TestTelemetryObservableFactory("b", Telemetry[1], Telemetry[2])
             });
-            trn.GameTelemetrySource.Subscribe(_testObserver);
+            trn.GameTelemetryObservable.Subscribe(_testObserver);
 
-            trn.RunningGameTarget.OnNext(new RunningGame("a"));
+            trn.RunningGameObserver.OnNext(new RunningGame("a"));
             Assert.Equal(new[] { Telemetry[0] }, _testObserver.ReceivedValues());
 
-            trn.RunningGameTarget.OnNext(new RunningGame("b"));
+            trn.RunningGameObserver.OnNext(new RunningGame("b"));
             Assert.Equal(new[] { Telemetry[0], Telemetry[1], Telemetry[2] }, _testObserver.ReceivedValues());
 
-            trn.RunningGameTarget.OnNext(new RunningGame("a"));
+            trn.RunningGameObserver.OnNext(new RunningGame("a"));
             Assert.Equal(new[] { Telemetry[0], Telemetry[1], Telemetry[2], Telemetry[0] }, _testObserver.ReceivedValues());
         }
 
-        private record TestTelemetrySourceFactory(string GameName, params IGameTelemetry[] Elements) : ITelemetrySourceFactory
+        private record TestTelemetryObservableFactory(string GameName, params IGameTelemetry[] Elements) : ITelemetryObservableFactory
         {
-            public IObservable<IGameTelemetry> CreateTelemetrySource()
+            public IObservable<IGameTelemetry> CreateTelemetryObservable()
             {
                 return Elements.ToObservable();
             }

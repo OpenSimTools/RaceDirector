@@ -13,18 +13,18 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// <typeparam name="TData">Data type</typeparam>
     public abstract class WebSocketNodeBase<TTrigger, TData>
     {
-        protected readonly IObserver<TTrigger> TriggerTarget;
-        protected readonly IObserver<TData> DataTarget;
+        protected readonly IObserver<TTrigger> TriggerObserver;
+        protected readonly IObserver<TData> DataObserver;
 
         protected WebSocketNodeBase(IEnumerable<IWsServer<TData>> servers)
         {
-            TriggerTarget = Observer.Create<TTrigger>(trigger => {
+            TriggerObserver = Observer.Create<TTrigger>(trigger => {
                 if (ServerShouldRun(trigger))
-                    foreach (var s in servers) s.Start(); // FIXME Address already in use!
+                    foreach (var s in servers) s.Start();
                 else
                     foreach (var s in servers) s.Stop();
             });
-            DataTarget = Observer.Create<TData>(data =>
+            DataObserver = Observer.Create<TData>(data =>
             {
                 foreach (var s in servers) s.Multicast(data);
             });

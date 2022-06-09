@@ -21,7 +21,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             _config = config;
         }
 
-        public IObservable<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetrySource()
+        public IObservable<Pipeline.Telemetry.V0.IGameTelemetry> CreateTelemetryObservable()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
             var telemetry = new Telemetry();

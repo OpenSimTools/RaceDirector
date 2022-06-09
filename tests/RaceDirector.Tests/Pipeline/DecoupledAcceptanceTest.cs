@@ -90,7 +90,7 @@ namespace RaceDirector.Tests.Pipeline
         }
     }
 
-    internal record FakeGame(Func<double, IObservable<IGameTelemetry>> CreateTelemetrySourceF) : IGame
+    internal record FakeGame(Func<double, IObservable<IGameTelemetry>> CreateTelemetryObservableF) : IGame
     {
         private int _createTelemetryCallCounter;
 
@@ -98,10 +98,10 @@ namespace RaceDirector.Tests.Pipeline
 
         public string[] GameProcessNames => new[] {"TestProcess.exe"};
 
-        public IObservable<IGameTelemetry> CreateTelemetrySource()
+        public IObservable<IGameTelemetry> CreateTelemetryObservable()
         {
             double callCount = Interlocked.Add(ref _createTelemetryCallCounter, 1);
-            return CreateTelemetrySourceF(callCount);
+            return CreateTelemetryObservableF(callCount);
         }
     }
 

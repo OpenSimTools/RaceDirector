@@ -10,20 +10,20 @@ namespace RaceDirector.Pipeline
     public static class PipelineBuilder
     {
         /// <summary>
-        /// Linking source and target node properties based on their types.
+        /// Linking observable and observer node properties based on their types.
         /// </summary>
         /// <param name="nodes">Nodes to inspect.</param>
         public static void LinkNodes(IEnumerable<INode> nodes)
         {
-            ForEachProperty(typeof(IObservable<>), nodes, (sourceBlockType, sourceBlock) =>
+            ForEachProperty(typeof(IObservable<>), nodes, (observableType, observable) =>
             {
-                ForEachProperty(typeof(IObserver<>), nodes, (targetBlockType, targetBlock) =>
+                ForEachProperty(typeof(IObserver<>), nodes, (observerType, observer) =>
                 {
-                    var sourceGenericType = sourceBlockType.GenericTypeArguments[0];
-                    var targetGenericType = targetBlockType.GenericTypeArguments[0];
-                    if (targetGenericType.IsAssignableFrom(sourceGenericType))
+                    var observableGenericType = observableType.GenericTypeArguments[0];
+                    var observerGenericType = observerType.GenericTypeArguments[0];
+                    if (observerGenericType.IsAssignableFrom(observableGenericType))
                     {
-                        sourceBlockType.InvokeMember(nameof(IObservable<object>.Subscribe), BindingFlags.InvokeMethod, null, sourceBlock, new[] { targetBlock });
+                        observableType.InvokeMember(nameof(IObservable<object>.Subscribe), BindingFlags.InvokeMethod, null, observable, new[] { observer });
                     }
                 });
             });

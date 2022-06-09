@@ -57,12 +57,12 @@ namespace HUD.Tests.Pipeline
 
             public void PostTrigger(bool trigger)
             {
-                TriggerTarget.OnNext(trigger);
+                TriggerObserver.OnNext(trigger);
             }
 
             public void PostData(int data)
             {
-                DataTarget.OnNext(data);
+                DataObserver.OnNext(data);
             }
         }
 
