@@ -8,35 +8,35 @@ namespace RaceDirector.Pipeline.Games.ACC
     internal class TelemetryConverter
     {
 
-        internal GameTelemetry Transform(ref Contrib.Data.Shared shared)
+        internal GameTelemetry Transform(ref Contrib.Data.Shared sharedData)
         {
-            if (shared.Static.SmVersionMajor != Contrib.Constant.SmVersionMajor)
+            if (sharedData.Static.SmVersionMajor != Contrib.Constant.SmVersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
-                GameState: ToGameState(ref shared),
+                GameState: ToGameState(ref sharedData),
                 UsingVR: null, // TODO Check if it can be inferred from process parameters
-                Event: ToEvent(ref shared),
-                Session: ToSession(ref shared),
-                Vehicles: ToVehicles(ref shared),
-                FocusedVehicle: ToFocusedVehicle(ref shared),
-                Player: ToPlayer(ref shared)
+                Event: ToEvent(ref sharedData),
+                Session: ToSession(ref sharedData),
+                Vehicles: ToVehicles(ref sharedData),
+                FocusedVehicle: ToFocusedVehicle(ref sharedData),
+                Player: ToPlayer(ref sharedData)
             );
         }
 
-        private GameState ToGameState(ref Contrib.Data.Shared shared)
+        private static GameState ToGameState(ref Contrib.Data.Shared sharedData)
         {
-            return shared.Graphic.Status switch
+            return sharedData.Graphic.Status switch
             {
                 Contrib.Constant.Status.Off => GameState.Replay, // recorded replay
                 Contrib.Constant.Status.Replay => GameState.Replay, // in-game replay
-                Contrib.Constant.Status.Live when shared.Physics.WaterTemp == 0 => GameState.Menu, // in-game menu
+                Contrib.Constant.Status.Live when sharedData.Physics.WaterTemp == 0 => GameState.Menu, // in-game menu
                 Contrib.Constant.Status.Live => GameState.Driving,
                 Contrib.Constant.Status.Pause => GameState.Paused, // single player game paused
                 _ => throw new ArgumentException("Unknown game state")
             };
         }
 
-        private Event? ToEvent(ref Contrib.Data.Shared shared)
+        private static Event? ToEvent(ref Contrib.Data.Shared sharedData)
         {
             return new Event(
                 TrackLayout: new TrackLayout
@@ -47,13 +47,13 @@ namespace RaceDirector.Pipeline.Games.ACC
                     // Will have to record them on track and save them in config.
                     SectorsEnd: Array.Empty<IFraction<IDistance>>() // TODO
                 ),
-                FuelRate: shared.Static.AidFuelRate
+                FuelRate: sharedData.Static.AidFuelRate
             );
         }
 
-        private Session? ToSession(ref Contrib.Data.Shared shared)
+        private static Session? ToSession(ref Contrib.Data.Shared sharedData)
         {
-            var maybeSessionType = ToSessionType(shared.Graphic.Session);
+            var maybeSessionType = ToSessionType(sharedData.Graphic.Session);
             if (maybeSessionType is null)
                 return null;
 
@@ -99,7 +99,7 @@ namespace RaceDirector.Pipeline.Games.ACC
             );
         }
 
-        private SessionType? ToSessionType(Contrib.Constant.SessionType session) => session switch
+        private static SessionType? ToSessionType(Contrib.Constant.SessionType session) => session switch
         {
             Contrib.Constant.SessionType.Practice => SessionType.Practice,
             Contrib.Constant.SessionType.Qualify => SessionType.Qualify,
@@ -113,12 +113,12 @@ namespace RaceDirector.Pipeline.Games.ACC
             _ => null
         };
 
-        private Vehicle[] ToVehicles(ref Contrib.Data.Shared shared)
+        private static Vehicle[] ToVehicles(ref Contrib.Data.Shared sharedData)
         {
             return Array.Empty<Vehicle>();
         }
 
-        private Vehicle? ToVehicle(ref Contrib.Data.Shared shared)
+        private static Vehicle? ToVehicle(ref Contrib.Data.Shared sharedData)
         {
             return new Vehicle
             (
@@ -173,7 +173,7 @@ namespace RaceDirector.Pipeline.Games.ACC
             );
         }
 
-        private Vehicle? ToFocusedVehicle(ref Contrib.Data.Shared shared)
+        private static Vehicle? ToFocusedVehicle(ref Contrib.Data.Shared sharedData)
         {
             return new Vehicle
             (
@@ -228,7 +228,7 @@ namespace RaceDirector.Pipeline.Games.ACC
             );
         }
 
-        private Player? ToPlayer(ref Contrib.Data.Shared shared)
+        private static Player? ToPlayer(ref Contrib.Data.Shared sharedData)
         {
             return new Player
             (

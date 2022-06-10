@@ -12,7 +12,7 @@ namespace RaceDirector.Pipeline.Games.ACC
     {
         public record Config(TimeSpan PollingInterval); // TODO remove when config done
 
-        private Config _config;
+        private readonly Config _config;
 
         public string GameName => "ACC";
 
