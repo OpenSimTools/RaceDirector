@@ -3,7 +3,7 @@ using RaceDirector.Pipeline.Telemetry;
 
 namespace RaceDirector.Pipeline.Games
 {
-    public interface IGame : ITelemetrySourceFactory, IGameProcessInfo
+    public interface IGame : ITelemetryObservableFactory, IGameProcessInfo
     {
     }
 }

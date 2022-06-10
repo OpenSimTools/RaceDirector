@@ -1,17 +1,16 @@
-using Xunit;
-using System.Threading.Tasks.Dataflow;
 using System;
 using System.Diagnostics;
-using Xunit.Categories;
+using System.Linq;
+using Microsoft.Reactive.Testing;
 using RaceDirector.Pipeline.GameMonitor;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
+using RaceDirector.Tests.Pipeline.Utils;
+using Xunit;
+using Xunit.Categories;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
-     [IntegrationTest]
-     public class ProcessMonitorNodeTest
+    [IntegrationTest]
+    public class ProcessMonitorNodeTest
     {
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
         private static readonly TimeSpan Timeout = PollingInterval * 3;
@@ -20,22 +19,28 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
         private static readonly string ProcessName = "RaceDirector.Tests.Ext.Process";
         private static readonly string ProcessArgs = Timeout.Multiply(3).Seconds.ToString();
 
-        private static readonly ILogger<ProcessMonitorNode> TestLogger = NullLogger<ProcessMonitorNode>.Instance;
-
         [Fact]
         public void OutputGameNameWhenProcessRunning()
         {
-            var gameProcessInfos = new [] {
-                new GameProcessInfo(GameName, new[] { ProcessName })
+            var testScheduler = new TestScheduler();
+            var gameProcessInfos = new[]
+            {
+                new GameProcessInfo(GameName, new[] {ProcessName})
             };
             var config = new ProcessMonitorNode.Config(PollingInterval);
-            var processMonitorNode = new ProcessMonitorNode(TestLogger, config, gameProcessInfos);
-            var source = processMonitorNode.RunningGameSource;
+            var processMonitorNode = new TestProcessMonitorNode(config, gameProcessInfos, testScheduler);
+            var observer = testScheduler.CreateObserver<RunningGame>();
+            processMonitorNode.RunningGameObservable.Subscribe(observer);
             using (new RunningProcess(ProcessName, ProcessArgs))
             {
-                Assert.Equal(GameName, source.Receive(Timeout).Name);
+                testScheduler.AdvanceTo(PollingInterval.Ticks);
+                var first = Assert.Single(observer.ReceivedValues());
+                Assert.Equal(GameName, first.Name);
             }
-            Assert.Null(source.Receive(Timeout).Name);
+
+            testScheduler.AdvanceBy(PollingInterval.Ticks);
+            var second = Assert.Single(observer.ReceivedValues().Skip(1));
+            Assert.Null(second.Name);
         }
 
         private record GameProcessInfo(string GameName, string[] GameProcessNames) : IGameProcessInfo;

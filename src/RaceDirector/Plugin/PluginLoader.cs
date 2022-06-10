@@ -3,6 +3,7 @@ using System.Runtime.Versioning;
 
 namespace RaceDirector.Plugin
 {
+    [SupportedOSPlatform("windows")]
     public static class PluginLoader
     {
         [SupportedOSPlatform("windows")]

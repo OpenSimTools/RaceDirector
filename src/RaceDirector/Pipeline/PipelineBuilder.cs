@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks.Dataflow;
+using System.Reflection;
 
 namespace RaceDirector.Pipeline
 {
@@ -10,37 +10,24 @@ namespace RaceDirector.Pipeline
     public static class PipelineBuilder
     {
         /// <summary>
-        /// Linking source and target node properties based on their types.
+        /// Linking observable and observer node properties based on their types.
         /// </summary>
         /// <param name="nodes">Nodes to inspect.</param>
         public static void LinkNodes(IEnumerable<INode> nodes)
         {
-            ForEachProperty(typeof(ISourceBlock<>), nodes, (sourceBlockType, sourceBlock) =>
+            ForEachProperty(typeof(IObservable<>), nodes, (observableType, observable) =>
             {
-                var targetBlocks = new List<dynamic>();
-                ForEachProperty(typeof(ITargetBlock<>), nodes, (targetBlockType, targetBlock) =>
+                ForEachProperty(typeof(IObserver<>), nodes, (observerType, observer) =>
                 {
-                    if (sourceBlockType.GenericTypeArguments[0].IsAssignableTo(targetBlockType.GenericTypeArguments[0]))
-                        targetBlocks.Add(targetBlock);
+                    var observableGenericType = observableType.GenericTypeArguments[0];
+                    var observerGenericType = observerType.GenericTypeArguments[0];
+                    if (observerGenericType.IsAssignableFrom(observableGenericType))
+                    {
+                        observableType.InvokeMember(nameof(IObservable<object>.Subscribe), BindingFlags.InvokeMethod, null, observable, new[] { observer });
+                    }
                 });
-                if (targetBlocks.Count > 1)
-                {
-                    var broadcastBlockType = typeof(BroadcastBlock<>).MakeGenericType(sourceBlockType.GenericTypeArguments);
-                    // CreateInstance can return null only for Nullable types
-                    dynamic broadcastBlock = Activator.CreateInstance(broadcastBlockType, new object?[] { null })!;
-                    DataflowBlock.LinkTo(sourceBlock, broadcastBlock);
-                    sourceBlock = broadcastBlock;
-                }
-                foreach (dynamic targetBlock in targetBlocks)
-                    DataflowBlock.LinkTo(sourceBlock, targetBlock);
             });
         }
-
-        /// <summary>
-        /// Convenience method for tests.
-        /// </summary>
-        /// <param name="nodes">Nodes to inspect.</param>
-        public static void LinkNodes(params INode[] nodes) => LinkNodes((IEnumerable<INode>) nodes);
 
         private static void ForEachProperty(Type genericTypeDefinition, IEnumerable<object> objects, Action<Type, dynamic> action)
         {

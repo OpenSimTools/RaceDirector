@@ -1,56 +1,60 @@
 ﻿using RaceDirector.Pipeline;
-using static RaceDirector.Pipeline.PipelineBuilder;
-using System.Threading.Tasks.Dataflow;
 using Xunit;
 using System;
 using Xunit.Categories;
+using System.Reactive.Subjects;
+using System.Reactive.Linq;
+using Microsoft.Reactive.Testing;
+using System.Linq;
+using RaceDirector.Tests.Pipeline.Utils;
+using System.Reactive;
 
 namespace RaceDirector.Tests.Pipeline
 {
     [IntegrationTest]
     public class PipelineBuilderTest
     {
-        private static TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
+        private static int EventsTimestamp = 42;
+
+        private readonly TestScheduler testScheduler = new ();
 
         [Fact]
-        public void LinksSourceToTargetsOfAssignableType()
+        public void LinksObservableToObserversOfAssignableType()
         {
-            var sourceNodeV1 = new OneSourceNode<V1<int, long>>();
-            var targetNodeIV0 = new OneTargetNode<IV0<int>>();
-            var targetNodeIV1 = new OneTargetNode<IV1<int, long>>();
             var message = new V1<int, long>(1, 2);
 
-            LinkNodes(sourceNodeV1, targetNodeIV0, targetNodeIV1);
+            var observableNodeV1 = new OneObservableNode<V1<int, long>>(testScheduler, message);
+            var observerNodeIV0 = new OneObserverNode<IV0<int>>(testScheduler);
+            var observerNodeIV1 = new OneObserverNode<IV1<int, long>>(testScheduler);
 
-            sourceNodeV1.Post1(message);
-            Assert.Equal(message.P1, targetNodeIV0.EventuallyReceive1().P1);
-            Assert.Equal(message, targetNodeIV1.EventuallyReceive1());
+            LinkAndRun(testScheduler, observableNodeV1, observerNodeIV0, observerNodeIV1);
+
+            Assert.Equal(message, observerNodeIV0.T1.ReceivedValues().First());
+            Assert.Equal(message, observerNodeIV1.T1.ReceivedValues().First());
         }
 
         [Fact]
-        public void DoesNotLinkSourceWhenTargetTypeUnssignable()
+        public void DoesNotLinkObservableWhenObserverTypeUnssignable()
         {
-            var sourceNode = new OneSourceNode<int>();
-            var targetNode = new TwoTargetsNode<int, string>();
+            var observableNode = new OneObservableNode<int>(testScheduler, 42);
+            var observerNode = new TwoObserversNode<int, string>(testScheduler);
 
-            LinkNodes(sourceNode, targetNode);
+            LinkAndRun(testScheduler, observableNode, observerNode);
 
-            sourceNode.Post1(42);
-            Assert.Equal(42, targetNode.EventuallyReceive1());
-            Assert.Null(targetNode.TryReceive2());
+            Assert.Equal(42, observerNode.T1.ReceivedValues().First());
+            Assert.Empty(observerNode.T2.ReceivedValues());
         }
 
         [Fact]
-        public void SupportsBlocksThatAreBothSourceAndTarget()
+        public void SupportsBlocksThatAreBothObservableAndObserver()
         {
-            var sourceNode = new OneSourceNode<int>();
+            var observableNode = new OneObservableNode<int>(testScheduler, 42);
             var transformationNode = new TransformationNode<int, string>(i => i.ToString());
-            var targetNode = new OneTargetNode<string>();
+            var observerNode = new OneObserverNode<string>(testScheduler);
 
-            LinkNodes(sourceNode, transformationNode, targetNode);
+            LinkAndRun(testScheduler, observableNode, transformationNode, observerNode);
 
-            sourceNode.Post1(42);
-            Assert.Equal("42", targetNode.EventuallyReceive1());
+            Assert.Equal("42", observerNode.T1.ReceivedValues().First());
         }
 
         #region Test setup
@@ -60,45 +64,54 @@ namespace RaceDirector.Tests.Pipeline
 
         public record V1<T1, T2>(T1 P1, T2 P2) : IV1<T1, T2>;
 
-        public class OneSourceNode<TO1> : INode
+        public class OneObservableNode<T> : INode
         {
-            public ISourceBlock<TO1> S1 => _s1;
-            private BufferBlock<TO1> _s1 = new();
-            public void Post1(TO1 o1) => _s1.Post(o1);
-        }
+            public ITestableObservable<T> S1  { get; private set; }
 
-        public class OneTargetNode<TI1> : INode
-        {
-            public ITargetBlock<TI1> T1 => _t1;
-            private BufferBlock<TI1> _t1 = new();
-            public TI1 EventuallyReceive1() => _t1.Receive(Timeout);
-        }
-
-        public class TwoTargetsNode<TI1, TI2> : OneTargetNode<TI1>
-        {
-            public ITargetBlock<TI2> T2 => _t2;
-            private BufferBlock<TI2> _t2 = new();
-            public TI2? TryReceive2()
+            public OneObservableNode(TestScheduler testScheduler, params T[] messages)
             {
-                try
-                {
-                    return _t2.Receive(TimeSpan.Zero);
-                }
-                catch
-                {
-                    return default;
-                };
+                var recordedNotifications = messages.Select(m =>
+                    new Recorded<Notification<T>>(EventsTimestamp, Notification.CreateOnNext(m))
+                ).ToArray();
+                S1 = testScheduler.CreateHotObservable<T>(recordedNotifications);
+            }
+        }
+
+        public class OneObserverNode<T> : INode
+        {
+            public ITestableObserver<T> T1 { get; private set; }
+
+            public OneObserverNode(TestScheduler testScheduler)
+            {
+                T1 = testScheduler.CreateObserver<T>();
+            }
+        }
+
+        public class TwoObserversNode<TI1, TI2> : OneObserverNode<TI1>
+        {
+            public ITestableObserver<TI2> T2 { get; private set; }
+
+            public TwoObserversNode(TestScheduler testScheduler) : base(testScheduler)
+            {
+                T2 = testScheduler.CreateObserver<TI2>();
             }
         }
 
         public class TransformationNode<TI, TO> : INode
         {
-            public TransformBlock<TI, TO> SourceAndTarget { get; private set; }
+            public ISubject<TI, TO> ObservableAndObserver { get; private set; }
             
             public TransformationNode(Func<TI, TO> f)
             {
-                SourceAndTarget = new TransformBlock<TI, TO>(f);
+                var subject = new Subject<TI>();
+                ObservableAndObserver = Subject.Create(subject, subject.Select(f));
             }
+        }
+
+        private static void LinkAndRun(TestScheduler testScheduler, params INode[] nodes)
+        {
+            PipelineBuilder.LinkNodes(nodes);
+            testScheduler.AdvanceTo(EventsTimestamp);
         }
 
         #endregion

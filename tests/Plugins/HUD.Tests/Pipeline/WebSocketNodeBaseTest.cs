@@ -1,10 +1,9 @@
 using HUD.Tests.Base;
 using Moq;
 using RaceDirector.Plugin.HUD.Pipeline;
+using RaceDirector.Plugin.HUD.Server;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks.Dataflow;
-using RaceDirector.Plugin.HUD.Server;
 using Xunit;
 
 namespace HUD.Tests.Pipeline
@@ -58,12 +57,12 @@ namespace HUD.Tests.Pipeline
 
             public void PostTrigger(bool trigger)
             {
-                TriggerTarget.Post(trigger);
+                TriggerObserver.OnNext(trigger);
             }
 
             public void PostData(int data)
             {
-                DataTarget.Post(data);
+                DataObserver.OnNext(data);
             }
         }
 

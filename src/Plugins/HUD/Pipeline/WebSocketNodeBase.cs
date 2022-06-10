@@ -1,7 +1,7 @@
-﻿using System;
+﻿using RaceDirector.Plugin.HUD.Server;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks.Dataflow;
-using RaceDirector.Plugin.HUD.Server;
+using System.Reactive;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -11,20 +11,21 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     /// <typeparam name="TTrigger">Trigger type</typeparam>
     /// <typeparam name="TData">Data type</typeparam>
-    public abstract class WebSocketNodeBase<TTrigger, TData> : IDisposable
+    public abstract class WebSocketNodeBase<TTrigger, TData>
     {
-        protected readonly ITargetBlock<TTrigger> TriggerTarget;
-        protected readonly ITargetBlock<TData> DataTarget;
+        protected readonly IObserver<TTrigger> TriggerObserver;
+        protected readonly IObserver<TData> DataObserver;
 
         protected WebSocketNodeBase(IEnumerable<IWsServer<TData>> servers)
         {
-            TriggerTarget = new ActionBlock<TTrigger>(trigger => {
+            TriggerObserver = Observer.Create<TTrigger>(trigger => {
                 if (ServerShouldRun(trigger))
                     foreach (var s in servers) s.Start();
                 else
                     foreach (var s in servers) s.Stop();
             });
-            DataTarget = new ActionBlock<TData>(data => {
+            DataObserver = Observer.Create<TData>(data =>
+            {
                 foreach (var s in servers) s.Multicast(data);
             });
         }
@@ -35,11 +36,5 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         /// <param name="trigger"></param>
         /// <returns></returns>
         protected abstract bool ServerShouldRun(TTrigger trigger);
-
-        public virtual void Dispose()
-        {
-            TriggerTarget.Complete();
-            DataTarget.Complete();
-        }
     }
 }

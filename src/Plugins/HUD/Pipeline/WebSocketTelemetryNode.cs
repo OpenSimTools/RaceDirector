@@ -1,9 +1,9 @@
 ﻿using IGameTelemetry = RaceDirector.Pipeline.Telemetry.V0.IGameTelemetry;
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
-using System.Threading.Tasks.Dataflow;
 using RaceDirector.Pipeline;
-using System.Collections.Generic;
 using RaceDirector.Plugin.HUD.Server;
+using System.Collections.Generic;
+using System;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
@@ -12,19 +12,13 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, IGameTelemetry>, INode
     {
-        public ITargetBlock<IRunningGame> RunningGameTarget
-        {
-            get { return TriggerTarget; }
-        }
+        public IObserver<IRunningGame> RunningGameObserver => TriggerObserver;
 
-        public ITargetBlock<IGameTelemetry> GameTelemetryTarget
-        {
-            get { return DataTarget; }
-        }
+        public IObserver<IGameTelemetry> GameTelemetryObserver => DataObserver;
 
         public WebSocketTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers) : base(servers) { }
 
-        override protected bool ServerShouldRun(IRunningGame runningGame) {
+        protected override bool ServerShouldRun(IRunningGame runningGame) {
             return runningGame.IsRunning();
         }
     }
