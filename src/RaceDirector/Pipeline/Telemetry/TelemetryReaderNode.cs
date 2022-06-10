@@ -8,19 +8,13 @@ using RaceDirector.Pipeline.Utils;
 
 namespace RaceDirector.Pipeline.Telemetry
 {
-    public class TelemetryReaderNode : INode, IDisposable
+    public sealed class TelemetryReaderNode : INode, IDisposable
     {
-        public IObservable<V0.IGameTelemetry> GameTelemetryObservable
-        {
-            get => _subject.SelectManyUntilNext(rg => _createObservable(rg));
-        }
+        public IObservable<V0.IGameTelemetry> GameTelemetryObservable => _subject.SelectManyUntilNext(rg => _createObservable(rg));
 
-        public IObserver<IRunningGame> RunningGameObserver
-        {
-            get => _subject;
-        }
+        public IObserver<IRunningGame> RunningGameObserver => _subject;
 
-        private Subject<IRunningGame> _subject;
+        private readonly Subject<IRunningGame> _subject;
         private Func<IRunningGame, IObservable<V0.IGameTelemetry>> _createObservable;
 
         public TelemetryReaderNode(IEnumerable<ITelemetryObservableFactory> telemetryObservableFactories)

@@ -14,10 +14,7 @@ namespace RaceDirector.Pipeline.GameMonitor
 
         public record Config(TimeSpan PollingInterval); // TODO remove when config done
 
-        public IObservable<RunningGame> RunningGameObservable
-        {
-            get => _lazyRunningGameObservable.Value;
-        }
+        public IObservable<RunningGame> RunningGameObservable => _lazyRunningGameObservable.Value;
 
         private readonly Lazy<IObservable<RunningGame>> _lazyRunningGameObservable;
 
