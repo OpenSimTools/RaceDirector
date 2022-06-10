@@ -1,26 +1,27 @@
 ﻿using NetCoreServer;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 
 namespace HUD.Tests.TestUtils
 {
     internal class JsonWsClient : WsClient
     {
-        public Task Connected { get { return _connectedCompletionSource.Task; } }
+        public Task Connected => _connectedCompletionSource.Task;
 
         private readonly TaskCompletionSource _connectedCompletionSource;
         private readonly string _path;
-        private BufferBlock<string> _received;
-        private TimeSpan _timeout;
+        private readonly BlockingCollection<string?> _received;
+        private readonly TimeSpan _timeout;
 
         public JsonWsClient(TimeSpan timeout, int port, string path = "/") : base(IPAddress.Loopback, port)
         {
             _connectedCompletionSource = new TaskCompletionSource();
             _path = path;
-            _received = new BufferBlock<string>();
+            _received = new BlockingCollection<string?>();
             _timeout = timeout;
         }
 
@@ -29,7 +30,7 @@ namespace HUD.Tests.TestUtils
             return ConnectAsync() && Connected.Wait(_timeout);
         }
 
-        public T? next<T>()
+        public T? Next<T>()
         {
             return JsonSerializer.Deserialize<T>(NextString());
         }
@@ -41,7 +42,13 @@ namespace HUD.Tests.TestUtils
 
         public string NextString()
         {
-            return _received.Receive(_timeout);
+            if (!_received.TryTake(out var body, _timeout))
+                throw new TimeoutException("Message not received within timeout");
+
+            if (body is null)
+                throw new NullReferenceException("Body cannot be null");
+
+            return body;
         }
 
         public override void OnWsConnecting(HttpRequest request)
@@ -62,7 +69,7 @@ namespace HUD.Tests.TestUtils
         public override void OnWsReceived(byte[] buffer, long offset, long size)
         {
             var message = System.Text.Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-            _received.Post(message);
+            _received.Add(message);
         }
     }
 }
