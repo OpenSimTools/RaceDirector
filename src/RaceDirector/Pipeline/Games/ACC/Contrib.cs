@@ -396,8 +396,6 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public string DryTyresName; // Name of the dry tyres
             [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string WetTyresName; // Name of the wet tyres
-
-            public int SmVersionMajor => Int32.Parse(SmVersion.Split('.')[0]);
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]

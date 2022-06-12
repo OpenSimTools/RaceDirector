@@ -7,10 +7,22 @@ namespace RaceDirector.Pipeline.Games.ACC
 {
     internal class TelemetryConverter
     {
+        private static GameTelemetry NoMMFiles = new(
+            GameState: GameState.Menu,
+            UsingVR: null,
+            Event: null,
+            Session: null,
+            Vehicles: Array.Empty<Vehicle>(),
+            FocusedVehicle: null,
+            Player: null
+        );
 
         internal GameTelemetry Transform(ref Contrib.Data.Shared sharedData)
         {
-            if (sharedData.Static.SmVersionMajor != Contrib.Constant.SmVersionMajor)
+            if (sharedData.Static.SmVersion.Length == 0)
+                return NoMMFiles;
+            var smVersionMajor = Int32.Parse(sharedData.Static.SmVersion.Split('.')[0]);
+            if (smVersionMajor != Contrib.Constant.SmVersionMajor)
                 throw new ArgumentException("Incompatible major version");
             return new GameTelemetry(
                 GameState: ToGameState(ref sharedData),

@@ -2,6 +2,7 @@
 using System;
 using System.Reactive.Linq;
 using System.Runtime.Versioning;
+using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Games.R3E
 {
@@ -21,7 +22,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             _config = config;
         }
 
-        public IObservable<Telemetry.V0.IGameTelemetry> CreateTelemetryObservable()
+        public IObservable<IGameTelemetry> CreateTelemetryObservable()
         {
             var mmReader = new MemoryMappedFileReader<Contrib.Data.Shared>(Contrib.Constant.SharedMemoryName);
             var telemetryConverter = new TelemetryConverter();
@@ -36,7 +37,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                     }
                     catch
                     {
-                        return Observable.Empty<Pipeline.Telemetry.GameTelemetry>();
+                        return Observable.Empty<IGameTelemetry>();
                     }
                 });
         }
