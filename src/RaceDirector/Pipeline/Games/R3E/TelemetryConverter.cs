@@ -61,7 +61,8 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (sharedData.LayoutLength < 0)
                 return null;
             var layoutLength = IDistance.FromM(sharedData.LayoutLength);
-            var sectors = ValuesPerSector(ref sharedData.SectorStartFactors, i => DistanceFraction.FromTotal(layoutLength, i));
+            var sectors = ValuesPerSector(ref sharedData.SectorStartFactors,
+                i => DistanceFraction.FromTotal(layoutLength, i));
             return new TrackLayout(
                 SectorsEnd: sectors
             );
@@ -250,7 +251,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new StartLights
             (
                 Color: LightColor.Red,
-                Lit: new BoundedValue<uint>((uint)startLights, MaxLights)
+                Lit: new BoundedValue<uint>((uint) startLights, MaxLights)
             );
         }
 
@@ -263,9 +264,10 @@ namespace RaceDirector.Pipeline.Games.R3E
             {
                 vehicles[i] = ToVehicle(ref sharedData.DriverData[i], ref sharedData);
             }
+
             return vehicles;
         }
-        
+
         private Vehicle ToVehicle(ref Contrib.Data.DriverData driverData, ref Contrib.Data.Shared sharedData)
         {
             return new Vehicle
@@ -277,7 +279,7 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ControlType: ControlType.Replay, // TODO
                 Position: 42, // TODO
                 PositionClass: SafeUInt32(driverData.PlaceClass),
-                GapAhead: TimeSpan.FromSeconds(driverData.TimeDeltaFront),   // It can be negative!
+                GapAhead: TimeSpan.FromSeconds(driverData.TimeDeltaFront), // It can be negative!
                 GapBehind: TimeSpan.FromSeconds(driverData.TimeDeltaBehind), // It can be negative!
                 CompletedLaps: SafeUInt32(driverData.CompletedLaps),
                 LapValid: ToLapValid(driverData.CurrentLapValid),
@@ -293,7 +295,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                     )
                 ),
                 BestSectors: null, // TODO
-                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LayoutLength), IDistance.FromM(driverData.LapDistance)),
+                CurrentLapDistance: DistanceFraction.FromTotal(IDistance.FromM(sharedData.LayoutLength),
+                    IDistance.FromM(driverData.LapDistance)),
                 Location: Vector3(ref driverData.Position, i => IDistance.FromM(i)),
                 Orientation: null, // TODO
                 Speed: ISpeed.FromMPS(42), // TODO
@@ -369,7 +372,8 @@ namespace RaceDirector.Pipeline.Games.R3E
                     )
                 ),
                 BestSectors: null, // TODO
-                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(sharedData.LapDistance), sharedData.LapDistanceFraction),
+                CurrentLapDistance: DistanceFraction.Of(IDistance.FromM(sharedData.LapDistance),
+                    sharedData.LapDistanceFraction),
                 Location: Vector3(ref sharedData.CarCgLocation, i => IDistance.FromM(i)),
                 Orientation: ToOrientation(ref sharedData.CarOrientation, i => IAngle.FromRad(i)),
                 Speed: ISpeed.FromMPS(sharedData.CarSpeed),
@@ -547,14 +551,17 @@ namespace RaceDirector.Pipeline.Games.R3E
                 ),
                 LocalAcceleration: Vector3(ref sharedData.Player.LocalAcceleration, IAcceleration.FromMPS2),
                 ClassBestLap: null, // TODO
-                ClassBestSectors: new Sectors // TODO are these the best sectors of the class leader or the best class sectors???
-                (
-                    Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeLeaderClass, i => TimeSpan.FromSeconds(i)),
-                    Cumulative: Array.Empty<TimeSpan>() // TODO
-                ),
+                ClassBestSectors: new
+                    Sectors // TODO are these the best sectors of the class leader or the best class sectors???
+                    (
+                        Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeLeaderClass,
+                            i => TimeSpan.FromSeconds(i)),
+                        Cumulative: Array.Empty<TimeSpan>() // TODO
+                    ),
                 PersonalBestSectors: new Sectors
                 (
-                    Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeSelf, i => TimeSpan.FromSeconds(i)),
+                    Individual: ValuesPerSector(ref sharedData.BestIndividualSectorTimeSelf,
+                        i => TimeSpan.FromSeconds(i)),
                     Cumulative: Array.Empty<TimeSpan>() // TODO
                 ),
                 PersonalBestDelta: TimeSpan.FromSeconds(sharedData.TimeDeltaBestSelf),
@@ -577,22 +584,24 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (sharedData.PitState == 1)
                 playerPitStop |= PlayerPitStop.Requested;
             foreach (var (pitActionFlag, playerPitStopFlag) in PitActionFlags)
-                if ((sharedData.PitAction & pitActionFlag) != 0) playerPitStop |= playerPitStopFlag;
+                if ((sharedData.PitAction & pitActionFlag) != 0)
+                    playerPitStop |= playerPitStopFlag;
             return playerPitStop;
         }
 
-        private static readonly (int, PlayerPitStop)[] PitActionFlags = {
-                (  1, PlayerPitStop.Preparing),
-                (  2, PlayerPitStop.ServingPenalty),
-                (  4, PlayerPitStop.DriverChange),
-                (  8, PlayerPitStop.Refuelling),
-                ( 16, PlayerPitStop.ChangeFrontTires),
-                ( 32, PlayerPitStop.ChangeRearTires),
-                ( 64, PlayerPitStop.RepairBody),
-                (128, PlayerPitStop.RepairFrontWing),
-                (256, PlayerPitStop.RepairRearWing),
-                (512, PlayerPitStop.RepairSuspension)
-            };
+        private static readonly (int, PlayerPitStop)[] PitActionFlags =
+        {
+            (1, PlayerPitStop.Preparing),
+            (2, PlayerPitStop.ServingPenalty),
+            (4, PlayerPitStop.DriverChange),
+            (8, PlayerPitStop.Refuelling),
+            (16, PlayerPitStop.ChangeFrontTires),
+            (32, PlayerPitStop.ChangeRearTires),
+            (64, PlayerPitStop.RepairBody),
+            (128, PlayerPitStop.RepairFrontWing),
+            (256, PlayerPitStop.RepairRearWing),
+            (512, PlayerPitStop.RepairSuspension)
+        };
 
         private static Orientation ToOrientation<T>(ref Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>
             new(Yaw: f(value.Yaw), Pitch: f(value.Pitch), Roll: f(value.Roll));
@@ -603,7 +612,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             if (drs.Equipped <= 0)
                 return null;
             return new ActivationToggled
-                (
+            (
                 Available: drs.Available > 0,
                 Engaged: drs.Engaged > 0,
                 ActivationsLeft: new BoundedValue<uint>(
@@ -612,14 +621,14 @@ namespace RaceDirector.Pipeline.Games.R3E
                 )
             );
         }
-        
+
         private static WaitTimeToggled? ToPtp(ref Contrib.Data.Shared sharedData)
         {
             var ptp = sharedData.PushToPass;
             if (ptp.Available < 0)
                 return null;
             return new WaitTimeToggled
-                (
+            (
                 Available: ptp.Available > 0,
                 Engaged: ptp.Engaged > 0,
                 ActivationsLeft: new BoundedValue<uint>
@@ -636,11 +645,13 @@ namespace RaceDirector.Pipeline.Games.R3E
         {
             return new[]
             {
-                new[] {
+                new[]
+                {
                     ToTire(ref sharedData, new ITireExtractor.FrontLeft()),
                     ToTire(ref sharedData, new ITireExtractor.FrontRight())
                 },
-                new[] {
+                new[]
+                {
                     ToTire(ref sharedData, new ITireExtractor.RearLeft()),
                     ToTire(ref sharedData, new ITireExtractor.RearRight())
                 }
@@ -658,11 +669,14 @@ namespace RaceDirector.Pipeline.Games.R3E
                 Temperatures: new TemperaturesMatrix
                 (
                     CurrentTemperatures: new[]
-                    { new[] {
-                        ITemperature.FromC(tireTemps.CurrentTemp.Left),
-                        ITemperature.FromC(tireTemps.CurrentTemp.Center),
-                        ITemperature.FromC(tireTemps.CurrentTemp.Right)
-                    }},
+                    {
+                        new[]
+                        {
+                            ITemperature.FromC(tireTemps.CurrentTemp.Left),
+                            ITemperature.FromC(tireTemps.CurrentTemp.Center),
+                            ITemperature.FromC(tireTemps.CurrentTemp.Right)
+                        }
+                    },
                     OptimalTemperature: ITemperature.FromC(tireTemps.OptimalTemp),
                     ColdTemperature: ITemperature.FromC(tireTemps.ColdTemp),
                     HotTemperature: ITemperature.FromC(tireTemps.HotTemp)
@@ -713,7 +727,7 @@ namespace RaceDirector.Pipeline.Games.R3E
             return new BoundedValue<uint>(blueWarnings, 2);
         }
 
-        private static uint PositiveOrZero(int value) => value > 0 ? (uint)value : 0;
+        private static uint PositiveOrZero(int value) => value > 0 ? (uint) value : 0;
 
         private static string FromNullTerminatedByteArray(byte[] nullTerminated)
         {
@@ -727,14 +741,14 @@ namespace RaceDirector.Pipeline.Games.R3E
             new(X: f(value.X), Y: f(value.Y), Z: f(value.Z));
 
         private static TO[] ValuesPerSector<TI, TO>(ref Contrib.Data.Sectors<TI> value, Func<TI, TO> f) =>
-            new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
+            new[] {f(value.Sector1), f(value.Sector2), f(value.Sector3)};
 
         private static TO[] ValuesPerSector<TI, TO>(ref Contrib.Data.SectorStarts<TI> value, Func<TI, TO> f) =>
-            new[] { f(value.Sector1), f(value.Sector2), f(value.Sector3) };
+            new[] {f(value.Sector1), f(value.Sector2), f(value.Sector3)};
 
         private static uint SafeUInt32(int i, uint defaultValue = 0)
         {
-            return i < 0 ? defaultValue : (uint)i;
+            return i < 0 ? defaultValue : (uint) i;
         }
 
         private static bool? NullableBoolean(int i)
@@ -770,12 +784,13 @@ namespace RaceDirector.Pipeline.Games.R3E
                     break;
                 case 5:
                     if (_current != null)
-                        _current = _current with { Active = true };
+                        _current = _current with {Active = true};
                     break;
                 default:
-                    _current = _constructor((uint)newLevel);
+                    _current = _constructor((uint) newLevel);
                     break;
             }
+
             return _current;
         }
     }
