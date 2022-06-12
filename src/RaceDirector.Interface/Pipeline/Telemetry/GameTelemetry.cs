@@ -11,7 +11,7 @@ namespace RaceDirector.Pipeline.Telemetry
     public record GameTelemetry
     (
         GameState GameState,
-        bool UsingVR,
+        bool? UsingVR,
         Event? Event,
         Session? Session,
         Vehicle[] Vehicles,
@@ -28,12 +28,12 @@ namespace RaceDirector.Pipeline.Telemetry
 
     public record Event
     (
-        TrackLayout Track,
+        TrackLayout TrackLayout,
         // ISessionDuration[] SessionsLength
         double FuelRate
     ) : IEvent
     {
-        ITrackLayout IEvent.Track => Track;
+        ITrackLayout IEvent.TrackLayout => TrackLayout;
     }
 
     public record TrackLayout

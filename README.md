@@ -1,19 +1,21 @@
 # RaceDirector
 
 At the moment the software is a replacement for RaceRoom's closed source
-[Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip)
-command.
+[Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip) command. The major
+difference is that it can export telemetry from other games (see [supported games](docs/Games.md)).
 
-It is a console application that will read every 15ms the memory mapped file that
-RaceRoom exposes, only when the game is running. It will then expose that data on
-a WebSocket (`ws://localhost:8070/r3e`). The supported fields are those required
-by [RaceRoom's WebHud](https://github.com/sector3studios/webhud), and can be found
+It is a console application that will read every 15ms the memory mapped file that RaceRoom exposes,
+only when the game is running. It will then expose that data on a WebSocket
+(`ws://localhost:8070/r3e`). The supported fields are those required by
+[RaceRoom's WebHud](https://github.com/sector3studios/webhud), and can be found
 [here](docs/Plugins/HUD/README.md).
 
-To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser
-window can be pointed to https://sector3studios.github.io/webhud/dist/.
+To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser window can be
+pointed to https://sector3studios.github.io/webhud/dist/.
 
-Please note that [OtterHUD](https://forum.sector3studios.com/index.php?threads/otterhud-a-custom-webhud-with-additional-features.13152/) (closed source) requires more fields than *currently* supported.
+Please note that
+[OtterHUD](https://forum.sector3studios.com/index.php?threads/otterhud-a-custom-webhud-with-additional-features.13152/)
+(closed source) requires more fields than *currently* supported.
 
 ## Build
 

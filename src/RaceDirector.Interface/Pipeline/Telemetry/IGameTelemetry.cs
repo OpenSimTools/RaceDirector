@@ -23,7 +23,7 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             GameState GameState { get; }
 
-            bool UsingVR { get; }
+            bool? UsingVR { get; }
 
             /// <summary>
             /// Race event information.
@@ -64,14 +64,14 @@ namespace RaceDirector.Pipeline.Telemetry
         public enum GameState
         {
             Driving,
-            //Paused,  // R3E GamePaused - is the clock ticking? (-1 in main menu, 0 in replay, 1 in single player menu, 0 in multi player menu)
+            Paused,  // R3E GamePaused - is the clock ticking? (-1 in main menu, 0 in replay, 1 in single player menu, 0 in multi player menu)
             Menu,    // R3E GameInMenus (-1 in main menu, 1 in single or multi player menu, 1 in monitor)
             Replay   // R3E GameInReplay (-1 in main menu, 1 in replay, 0 in monitor)
         }
 
         public interface IEvent
         {
-            ITrackLayout Track { get; }
+            ITrackLayout TrackLayout { get; }
 
             /// <summary>
             /// Fuel burning rate. 0.0 disabled, 1.0 is normal, 2.0 double, etc.
@@ -170,6 +170,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum SessionPhase
         {
+            Unknown = 0,
             Garage = 1,           // R3E, RF2
             GridWalk = 2,         // R3E, RF2
             Formation = 3,        // R3E, AMS2 (eSessionState), RF2

@@ -41,8 +41,7 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // AllDriversOffset
                 // DriverDataSize
 
-                // GamePaused
-
+                w.WriteNumber("GamePaused", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Paused));
                 w.WriteNumber("GameInMenus", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Menu));
                 w.WriteNumber("GameInReplay", gt.Session is null ? -1 : MatchAsInt32(gt.GameState, GameState.Replay));
                 w.WriteNumber("GameUsingVr", gt.Session is null ? -1 : ToInt32(gt.UsingVR));
@@ -123,9 +122,9 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // TrackId
                 // LayoutId
 
-                w.WriteRoundedNumber("LayoutLength", (gt.Event?.Track.Length?.M) ?? -1.0);
+                w.WriteRoundedNumber("LayoutLength", (gt.Event?.TrackLayout.Length?.M) ?? -1.0);
 
-                w.WriteSectors("SectorStartFactors", gt.Event?.Track.SectorsEnd, st => st.Fraction);
+                w.WriteSectors("SectorStartFactors", gt.Event?.TrackLayout.SectorsEnd, st => st.Fraction);
 
                 // RaceSessionLaps.Race1
                 // RaceSessionLaps.Race2
@@ -311,7 +310,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                 // NumPenalties
 
                 w.WriteNumber("CompletedLaps", ToInt32(gt.FocusedVehicle?.CompletedLaps));
-                w.WriteNumber("CurrentLapValid", gt.FocusedVehicle?.LapValid switch {
+                w.WriteNumber("CurrentLapValid", gt.FocusedVehicle?.LapValid switch
+                {
                     LapValidState.Invalid => 0,
                     LapValidState.Valid => 1,
                     _ => -1
@@ -369,7 +369,8 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
                     w.WriteNumber("SlotId", ToInt32(gt.FocusedVehicle?.Id));
                     w.WriteNumber("ClassPerformanceIndex", gt.FocusedVehicle?.ClassPerformanceIndex ?? -1);
-                    w.WriteNumber("EngineType", gt.FocusedVehicle?.EngineType switch {
+                    w.WriteNumber("EngineType", gt.FocusedVehicle?.EngineType switch
+                    {
                         EngineType.Combustion => 0,
                         EngineType.Electric => 1,
                         EngineType.Hybrid => 2,

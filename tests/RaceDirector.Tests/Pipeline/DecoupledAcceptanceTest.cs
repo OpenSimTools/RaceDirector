@@ -109,7 +109,7 @@ namespace RaceDirector.Tests.Pipeline
     {
         public GameState GameState => GameState.Menu;
 
-        public bool UsingVR => false;
+        public bool? UsingVR => null;
 
         public IEvent? Event => null;
 
