@@ -9,7 +9,10 @@ namespace RaceDirector.Pipeline.Games.R3E
     [SupportedOSPlatform("windows")]
     public class Game : IGame
     {
-        public record Config(TimeSpan PollingInterval); // TODO remove when config done
+        public class Config
+        {
+            public TimeSpan PollingInterval { get; set; }
+        }
 
         private Config _config;
 

@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Hosting;
 using RaceDirector.Pipeline;
 using RaceDirector.Plugin;
-using System;
 using System.Runtime.Versioning;
+using Microsoft.Extensions.Configuration;
 
 namespace RaceDirector
 {
@@ -14,11 +14,18 @@ namespace RaceDirector
         {
             var plugins = PluginLoader.InstantiatePlugins();
 
-            IHost host = Host.CreateDefaultBuilder(args)
-                .ConfigureServices((_, services) =>
+            var host = Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((_, configurationBuilder) =>
+                {
+                    // TODO Register IPAddress type converter
+                    configurationBuilder
+                        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                        .AddCommandLine(args);
+                })
+                .ConfigureServices((context, services) =>
                 {
                     foreach (var p in plugins)
-                        p.Init(services);
+                        p.Init(context.Configuration, services);
                 })
                 .Build();
 

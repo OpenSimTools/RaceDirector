@@ -8,7 +8,7 @@ namespace RaceDirector.DependencyInjection
         public static IServiceCollection AddSingletonWithInterfaces<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
         {
-            return services.AddSingleton<TService>(implementationFactory).AddInterfaces<TService>();
+            return services.AddSingleton(implementationFactory).AddInterfaces<TService>();
         }
 
         public static IServiceCollection AddSingletonWithInterfaces<TService>(this IServiceCollection services)
@@ -20,7 +20,7 @@ namespace RaceDirector.DependencyInjection
         public static IServiceCollection AddTransientWithInterfaces<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
         {
-            return services.AddTransient<TService>(implementationFactory).AddInterfaces<TService>();
+            return services.AddTransient(implementationFactory).AddInterfaces<TService>();
         }
 
         public static IServiceCollection AddTransientWithInterfaces<TService>(this IServiceCollection services)

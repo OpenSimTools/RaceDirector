@@ -12,7 +12,11 @@ namespace RaceDirector.Plugin.HUD.Pipeline
     /// </summary>
     public class DashboardServer : MultiEndpointWsServer<IGameTelemetry>
     {
-        public record Config(IPAddress Address, int Port = 8070); // TODO remove when config done
+        public class Config
+        {
+            public IPAddress Address { get; set; } = IPAddress.Any;
+            public int Port { get; set; } = 8070;
+        }
 
         private static readonly IEnumerable<IEndpoint<IGameTelemetry>> DashboardEndpoints = new[] {
             new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), R3EDashTransformer.ToR3EDash)

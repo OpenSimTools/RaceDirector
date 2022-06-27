@@ -27,7 +27,7 @@ namespace RaceDirector.Tests.Pipeline.GameMonitor
             {
                 new GameProcessInfo(GameName, new[] {ProcessName})
             };
-            var config = new ProcessMonitorNode.Config(PollingInterval);
+            var config = new ProcessMonitorNode.Config { PollingInterval = PollingInterval };
             var processMonitorNode = new TestProcessMonitorNode(config, gameProcessInfos, testScheduler);
             var observer = testScheduler.CreateObserver<RunningGame>();
             processMonitorNode.RunningGameObservable.Subscribe(observer);

@@ -128,7 +128,7 @@ namespace RaceDirector.Tests.Pipeline
 
         public FakeProcessMonitorNode(IEnumerable<IGameProcessInfo> gameProcessInfos,
             Dictionary<long, string[]> simulatedProcessNames, TestScheduler testScheduler) :
-            base(new Config(TimeSpan.FromTicks(1)), gameProcessInfos, testScheduler)
+            base(new Config { PollingInterval = TimeSpan.FromTicks(1) }, gameProcessInfos, testScheduler)
         {
             _simulatedProcessNames = simulatedProcessNames;
         }

@@ -2,25 +2,36 @@
 using RaceDirector.DependencyInjection;
 using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
-using System;
 using System.Runtime.Versioning;
 
 namespace RaceDirector.Plugin
 {
     [SupportedOSPlatform("windows")]
-    public class DefaultPlugin : IPlugin
+    public class DefaultPlugin : PluginBase<DefaultPlugin.Configuration>
     {
         [SupportedOSPlatform("windows")]
-        public void Init(IServiceCollection services)
+        protected override void Init(Configuration configuration, IServiceCollection services)
         {
             services
-                .AddSingletonWithInterfaces(_ => new Pipeline.Games.R3E.Game.Config(TimeSpan.FromMilliseconds(15)))
                 .AddSingletonWithInterfaces<Pipeline.Games.R3E.Game>()
-                .AddSingletonWithInterfaces(_ => new Pipeline.Games.ACC.Game.Config(TimeSpan.FromMilliseconds(15)))
+                .AddSingletonWithInterfaces(_ => configuration.Games.R3E)
                 .AddSingletonWithInterfaces<Pipeline.Games.ACC.Game>()
-                .AddSingletonWithInterfaces(_ => new ProcessMonitorNode.Config(TimeSpan.FromSeconds(5)))
+                .AddSingletonWithInterfaces(_ => configuration.Games.Acc)
                 .AddTransientWithInterfaces<ProcessMonitorNode>()
+                .AddSingletonWithInterfaces(_ => configuration.ProcessMonitor)
                 .AddTransientWithInterfaces<TelemetryReaderNode>();
+        }
+
+        public class Configuration
+        {
+            public ProcessMonitorNode.Config ProcessMonitor { get; set; } = null!;
+            public GamesConfiguration Games { get; set; } = null!;
+        }
+
+        public class GamesConfiguration
+        {
+            public Pipeline.Games.ACC.Game.Config Acc { get; set; } = null!;
+            public Pipeline.Games.R3E.Game.Config R3E { get; set; } = null!;
         }
     }
 }
