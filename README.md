@@ -27,7 +27,7 @@ dotnet publish
 ## Run
 
 ```
-src\RaceDirector\bin\Release\net5.0\publish\RaceDirector.exe
+src\RaceDirector\bin\Release\net6.0\publish\RaceDirector.exe
 ```
 
 ## Example

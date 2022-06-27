@@ -18,10 +18,10 @@ namespace HUD.Tests.Pipeline
     [UnitTest]
     public class R3EDashTransformerTest
     {
-        private IAutoFaker _faker = AutoFaker.Create();
+        private static readonly IAutoFaker Faker = AutoFaker.Create();
 
         // Note: these cannot be created concurrently, so cannot be static.
-        private Bogus.Faker<GameTelemetry> _gtFaker = new AutoFaker<GameTelemetry>()
+        private static readonly Bogus.Faker<GameTelemetry> GtFaker = new AutoFaker<GameTelemetry>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -29,7 +29,7 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private Bogus.Faker<Vehicle> _vehicleFaker = new AutoFaker<Vehicle>()
+        private static readonly Bogus.Faker<Vehicle> VehicleFaker = new AutoFaker<Vehicle>()
             .Configure(b => b
                 .WithBinder<MoqBinder>()
                 // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -37,16 +37,15 @@ namespace HUD.Tests.Pipeline
                 .WithOverride(agoc => DistanceFraction.Of(agoc.Generate<IDistance>(), agoc.Faker.Random.Double()))
             );
 
-        private Bogus.Faker<Tire> _tireFaker = new AutoFaker<Tire>()
+        private static readonly Bogus.Faker<Tire> TireFaker = new AutoFaker<Tire>()
             .Configure(b => b.WithBinder<MoqBinder>());
 
-        // Have to create one par test: concurrent access seems to confuse AutoBogus.
-        private GameTelemetry NewGt() => _gtFaker.Generate();
+        private static readonly GameTelemetry GeneratedGt = GtFaker.Generate();
 
         [Fact]
         public void VersionInformation()
         {
-            var result = ToR3EDash(NewGt());
+            var result = ToR3EDash(GeneratedGt);
 
             Assert.Equal(2, result.Path("VersionMajor").GetInt32());
             Assert.Equal(11, result.Path("VersionMinor").GetInt32());
@@ -55,7 +54,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Driving()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Driving });
+            var result = ToR3EDash(GeneratedGt with { GameState = GameState.Driving });
 
             Assert.Equal(0, result.Path("GamePaused").GetInt32());
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
@@ -75,7 +74,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Menu()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Menu });
+            var result = ToR3EDash(GeneratedGt with { GameState = GameState.Menu });
 
             Assert.Equal(0, result.Path("GamePaused").GetInt32());
             Assert.Equal(1, result.Path("GameInMenus").GetInt32());
@@ -85,7 +84,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Replay()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Replay });
+            var result = ToR3EDash(GeneratedGt with { GameState = GameState.Replay });
 
             Assert.Equal(0, result.Path("GamePaused").GetInt32());
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
@@ -95,7 +94,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void UsingVr__True()
         {
-            var result = ToR3EDash(NewGt() with { UsingVR = true });
+            var result = ToR3EDash(GeneratedGt with { UsingVR = true });
 
             Assert.Equal(1, result.Path("GameUsingVr").GetInt32());
         }
@@ -103,7 +102,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void UsingVr__False()
         {
-            var result = ToR3EDash(NewGt() with { UsingVR = false });
+            var result = ToR3EDash(GeneratedGt with { UsingVR = false });
 
             Assert.Equal(0, result.Path("GameUsingVr").GetInt32());
         }
@@ -113,7 +112,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event__Null()
         {
-            var result = ToR3EDash(NewGt() with { Event = null });
+            var result = ToR3EDash(GeneratedGt with { Event = null });
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -125,7 +124,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_FuelRate()
         {
-            var result = ToR3EDash(NewGt().WithEvent(e => e with { FuelRate = 4.2 }));
+            var result = ToR3EDash(GeneratedGt.WithEvent(e => e with { FuelRate = 4.2 }));
 
             Assert.Equal(4, result.Path("FuelUseActive").GetInt32());
         }
@@ -133,7 +132,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__Empty()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(new IFraction<IDistance>[0]));
+            var result = ToR3EDash(GeneratedGt.WithSectorsEnd(new IFraction<IDistance>[0]));
 
             Assert.Equal(-1.0, result.Path("LayoutLength").GetDouble());
             Assert.Equal(-1.0, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -144,7 +143,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__NotAllSectors()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20)));
+            var result = ToR3EDash(GeneratedGt.WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -155,7 +154,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Event_Track_SectorsEnd__AllSectors()
         {
-            var result = ToR3EDash(NewGt().WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20, 0.30)));
+            var result = ToR3EDash(GeneratedGt.WithSectorsEnd(DistanceFraction.FromTotal(IDistance.FromM(100), 0.10, 0.20, 0.30)));
 
             Assert.Equal(100, result.Path("LayoutLength").GetDouble());
             Assert.Equal(0.10, result.Path("SectorStartFactors", "Sector1").GetDouble());
@@ -170,7 +169,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle__Null()
         {
-            var result = ToR3EDash(NewGt() with { FocusedVehicle = null });
+            var result = ToR3EDash(GeneratedGt with { FocusedVehicle = null });
 
             Assert.Equal(-1, result.Path("InPitLane").GetInt32());
             Assert.Equal(-1, result.Path("PitState").GetInt32());
@@ -217,7 +216,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Location()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Location = new Vector3<IDistance>(
@@ -236,7 +235,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_ClassPerformanceIndex()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         ClassPerformanceIndex = 42
@@ -253,7 +252,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(ControlType.Replay, 3)]
         public void FocusedVehicle_ControlType(ControlType controlType, int controlTypeId)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         ControlType = controlType
@@ -266,7 +265,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_CurrentLapTime()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         CurrentLapTime = new LapTime(
@@ -292,7 +291,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_CurrentLapTime__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         CurrentLapTime = null
@@ -308,7 +307,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_CurrentDriver()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         CurrentDriver = new Driver(
@@ -327,7 +326,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(EngineType.Unknown, 3)]
         public void FocusedVehicle_EngineType(EngineType engineType, int engineTypeId)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         EngineType = engineType
@@ -340,7 +339,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Id()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Id = 42
@@ -353,7 +352,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_PositionClass()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         PositionClass = 4
@@ -366,7 +365,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Speed()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Speed = ISpeed.FromMPS(1.2)
@@ -379,7 +378,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Orientation__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Orientation = null
@@ -394,7 +393,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Orientation()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Orientation = new Orientation(
@@ -413,7 +412,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_PersonalBestLapTime__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         BestLapTime = null
@@ -429,7 +428,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_PersonalBestLapTime()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         BestLapTime = new LapTime(
@@ -455,7 +454,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Pit_PitLaneState__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitLanePhase = null }
@@ -473,7 +472,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(PitLanePhase.Exiting, 1, 4)]
         public void FocusedVehicle_Pit_PitLaneState(PitLanePhase? pitLaneState, int inPitLane, int pitState)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitLanePhase = pitLaneState }
@@ -487,7 +486,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Pit_PitLaneTime__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitLaneTime = null }
@@ -500,7 +499,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Pit_PitLaneTime()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitLaneTime = TimeSpan.FromSeconds(1.2) }
@@ -513,7 +512,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Pit_PitStallTime__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitStallTime = null }
@@ -526,7 +525,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Pit_PitStallTime()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Pit = v.Pit with { PitStallTime = TimeSpan.FromSeconds(1.2) }
@@ -550,7 +549,7 @@ namespace HUD.Tests.Pipeline
         public void FocusedVehicle_Penalties(PenaltyType penaltyType,
             int driveThrough, int stopAndGo, int pitStop, int timeDeduction, int slowDown)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithFocusedVehicle(v => v with
                     {
                         Penalties = new[]
@@ -570,7 +569,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void FocusedVehicle_Inputs__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithFocusedVehicle(v => v with
                 {
                     Inputs = null
@@ -587,7 +586,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player__Null()
         {
-            var result = ToR3EDash(NewGt() with { Player = null });
+            var result = ToR3EDash(GeneratedGt with { Player = null });
 
             Assert.Equal(0.0, result.Path("Player", "Position", "X").GetDouble());
             Assert.Equal(0.0, result.Path("Player", "Position", "Y").GetDouble());
@@ -669,7 +668,7 @@ namespace HUD.Tests.Pipeline
                 IDistance.FromM(2.0),
                 IDistance.FromM(3.0)
             );
-            var result = ToR3EDash(NewGt().WithPlayer(p => p with { CgLocation = distance }));
+            var result = ToR3EDash(GeneratedGt.WithPlayer(p => p with { CgLocation = distance }));
 
             Assert.Equal(1.0, result.Path("Player", "Position", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "Position", "Y").GetDouble());
@@ -679,7 +678,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_ClassBestSectors__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     ClassBestSectors = null
@@ -694,7 +693,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_ClassBestSectors()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     ClassBestSectors = new Sectors(
@@ -716,7 +715,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_DrivingAids__AllNull()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     DrivingAids = new DrivingAids(
@@ -739,7 +738,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_DrivingAids__Inactive()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     DrivingAids = new DrivingAids(
@@ -762,7 +761,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_DrivingAids__Active()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     DrivingAids = new DrivingAids(
@@ -785,7 +784,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Drs__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Drs = null
@@ -802,7 +801,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Drs__NoneActive()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Drs = new ActivationToggled(
@@ -823,7 +822,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Drs__AllActive()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Drs = new ActivationToggled(
@@ -844,7 +843,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Engine()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Engine = new Engine(
@@ -863,7 +862,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Fuel()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Fuel = new Fuel(
@@ -888,7 +887,7 @@ namespace HUD.Tests.Pipeline
                 IAcceleration.FromMPS2(2.0),
                 IAcceleration.FromMPS2(3.0)
             );
-            var result = ToR3EDash(NewGt().WithPlayer(p => p with { LocalAcceleration = acceleration }));
+            var result = ToR3EDash(GeneratedGt.WithPlayer(p => p with { LocalAcceleration = acceleration }));
 
             Assert.Equal(1.0, result.Path("Player", "LocalAcceleration", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "LocalAcceleration", "Y").GetDouble());
@@ -904,7 +903,7 @@ namespace HUD.Tests.Pipeline
                 IAcceleration.FromApproxG(2.0),
                 IAcceleration.FromApproxG(3.0)
             );
-            var result = ToR3EDash(NewGt().WithPlayer(p => p with { LocalAcceleration = acceleration }));
+            var result = ToR3EDash(GeneratedGt.WithPlayer(p => p with { LocalAcceleration = acceleration }));
 
             Assert.Equal(1.0, result.Path("Player", "LocalGforce", "X").GetDouble());
             Assert.Equal(2.0, result.Path("Player", "LocalGforce", "Y").GetDouble());
@@ -914,7 +913,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PersonalBestDelta__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PersonalBestDelta = null
@@ -927,7 +926,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PersonalBestDelta()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PersonalBestDelta = TimeSpan.FromSeconds(-1.2)
@@ -940,7 +939,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PersonalBestSectors__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PersonalBestSectors = null
@@ -955,7 +954,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PersonalBestSectors()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PersonalBestSectors = new Sectors(
@@ -990,7 +989,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(PlayerPitStop.Requested | PlayerPitStop.Preparing | PlayerPitStop.ServingPenalty, 1, 3)]
         public void Player_PitStop(PlayerPitStop pitStop, int pitState, int pitAction)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLanePhase = null } })
                 .WithPlayer(p => p with { PitStop = pitStop }));
 
@@ -1001,7 +1000,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PushToPass__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PushToPass = null
@@ -1019,7 +1018,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_PushToPass()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     PushToPass = new WaitTimeToggled(
@@ -1043,7 +1042,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_RawInputs()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     RawInputs = new RawInputs(
@@ -1066,14 +1065,14 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_Tires()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Tires = new[]
                     {
                         new []
                         {
-                            _tireFaker.Generate() with {
+                            TireFaker.Generate() with {
                                 Dirt = 1.1,
                                 Grip = 1.2,
                                 Wear = 1.3,
@@ -1126,9 +1125,9 @@ namespace HUD.Tests.Pipeline
             bool frontRightPresent, bool rearLeftPresent, bool rearRightPresent)
         {
             var grip = 2.2;
-            Tire[] TiresWithGrip(int n) => Enumerable.Range(0, n).Select(_ => _tireFaker.Generate() with { Grip = grip }).ToArray();
+            Tire[] TiresWithGrip(int n) => Enumerable.Range(0, n).Select(_ => TireFaker.Generate() with { Grip = grip }).ToArray();
 
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Tires = new[] {
@@ -1157,12 +1156,12 @@ namespace HUD.Tests.Pipeline
 
             Tire TireWithCurrentTemperatures(int n)
             {
-                var t = _tireFaker.Generate();
+                var t = TireFaker.Generate();
                 var currentTemperatures = Enumerable.Range(0, n).Select(_ => ITemperature.FromC(temp)).ToArray();
                 return t with { Temperatures = t.Temperatures with { CurrentTemperatures = new[] { currentTemperatures } } };
             }
 
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     Tires = new[] {
@@ -1181,7 +1180,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Player_VehicleDamage()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with
                 {
                     VehicleDamage = new VehicleDamage(
@@ -1210,7 +1209,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionPhase.Over, 3)]
         public void Player_Warnings_GiveBackPositions(SessionPhase sessionPhase, int giveBackPositions)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with { Phase = sessionPhase })
                 .WithPlayerWarnings(w => w with
                 {
@@ -1226,7 +1225,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(true, 1)]
         public void Player_OvertakeAllowed(bool overtakeAllowed, int yellowOvertake)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithPlayer(p => p with {
                     OvertakeAllowed = overtakeAllowed
                 })
@@ -1243,7 +1242,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session__Null()
         {
-            var result = ToR3EDash(NewGt() with { Session = null });
+            var result = ToR3EDash(GeneratedGt with { Session = null });
 
             Assert.Equal(-1, result.Path("GameInMenus").GetInt32());
             Assert.Equal(-1, result.Path("GameInReplay").GetInt32());
@@ -1263,7 +1262,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Laps()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new LapsDuration(3, TimeSpan.FromSeconds(4.5)),
                 TimeRemaining = null,
@@ -1279,7 +1278,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Laps__Finished()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new LapsDuration(1, TimeSpan.FromSeconds(2.3)),
                 WaitTime = TimeSpan.FromSeconds(4.5),
@@ -1291,7 +1290,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Time()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new TimeDuration(TimeSpan.FromSeconds(1.2), 5),
                 TimeRemaining = TimeSpan.FromSeconds(3.4),
@@ -1307,7 +1306,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__Time__Finished()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new TimeDuration(TimeSpan.FromSeconds(1.2), 3),
                 WaitTime = TimeSpan.FromSeconds(4.5),
@@ -1319,7 +1318,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__TimePlusLaps()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new TimePlusLapsDuration(TimeSpan.FromSeconds(1.2), 3, 4),
                 TimeRemaining = TimeSpan.FromSeconds(5.6),
@@ -1335,7 +1334,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Length__TimePlusLaps__Finished()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Length = new TimePlusLapsDuration(TimeSpan.FromSeconds(1.2), 3, 4),
                 WaitTime = TimeSpan.FromSeconds(5.6),
@@ -1355,7 +1354,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionPhase.Over, 6)]
         public void Session_Phase(SessionPhase sessionPhase, int code)
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with { Phase = sessionPhase }));
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with { Phase = sessionPhase }));
 
             Assert.Equal(code, result.Path("SessionPhase").GetInt32());
         }
@@ -1363,7 +1362,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_PitSpeedLimit()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(0.1) }));
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with { PitSpeedLimit = ISpeed.FromMPS(0.1) }));
 
             Assert.Equal(0.1, result.Path("SessionPitSpeedLimit").GetDouble());
         }
@@ -1376,7 +1375,7 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__Laps(
             uint start, uint finish, uint completedLaps, int pitWindowStart, int pitWindowEnd)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithSession(s => s with
                     {
                         Requirements = s.Requirements with
@@ -1405,7 +1404,7 @@ namespace HUD.Tests.Pipeline
         public void Session_Requirements_PitWindow__Time(
             uint start, uint finish, uint elapsedTime, int pitWindowStart, int pitWindowEnd)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithSession(s => s with
                     {
                         ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
@@ -1434,7 +1433,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Session_Requirements_PitWindow__Null()
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with
             {
                 Requirements = s.Requirements with { PitWindow = null }
             }));
@@ -1458,7 +1457,7 @@ namespace HUD.Tests.Pipeline
         public void Session_StartLights(LightColor color, uint lit, uint max, int expected)
         {
             var startLights = new StartLights(color, new BoundedValue<uint>(lit, max));
-            var result = ToR3EDash(NewGt().WithSession(s => s with { StartLights = startLights }));
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with { StartLights = startLights }));
 
             Assert.Equal(expected, result.Path("StartLights").GetInt32());
         }
@@ -1477,7 +1476,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(SessionType.HotStintSuperPole, -1)]
         public void Session_Type(SessionType sessionType, int code)
         {
-            var result = ToR3EDash(NewGt().WithSession(s => s with { Type = sessionType }));
+            var result = ToR3EDash(GeneratedGt.WithSession(s => s with { Type = sessionType }));
 
             Assert.Equal(code, result.Path("SessionType").GetInt32());
         }
@@ -1489,9 +1488,9 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles()
         {
-            var result = ToR3EDash(NewGt() with {
+            var result = ToR3EDash(GeneratedGt with {
                 Vehicles = new[] {
-                    _vehicleFaker.Generate() with
+                    VehicleFaker.Generate() with
                     {
                         Id = 2,
                         ClassPerformanceIndex = 3,
@@ -1526,10 +1525,10 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles_BestLapTime__Null()
         {
-            var result = ToR3EDash(NewGt() with
+            var result = ToR3EDash(GeneratedGt with
             {
                 Vehicles = new[] {
-                    _vehicleFaker.Generate() with
+                    VehicleFaker.Generate() with
                     {
                         BestLapTime = null
                     }
@@ -1546,10 +1545,10 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles_BestLapTime()
         {
-            var result = ToR3EDash(NewGt() with
+            var result = ToR3EDash(GeneratedGt with
             {
                 Vehicles = new[] {
-                    _vehicleFaker.Generate() with
+                    VehicleFaker.Generate() with
                     {
                         BestLapTime = new LapTime(
                             Overall: TimeSpan.FromSeconds(0), // <==
@@ -1577,10 +1576,10 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles_Gaps__Null()
         {
-            var result = ToR3EDash(NewGt() with
+            var result = ToR3EDash(GeneratedGt with
             {
                 Vehicles = new[] {
-                    _vehicleFaker.Generate() with
+                    VehicleFaker.Generate() with
                     {
                         GapAhead = null,
                         GapBehind = null
@@ -1597,10 +1596,10 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Vehicles_Gaps()
         {
-            var result = ToR3EDash(NewGt() with
+            var result = ToR3EDash(GeneratedGt with
             {
                 Vehicles = new[] {
-                    _vehicleFaker.Generate() with
+                    VehicleFaker.Generate() with
                     {
                         GapAhead = TimeSpan.FromSeconds(0.05),
                         GapBehind = TimeSpan.FromSeconds(0.06)
@@ -1623,7 +1622,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__Session__Null()
         {
-            var result = ToR3EDash(NewGt() with { Session = null });
+            var result = ToR3EDash(GeneratedGt with { Session = null });
 
             Assert.Equal(-1, result.Path("PitWindowStatus").GetInt32());
         }
@@ -1631,7 +1630,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__Session_PitLaneOpen()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     PitLaneOpen = false
@@ -1643,7 +1642,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__FocusedVehicle__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     PitLaneOpen = true // Precondition
@@ -1656,7 +1655,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__FocusedVehicle_Pit_PitLanePhase()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     PitLaneOpen = true // Precondition
@@ -1675,7 +1674,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__Session_Requirements_PitWindow__Null()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     Requirements = s.Requirements with { PitWindow = null },
@@ -1695,8 +1694,8 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_PitWindowStatus__FocusedVehicle_Pit_MandatoryStopsDone()
         {
-            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
-            var result = ToR3EDash(NewGt()
+            var mandatoryPitStopsDone = Faker.Generate<UInt16>();
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     Requirements = s.Requirements with
@@ -1725,8 +1724,8 @@ namespace HUD.Tests.Pipeline
         public void Out_PitWindowStatus__Session_Requirements_PitWindow__Laps(
             uint start, uint finish, uint completedLaps, int pitWindowStatus)
         {
-            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
-            var result = ToR3EDash(NewGt()
+            var mandatoryPitStopsDone = Faker.Generate<UInt16>();
+            var result = ToR3EDash(GeneratedGt
                     .WithSession(s => s with
                     {
                         Requirements = s.Requirements with
@@ -1760,8 +1759,8 @@ namespace HUD.Tests.Pipeline
         public void Out_PitWindowStatus__Session_Requirements_PitWindow__Time(
             uint start, uint finish, uint elapsedTime, int pitWindowStatus)
         {
-            var mandatoryPitStopsDone = _faker.Generate<UInt16>();
-            var result = ToR3EDash(NewGt()
+            var mandatoryPitStopsDone = Faker.Generate<UInt16>();
+            var result = ToR3EDash(GeneratedGt
                     .WithSession(s => s with
                     {
                         ElapsedTime = TimeSpan.FromMinutes(elapsedTime),
@@ -1801,7 +1800,7 @@ namespace HUD.Tests.Pipeline
             int yellow, int blue, int black, int green,
             int checkered, int white, int blackAndWhite)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     Phase = sessionPhase
@@ -1829,7 +1828,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void Out_Flags()
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with
                 {
                     Phase = SessionPhase.Started
@@ -1854,7 +1853,7 @@ namespace HUD.Tests.Pipeline
         public void Out_Flags_Yellow()
         {
             // Separate for when we are going to implement other fields like CausedIt
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                 .WithSession(s => s with { Phase = SessionPhase.Started })
                 .WithFocusedVehicleFlags(f => f with
                 {
@@ -1874,7 +1873,7 @@ namespace HUD.Tests.Pipeline
         [InlineData(BlackWhiteReason.Cutting, 0, 4)]
         public void Out_Flags_BlackAndWhite(BlackWhiteReason reason, uint blueFlagWarnings, int value)
         {
-            var result = ToR3EDash(NewGt()
+            var result = ToR3EDash(GeneratedGt
                     .WithSession(s => s with { Phase = SessionPhase.Started })
                     .WithFocusedVehicleFlags(f => f with
                     {
