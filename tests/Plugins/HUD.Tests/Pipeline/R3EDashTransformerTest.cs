@@ -64,7 +64,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void GameState__Paused()
         {
-            var result = ToR3EDash(NewGt() with { GameState = GameState.Paused });
+            var result = ToR3EDash(GeneratedGt with { GameState = GameState.Paused });
 
             Assert.Equal(1, result.Path("GamePaused").GetInt32());
             Assert.Equal(0, result.Path("GameInMenus").GetInt32());
