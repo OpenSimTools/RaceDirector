@@ -9,7 +9,7 @@ using Xunit.Categories;
 
 namespace RaceDirector.Tests.Pipeline.GameMonitor
 {
-    [IntegrationTest]
+    [IntegrationTest, LocalTest]
     public class ProcessMonitorNodeTest
     {
         private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
