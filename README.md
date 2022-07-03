@@ -1,5 +1,7 @@
 # RaceDirector
 
+![build](https://github.com/OpenSimTools/RaceDirector/actions/workflows/ci.yaml/badge.svg)
+
 At the moment the software is a replacement for RaceRoom's closed source
 [Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip) command. The major
 difference is that it can export telemetry from other games (see [supported games](docs/Games.md)).
