@@ -25,7 +25,7 @@ namespace HUD.Tests.Pipeline
         [Fact]
         public void ServesR3ETelemetryEndpoint()
         {
-            using var server = new DashboardServer(new DashboardServer.Config(IPAddress.Any, _serverPort), TestLogger);
+            using var server = new DashboardServer(new DashboardServer.Config { Address = IPAddress.Any, Port = _serverPort }, TestLogger);
             Assert.True(server.Start(), "Server did not start");
             using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
             var telemetry = gtFaker.Generate();
