@@ -1894,7 +1894,9 @@ namespace HUD.Tests.Pipeline
 
         private static JsonDocument ToR3EDash(GameTelemetry gt)
         {
-            var bytes = R3EDashTransformer.ToR3EDash(gt);
+            var config = new R3EDashTransformer.Configuration();
+            var transformer = new R3EDashTransformer(config);
+            var bytes = transformer.ToR3EDash(gt);
             var jsonString = System.Text.Encoding.UTF8.GetString(bytes);
             return JsonDocument.Parse(jsonString);
         }

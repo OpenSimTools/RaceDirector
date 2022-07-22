@@ -10,16 +10,23 @@ using System.Text;
 
 namespace RaceDirector.Plugin.HUD.Pipeline
 {
-    public static class R3EDashTransformer
+    public class R3EDashTransformer
     {
-        public static readonly uint MajorVersion = 2;
-        public static readonly uint MinorVersion = 11;
+        public class Configuration
+        {
+            public uint MajorVersion { get; set; } = 2;
+            public uint MinorVersion { get; set; } = 11;
+        }
 
-        private static readonly int DecimalDigits = 3;
+        private static readonly JsonWriterOptions JsonWriterOptions = new();
 
-        private static readonly JsonWriterOptions JsonWriterOptions = new JsonWriterOptions();
+        private readonly Configuration _config;
+        public R3EDashTransformer(Configuration config)
+        {
+            _config = config;
+        }
 
-        public static byte[] ToR3EDash(IGameTelemetry gt)
+        public byte[] ToR3EDash(IGameTelemetry gt)
         {
             using (var stream = new MemoryStream())
             {
@@ -31,12 +38,12 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             }
         }
 
-        private static void WriteR3EDash(Utf8JsonWriter w, IGameTelemetry gt)
+        private void WriteR3EDash(Utf8JsonWriter w, IGameTelemetry gt)
         {
             w.WriteObject(_ =>
             {
-                w.WriteNumber("VersionMajor", MajorVersion);
-                w.WriteNumber("VersionMinor", MinorVersion);
+                w.WriteNumber("VersionMajor", _config.MajorVersion);
+                w.WriteNumber("VersionMinor", _config.MinorVersion);
 
                 // AllDriversOffset
                 // DriverDataSize
@@ -672,42 +679,6 @@ namespace RaceDirector.Plugin.HUD.Pipeline
                     new Interval<int>(-1, -1)
             };
 
-        private static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, double value)
-        {
-            writer.WriteNumber(propertyName, value, DecimalDigits);
-        }
-
-        private static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, double> f)
-        {
-            writer.WriteObject(propertyName, _ =>
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    writer.WriteRoundedNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
-                }
-            });
-        }
-
-        private static void WriteCoordinates<T>(this Utf8JsonWriter writer, String propertyName, Vector3<T>? v, Func<T, double> f)
-        {
-            writer.WriteObject(propertyName, _ =>
-            {
-                writer.WriteRoundedNumber("X", v is not null ? f(v.X) : 0.0);
-                writer.WriteRoundedNumber("Y", v is not null ? f(v.Y) : 0.0);
-                writer.WriteRoundedNumber("Z", v is not null ? f(v.Z) : 0.0);
-            });
-        }
-
-        private static void WriteOrientationPyr(this Utf8JsonWriter writer, string propertyName, Orientation? v, Func<IAngle, double> f)
-        {
-            writer.WriteObject(propertyName, _ =>
-            {
-                writer.WriteRoundedNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
-                writer.WriteRoundedNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
-                writer.WriteRoundedNumber("Roll", v is not null ? f(v.Roll) : 0.0);
-            });
-        }
-
         private static void ForEachTire(ITire[][]? tires, Action<string, ITire?> action)
         {
             action("FrontLeft", tires?.GetValueOrNull(0, 0));
@@ -715,10 +686,6 @@ namespace RaceDirector.Plugin.HUD.Pipeline
             action("RearLeft", tires?.GetValueOrNull(1, 0));
             action("RearRight", tires?.GetValueOrNull(1, 1));
         }
-
-        private static T? GetValueOrNull<T>(this T[][] array, int i, int j) =>
-            (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
-
 
         private static byte[] NullTerminated(string? value) => Encoding.UTF8.GetBytes($"{value ?? ""}\0");
 
@@ -885,5 +852,49 @@ namespace RaceDirector.Plugin.HUD.Pipeline
 
         private static int Conditional(int value, bool raceStarted) =>
             raceStarted ? value : -1;
+    }
+
+    internal static class R3EDashExtensions
+    {
+        private static readonly int DecimalDigits = 3;
+
+        public static void WriteRoundedNumber(this Utf8JsonWriter writer, String propertyName, double value)
+        {
+            writer.WriteNumber(propertyName, value, DecimalDigits);
+        }
+
+        public static void WriteSectors<T>(this Utf8JsonWriter writer, String propertyName, T[]? v, Func<T, double> f)
+        {
+            writer.WriteObject(propertyName, _ =>
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    writer.WriteRoundedNumber("Sector" + (i + 1), v?.Length > i ? f(v[i]) : -1.0);
+                }
+            });
+        }
+
+        public static void WriteCoordinates<T>(this Utf8JsonWriter writer, String propertyName, Vector3<T>? v, Func<T, double> f)
+        {
+            writer.WriteObject(propertyName, _ =>
+            {
+                writer.WriteRoundedNumber("X", v is not null ? f(v.X) : 0.0);
+                writer.WriteRoundedNumber("Y", v is not null ? f(v.Y) : 0.0);
+                writer.WriteRoundedNumber("Z", v is not null ? f(v.Z) : 0.0);
+            });
+        }
+
+        public static void WriteOrientationPyr(this Utf8JsonWriter writer, string propertyName, Orientation? v, Func<IAngle, double> f)
+        {
+            writer.WriteObject(propertyName, _ =>
+            {
+                writer.WriteRoundedNumber("Pitch", v is not null ? f(v.Pitch) : 0.0);
+                writer.WriteRoundedNumber("Yaw", v is not null ? f(v.Yaw) : 0.0);
+                writer.WriteRoundedNumber("Roll", v is not null ? f(v.Roll) : 0.0);
+            });
+        }
+        
+        public static T? GetValueOrNull<T>(this T[][] array, int i, int j) =>
+            (i < array.Length && j < array[i].Length) ? array[i][j] : default(T);
     }
 }

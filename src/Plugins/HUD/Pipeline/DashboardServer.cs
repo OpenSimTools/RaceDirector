@@ -16,13 +16,19 @@ namespace RaceDirector.Plugin.HUD.Pipeline
         {
             public IPAddress Address { get; set; } = IPAddress.Any;
             public int Port { get; set; } = 8070;
+            
+            public R3EDashTransformer.Configuration R3EDash { get; set; } = new();
         }
 
-        private static readonly IEnumerable<IEndpoint<IGameTelemetry>> DashboardEndpoints = new[] {
-            new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), R3EDashTransformer.ToR3EDash)
-        };
+        private static IEnumerable<IEndpoint<IGameTelemetry>> DashboardEndpoints(Config config)
+        {
+            var r3EDashTransformer = new R3EDashTransformer(config.R3EDash);
+            return new[] {
+                new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), r3EDashTransformer.ToR3EDash)
+            };  
+        }
 
-        public DashboardServer(Config config, ILogger<DashboardServer> logger) : base(config.Address, config.Port, DashboardEndpoints, logger) { }
+        public DashboardServer(Config config, ILogger<DashboardServer> logger) : base(config.Address, config.Port, DashboardEndpoints(config), logger) { }
         
         protected override void OnStarted()
         {
