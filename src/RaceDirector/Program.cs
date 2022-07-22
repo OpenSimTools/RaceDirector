@@ -4,6 +4,7 @@ using RaceDirector.Pipeline;
 using RaceDirector.Plugin;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Configuration;
+using RaceDirector.Config;
 
 namespace RaceDirector
 {
@@ -17,7 +18,7 @@ namespace RaceDirector
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((_, configurationBuilder) =>
                 {
-                    // TODO Register IPAddress type converter
+                    IPAddressConverter.Register();
                     configurationBuilder
                         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
                         .AddCommandLine(args);
