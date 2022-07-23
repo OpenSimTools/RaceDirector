@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace RaceDirector.Plugin
+namespace RaceDirector.Plugin;
+
+public interface IPlugin
 {
-    public interface IPlugin
-    {
-        void Init(IConfiguration configuration, IServiceCollection services);
-    }
+    void Init(IConfiguration configuration, IServiceCollection services);
 }

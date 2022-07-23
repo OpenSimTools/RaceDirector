@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace RaceDirector.Plugin.HUD.Server
+namespace RaceDirector.Plugin.HUD.Server;
+
+public interface ITcpServer : IDisposable
 {
-    public interface ITcpServer : IDisposable
-    {
-        bool Start();
-        bool Stop();
-    }
+    bool Start();
+    bool Stop();
 }

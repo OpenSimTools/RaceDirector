@@ -2,10 +2,9 @@
 using RaceDirector.Pipeline.Games;
 using System;
 
-namespace RaceDirector.Pipeline.Telemetry
+namespace RaceDirector.Pipeline.Telemetry;
+
+public interface ITelemetryObservableFactory : IGameInfo
 {
-    public interface ITelemetryObservableFactory : IGameInfo
-    {
-        IObservable<V0.IGameTelemetry> CreateTelemetryObservable();
-    }
+    IObservable<V0.IGameTelemetry> CreateTelemetryObservable();
 }

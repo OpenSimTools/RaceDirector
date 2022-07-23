@@ -1,7 +1,6 @@
-﻿namespace RaceDirector.Pipeline.Games
+﻿namespace RaceDirector.Pipeline.Games;
+
+public interface IGameInfo
 {
-    public interface IGameInfo
-    {
-        string GameName { get; }
-    }
+    string GameName { get; }
 }

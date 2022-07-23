@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RaceDirector.Plugin.HUD.Server
+namespace RaceDirector.Plugin.HUD.Server;
+
+public interface IWsServer<T> : ITcpServer
 {
-    public interface IWsServer<T> : ITcpServer
-    {
-        bool Multicast(T t);
-    }
+    bool Multicast(T t);
 }

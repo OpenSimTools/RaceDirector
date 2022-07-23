@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace RaceDirector.Pipeline
+namespace RaceDirector.Pipeline;
+
+/// <summary>
+/// Marker interface to find pipeline nodes.
+/// </summary>
+public interface INode
 {
-    /// <summary>
-    /// Marker interface to find pipeline nodes.
-    /// </summary>
-    public interface INode
-    {
-    }
 }
