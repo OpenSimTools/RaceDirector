@@ -12,8 +12,8 @@ namespace RaceDirector.Tests.Config;
 [UnitTest]
 public class IPAddressConverterTest
 {
-    private TypeConverter _converter = new IPAddressConverter();
-    private IPAddress _ip = IPAddress.Any;
+    private readonly TypeConverter _converter = new IPAddressConverter();
+    private readonly IPAddress _ip = IPAddress.Any;
 
     [Fact]
     public void CanConvertIPs()
@@ -52,7 +52,7 @@ public class IPAddressConverterTest
 
     private class TestConfig
     {
-        public IPAddress? Ip { get; set; }
+        public IPAddress Ip { get; set; } = null!;
 
         public IConfigurationRoot AsIConfiguration()
         {
