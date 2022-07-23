@@ -5,21 +5,20 @@ using RaceDirector.Plugin.HUD.Server;
 using System.Collections.Generic;
 using System;
 
-namespace RaceDirector.Plugin.HUD.Pipeline
+namespace RaceDirector.Plugin.HUD.Pipeline;
+
+/// <summary>
+/// Exposes live telemetry as a web socket server.
+/// </summary>
+public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, IGameTelemetry>, INode
 {
-    /// <summary>
-    /// Exposes live telemetry as a web socket server.
-    /// </summary>
-    public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, IGameTelemetry>, INode
-    {
-        public IObserver<IRunningGame> RunningGameObserver => TriggerObserver;
+    public IObserver<IRunningGame> RunningGameObserver => TriggerObserver;
 
-        public IObserver<IGameTelemetry> GameTelemetryObserver => DataObserver;
+    public IObserver<IGameTelemetry> GameTelemetryObserver => DataObserver;
 
-        public WebSocketTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers) : base(servers) { }
+    public WebSocketTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers) : base(servers) { }
 
-        protected override bool ServerShouldRun(IRunningGame runningGame) {
-            return runningGame.IsRunning();
-        }
+    protected override bool ServerShouldRun(IRunningGame runningGame) {
+        return runningGame.IsRunning();
     }
 }

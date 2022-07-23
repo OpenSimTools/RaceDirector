@@ -1,41 +1,40 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace RaceDirector.Pipeline.GameMonitor
+namespace RaceDirector.Pipeline.GameMonitor;
+
+public class KeepOne<T> where T : class
 {
-    public class KeepOne<T> where T : class
+    private readonly IEnumerable<T> _options;
+    private T? _current;
+
+    private static readonly IEnumerable<T> NoOutput = Enumerable.Empty<T>();
+
+    public KeepOne(IEnumerable<T> options)
     {
-        private readonly IEnumerable<T> _options;
-        private T? _current;
+        _options = options;
+    }
 
-        private static readonly IEnumerable<T> NoOutput = Enumerable.Empty<T>();
+    public IEnumerable<T?> Call(IEnumerable<T> input)
+    {
+        if (input.Contains(_current))
+            return NoOutput;
 
-        public KeepOne(IEnumerable<T> options)
+        var matching = input.Intersect(_options);
+
+        if (matching.Any())
         {
-            _options = options;
+            _current = matching.First();
+            return new[] { _current };
         }
-
-        public IEnumerable<T?> Call(IEnumerable<T> input)
+        else if (_current is not null)
         {
-            if (input.Contains(_current))
-                return NoOutput;
-
-            var matching = input.Intersect(_options);
-
-            if (matching.Any())
-            {
-                _current = matching.First();
-                return new[] { _current };
-            }
-            else if (_current is not null)
-            {
-                _current = null;
-                return new[] { _current };
-            }
-            else
-            {
-                return NoOutput;
-            }
+            _current = null;
+            return new[] { _current };
+        }
+        else
+        {
+            return NoOutput;
         }
     }
 }
