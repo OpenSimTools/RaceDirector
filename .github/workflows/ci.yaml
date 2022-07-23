@@ -20,6 +20,6 @@ jobs:
     - if: ${{ github.ref == 'ref/heads/main' }}
       uses: actions/upload-artifact@v3
       with:
-        name: package
+        name: RaceDirector
         path: src/RaceDirector/bin/Debug/net6.0/publish/**
         if-no-files-found: error
