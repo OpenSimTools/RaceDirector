@@ -15,16 +15,12 @@ Please note that
 [OtterHUD](https://forum.sector3studios.com/index.php?threads/otterhud-a-custom-webhud-with-additional-features.13152/)
 (closed source) requires more fields than *currently* supported.
 
-## Build
+## Install
 
-At the moment there is no installer, so the software needs to be built: 
+At the moment there is no installer.
 
-```
-dotnet test
-dotnet publish
-```
-
-`RaceDirector.exe` will then be found in `src\RaceDirector\bin\Debug\net6.0\publish`.
+The package can be found in the "Artifacts" section of the
+[latest build](https://github.com/OpenSimTools/RaceDirector/actions/workflows/ci.yaml?query=event%3Apush).
 
 ## Run
 
@@ -47,3 +43,14 @@ Alternatively, the telemetry can be seen connecting to the WebSocket port
 {"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
 ...
 ```
+
+## Build
+
+.NET 6 is required to build, run tests and publish the artefacts: 
+
+```
+dotnet test
+dotnet publish
+```
+
+`RaceDirector.exe` will then be found in `src\RaceDirector\bin\Debug\net6.0\publish`.
