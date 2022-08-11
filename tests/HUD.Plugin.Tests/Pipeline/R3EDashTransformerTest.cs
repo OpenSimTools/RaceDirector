@@ -1,6 +1,6 @@
 using HUD.Tests.TestUtils;
 using RaceDirector.Pipeline.Telemetry;
-using RaceDirector.Plugin.HUD.Pipeline;
+using RaceDirector.HUD.Pipeline;
 using System.Text.Json;
 using Xunit;
 using Xunit.Categories;

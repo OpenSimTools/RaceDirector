@@ -1,7 +1,7 @@
 using HUD.Tests.Base;
 using Moq;
-using RaceDirector.Plugin.HUD.Pipeline;
-using RaceDirector.Plugin.HUD.Server;
+using RaceDirector.HUD.Pipeline;
+using RaceDirector.HUD.Server;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;

@@ -4,7 +4,7 @@ using HUD.Tests.Base;
 using HUD.Tests.TestUtils;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
-using RaceDirector.Plugin.HUD.Pipeline;
+using RaceDirector.HUD.Pipeline;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

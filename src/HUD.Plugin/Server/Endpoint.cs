@@ -1,7 +1,7 @@
 ﻿using NetCoreServer;
 using System;
 
-namespace RaceDirector.Plugin.HUD.Server;
+namespace RaceDirector.HUD.Server;
 
 public class Endpoint<T> : IEndpoint<T>
 {

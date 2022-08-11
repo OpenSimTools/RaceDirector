@@ -1,6 +1,6 @@
 ﻿using NetCoreServer;
 
-namespace RaceDirector.Plugin.HUD.Server;
+namespace RaceDirector.HUD.Server;
 
 public interface IEndpoint<T>
 {

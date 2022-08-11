@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 
-namespace RaceDirector.Plugin.HUD.Utils;
+namespace RaceDirector.HUD.Utils;
 
 public static class JsonWriterExtensions
 {

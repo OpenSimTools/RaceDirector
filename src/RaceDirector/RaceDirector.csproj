@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Plugins\HUD\HUD.csproj" />
+    <ProjectReference Include="..\HUD.Plugin\HUD.Plugin.csproj" />
     <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
     <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
   </ItemGroup>

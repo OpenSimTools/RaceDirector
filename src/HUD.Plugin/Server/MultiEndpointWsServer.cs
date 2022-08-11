@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using Microsoft.Extensions.Logging;
 
-namespace RaceDirector.Plugin.HUD.Server;
+namespace RaceDirector.HUD.Server;
 
 /// <summary>
 /// WebSocket server that serialises messages differently based on the endpoint that was requested.

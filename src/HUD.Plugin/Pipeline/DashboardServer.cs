@@ -1,11 +1,11 @@
 ﻿using RaceDirector.Pipeline.Telemetry.V0;
-using RaceDirector.Plugin.HUD.Server;
-using static RaceDirector.Plugin.HUD.Server.Endpoint;
+using RaceDirector.HUD.Server;
+using static RaceDirector.HUD.Server.Endpoint;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Extensions.Logging;
 
-namespace RaceDirector.Plugin.HUD.Pipeline;
+namespace RaceDirector.HUD.Pipeline;
 
 /// <summary>
 /// Exposes live telemetry for dashboards.

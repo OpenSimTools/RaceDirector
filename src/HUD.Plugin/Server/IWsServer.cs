@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RaceDirector.Plugin.HUD.Server;
+namespace RaceDirector.HUD.Server;
 
 public interface IWsServer<T> : ITcpServer
 {

@@ -1,9 +1,9 @@
-﻿using RaceDirector.Plugin.HUD.Server;
+﻿using RaceDirector.HUD.Server;
 using System;
 using System.Collections.Generic;
 using System.Reactive;
 
-namespace RaceDirector.Plugin.HUD.Pipeline;
+namespace RaceDirector.HUD.Pipeline;
 
 /// <summary>
 /// Starts and stops WebSocket servers based on trigger input.

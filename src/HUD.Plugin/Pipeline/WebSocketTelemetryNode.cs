@@ -1,11 +1,11 @@
 ﻿using IGameTelemetry = RaceDirector.Pipeline.Telemetry.V0.IGameTelemetry;
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using RaceDirector.Pipeline;
-using RaceDirector.Plugin.HUD.Server;
+using RaceDirector.HUD.Server;
 using System.Collections.Generic;
 using System;
 
-namespace RaceDirector.Plugin.HUD.Pipeline;
+namespace RaceDirector.HUD.Pipeline;
 
 /// <summary>
 /// Exposes live telemetry as a web socket server.

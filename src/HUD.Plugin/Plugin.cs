@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RaceDirector.DependencyInjection;
-using RaceDirector.Plugin.HUD.Pipeline;
+using RaceDirector.HUD.Pipeline;
+using RaceDirector.Plugin;
 
-namespace RaceDirector.Plugin.HUD;
+namespace RaceDirector.HUD;
 
 public class Plugin : PluginBase<Plugin.Configuration>
 {
