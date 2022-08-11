@@ -83,10 +83,5 @@ public class MultiEndpointWsServer<T> : WsServer, IWsServer<T>
             else
                 return false;
         }
-
-        private bool SendTextAsync(byte[] buffer)
-        {
-            return SendTextAsync(buffer, 0L, buffer.LongLength);
-        }
     }
 }
