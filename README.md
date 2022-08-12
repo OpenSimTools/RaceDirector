@@ -29,7 +29,7 @@ it will be necessary to override the default one using a command line argument o
 `application.conf` in the same directory.
 
 ```
-.\RaceDirector.exe --RaceDirector.Plugin.HUD.Plugin:DashboardServer:R3EDash:MinorVersion=8
+.\RaceDirector.exe --RaceDirector.HUD.Plugin:DashboardServer:R3EDash:MinorVersion=8
 ```
 
 To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser window can be

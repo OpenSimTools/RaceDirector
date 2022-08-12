@@ -14,14 +14,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Tests", "tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaceDirector.Tests.Ext.Process", "tests\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj", "{BA783BFC-E7A7-4034-9D57-2056AFA846B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD", "src\Plugins\HUD\HUD.csproj", "{7819888D-DC0A-4C8D-A9BA-FA6209170011}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD", "src\HUD.Plugin\HUD.Plugin.csproj", "{7819888D-DC0A-4C8D-A9BA-FA6209170011}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0345CE39-30DF-4075-BB13-A41687C9EDC9} = {0345CE39-30DF-4075-BB13-A41687C9EDC9}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD.Tests", "tests\Plugins\HUD.Tests\HUD.Tests.csproj", "{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HUD.Tests", "tests\HUD.Plugin.Tests\HUD.Plugin.Tests.csproj", "{D14B7BAB-1A5E-4BD4-AEB1-CE4012356350}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceDirector.Plugin", "src\RaceDirector.Plugin\RaceDirector.Plugin.csproj", "{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Networking", "src\Remote.Networking\Remote.Networking.csproj", "{AA02861E-3754-49FF-8113-59F8133A7462}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Networking.Tests", "tests\Remote.Networking.Tests\Remote.Networking.Tests.csproj", "{A1B87775-7C24-4C7B-9089-41696F95822D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Plugin", "src\Remote.Plugin\Remote.Plugin.csproj", "{E7BAD911-B03A-453D-83F1-416F4F3ABD29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Plugin.Tests", "tests\Remote.Plugin.Tests\Remote.Plugin.Tests.csproj", "{159A089A-A532-4995-929C-B595247DDE8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +65,22 @@ Global
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F9EC692-210A-4D08-91AE-D2FB7462DEE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA02861E-3754-49FF-8113-59F8133A7462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA02861E-3754-49FF-8113-59F8133A7462}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA02861E-3754-49FF-8113-59F8133A7462}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA02861E-3754-49FF-8113-59F8133A7462}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B87775-7C24-4C7B-9089-41696F95822D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B87775-7C24-4C7B-9089-41696F95822D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B87775-7C24-4C7B-9089-41696F95822D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B87775-7C24-4C7B-9089-41696F95822D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7BAD911-B03A-453D-83F1-416F4F3ABD29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7BAD911-B03A-453D-83F1-416F4F3ABD29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7BAD911-B03A-453D-83F1-416F4F3ABD29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7BAD911-B03A-453D-83F1-416F4F3ABD29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{159A089A-A532-4995-929C-B595247DDE8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{159A089A-A532-4995-929C-B595247DDE8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{159A089A-A532-4995-929C-B595247DDE8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{159A089A-A532-4995-929C-B595247DDE8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
