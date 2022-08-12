@@ -1,4 +1,4 @@
-﻿using RaceDirector.HUD.Server;
+﻿using RaceDirector.Remote.Networking.Server;
 using System;
 using System.Collections.Generic;
 using System.Reactive;

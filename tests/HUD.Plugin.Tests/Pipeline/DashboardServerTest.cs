@@ -1,16 +1,17 @@
 using AutoBogus;
 using AutoBogus.Moq;
 using HUD.Tests.Base;
-using HUD.Tests.TestUtils;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.HUD.Pipeline;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using RaceDirector.Remote.Networking.Client;
+using RaceDirector.Remote.Networking.Utils;
 using Xunit;
 
-namespace HUD.Tests.Pipeline;
+namespace HUD.Plugin.Tests.Pipeline;
 
 public class DashboardServerTest : IntegrationTestBase
 {

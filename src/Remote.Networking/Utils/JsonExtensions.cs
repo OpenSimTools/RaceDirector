@@ -1,10 +1,9 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
-namespace HUD.Tests.TestUtils;
+namespace RaceDirector.Remote.Networking.Utils;
 
-static class JsonExtensions
+public static class JsonExtensions
 {
     public static JsonElement Path(this JsonDocument jsonDoc, params string[] segments)
     {

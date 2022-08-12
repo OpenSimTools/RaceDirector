@@ -11,7 +11,7 @@ using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.HUD.Pipeline;
-using RaceDirector.HUD.Server;
+using RaceDirector.Remote.Networking.Server;
 using RaceDirector.Tests.Pipeline.Utils;
 using Xunit;
 using Xunit.Categories;

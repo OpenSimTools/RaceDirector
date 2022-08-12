@@ -1,14 +1,11 @@
 ﻿using NetCoreServer;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace HUD.Tests.TestUtils;
+namespace RaceDirector.Remote.Networking.Client;
 
-internal class JsonWsClient : WsClient
+public class JsonWsClient : WsClient
 {
     public Task Connected => _connectedCompletionSource.Task;
 

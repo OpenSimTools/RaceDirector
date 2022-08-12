@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.IO;
 using System;
-using RaceDirector.HUD.Utils;
+using RaceDirector.Remote.Networking.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RaceDirector.HUD.Server;
+namespace RaceDirector.Remote.Networking.Server;
 
 public interface ITcpServer : IDisposable
 {

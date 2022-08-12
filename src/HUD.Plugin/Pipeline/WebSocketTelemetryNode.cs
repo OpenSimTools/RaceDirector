@@ -1,7 +1,7 @@
 ﻿using IGameTelemetry = RaceDirector.Pipeline.Telemetry.V0.IGameTelemetry;
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using RaceDirector.Pipeline;
-using RaceDirector.HUD.Server;
+using RaceDirector.Remote.Networking.Server;
 using System.Collections.Generic;
 using System;
 

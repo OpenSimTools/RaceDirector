@@ -1,6 +1,6 @@
 ﻿using NetCoreServer;
 
-namespace RaceDirector.HUD.Server;
+namespace RaceDirector.Remote.Networking.Server;
 
 public interface IEndpoint<T>
 {

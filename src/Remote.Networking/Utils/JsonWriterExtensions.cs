@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 
-namespace RaceDirector.HUD.Utils;
+namespace RaceDirector.Remote.Networking.Utils;
 
 public static class JsonWriterExtensions
 {

@@ -1,19 +1,19 @@
-using HUD.Tests.Base;
-using HUD.Tests.TestUtils;
-using RaceDirector.HUD.Pipeline;
-using RaceDirector.HUD.Server;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using RaceDirector.Remote.Networking.Utils;
+using RaceDirector.Remote.Networking.Server;
 using System.Net;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
+using RaceDirector.Remote.Networking.Client;
 using Xunit;
+using Xunit.Categories;
 
-namespace HUD.Tests.Pipeline;
+namespace Remote.Networking.Tests.Server;
 
-public class MultiEndpointWsServerTest : IntegrationTestBase
+[IntegrationTest]
+public class MultiEndpointWsServerTest
 {
+    private static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
+
     [Fact]
     public void FailsConnectionIfNoMatchingEndpoint()
     {

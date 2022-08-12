@@ -1,6 +1,6 @@
 ﻿using RaceDirector.Pipeline.Telemetry.V0;
-using RaceDirector.HUD.Server;
-using static RaceDirector.HUD.Server.Endpoint;
+using RaceDirector.Remote.Networking.Server;
+using static RaceDirector.Remote.Networking.Server.Endpoint;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Extensions.Logging;
