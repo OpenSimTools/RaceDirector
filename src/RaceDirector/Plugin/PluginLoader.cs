@@ -10,6 +10,11 @@ public static class PluginLoader
 
     public static IEnumerable<IPlugin> InstantiatePlugins()
     {
-        return new IPlugin[] { new DefaultPlugin(), new RaceDirector.HUD.Plugin() };
+        return new IPlugin[]
+        {
+            new DefaultPlugin(),
+            new RaceDirector.Remote.Plugin(),
+            new RaceDirector.HUD.Plugin()
+        };
     }
 }

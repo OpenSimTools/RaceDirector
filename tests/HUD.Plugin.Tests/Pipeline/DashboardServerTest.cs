@@ -1,6 +1,6 @@
+using System;
 using AutoBogus;
 using AutoBogus.Moq;
-using HUD.Tests.Base;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.HUD.Pipeline;
@@ -10,11 +10,15 @@ using Microsoft.Extensions.Logging.Abstractions;
 using RaceDirector.Remote.Networking.Client;
 using RaceDirector.Remote.Networking.Utils;
 using Xunit;
+using Xunit.Categories;
 
 namespace HUD.Plugin.Tests.Pipeline;
 
-public class DashboardServerTest : IntegrationTestBase
+[IntegrationTest]
+public class DashboardServerTest
 {
+    private static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
+
     private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
         .Configure(b => b
             .WithBinder<MoqBinder>()

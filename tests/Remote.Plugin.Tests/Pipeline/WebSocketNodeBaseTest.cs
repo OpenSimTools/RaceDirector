@@ -1,12 +1,10 @@
 using HUD.Tests.Base;
 using Moq;
-using RaceDirector.HUD.Pipeline;
 using RaceDirector.Remote.Networking.Server;
-using System.Collections.Generic;
-using System.Linq;
+using RaceDirector.Remote.Pipeline;
 using Xunit;
 
-namespace HUD.Plugin.Tests.Pipeline;
+namespace Remote.Plugin.Tests.Pipeline;
 
 public class WebSocketNodeBaseTest : IntegrationTestBase
 {

@@ -25,7 +25,7 @@ public class DashboardServer : MultiEndpointWsServer<IGameTelemetry>
         var r3EDashTransformer = new R3EDashTransformer(config.R3EDash);
         return new[] {
             new Endpoint<IGameTelemetry>(PathMatcher("/r3e"), r3EDashTransformer.ToR3EDash)
-        };  
+        };
     }
 
     public DashboardServer(Config config, ILogger<DashboardServer> logger) : base(config.Address, config.Port, DashboardEndpoints(config), logger) { }

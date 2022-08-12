@@ -1,15 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>RaceDirector.HUD</RootNamespace>
+    <RootNamespace>RaceDirector.Remote</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
     <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
-    <ProjectReference Include="..\Remote.Plugin\Remote.Plugin.csproj" />
+    <ProjectReference Include="..\Remote.Networking\Remote.Networking.csproj" />
   </ItemGroup>
 
 </Project>

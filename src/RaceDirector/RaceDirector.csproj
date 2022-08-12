@@ -14,6 +14,7 @@
     <ProjectReference Include="..\HUD.Plugin\HUD.Plugin.csproj" />
     <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
     <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
+    <ProjectReference Include="..\Remote.Plugin\Remote.Plugin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -16,7 +16,6 @@ public class Plugin : PluginBase<Plugin.Configuration>
     {
         services
             .AddSingletonWithInterfaces(_ => configuration.DashboardServer)
-            .AddTransientWithInterfaces<DashboardServer>()
-            .AddTransientWithInterfaces<WebSocketTelemetryNode>();
+            .AddTransientWithInterfaces<DashboardServer>();
     }
 }

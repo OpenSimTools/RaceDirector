@@ -1,9 +1,7 @@
 ﻿using RaceDirector.Remote.Networking.Server;
-using System;
-using System.Collections.Generic;
 using System.Reactive;
 
-namespace RaceDirector.HUD.Pipeline;
+namespace RaceDirector.Remote.Pipeline;
 
 /// <summary>
 /// Starts and stops WebSocket servers based on trigger input.
