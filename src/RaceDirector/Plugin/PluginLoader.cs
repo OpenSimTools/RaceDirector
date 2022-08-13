@@ -14,7 +14,8 @@ public static class PluginLoader
         {
             new DefaultPlugin(),
             new RaceDirector.Remote.Plugin(),
-            new RaceDirector.HUD.Plugin()
+            new RaceDirector.HUD.Plugin(),
+            new RaceDirector.PitCrew.Plugin()
         };
     }
 }

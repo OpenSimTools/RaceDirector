@@ -22,6 +22,9 @@ public class Encoder<T> : IEncoder<T>
 
 public static class EncoderEx
 {
+    public static IEncoder<TIn> Wrap<TIn, TOut>(this IEncoder<TOut> encoder, Func<TIn, TOut> f)
+        => Encoder<TIn>.From(t => encoder.Encode(f(t)));
+
     public static ICodec<T, Nothing> ToCodec<T>(this IEncoder<T> encoder)
         => new EncoderOnly<T>(encoder);
 

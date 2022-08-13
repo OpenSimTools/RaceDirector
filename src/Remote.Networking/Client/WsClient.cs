@@ -54,6 +54,6 @@ public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient, IWsClient<TO
     public bool WeSendAsync(TOut message)
     {
         var payload = _codec.Encode(message);
-        return SendAsync(payload);
+        return SendTextAsync(payload);
     }
 }
