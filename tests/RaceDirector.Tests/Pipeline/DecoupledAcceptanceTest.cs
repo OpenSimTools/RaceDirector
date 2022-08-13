@@ -54,7 +54,7 @@ public class DecoupledAcceptanceTest : ReactiveTest
         wsServerMock.Reset();
 
         testScheduler.AdvanceTo(39);
-        wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
 
         testScheduler.AdvanceTo(40);
@@ -69,7 +69,7 @@ public class DecoupledAcceptanceTest : ReactiveTest
         wsServerMock.Reset();
 
         testScheduler.AdvanceTo(79);
-        wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
 
         testScheduler.AdvanceTo(80);

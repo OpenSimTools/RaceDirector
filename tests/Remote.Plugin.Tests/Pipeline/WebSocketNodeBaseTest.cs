@@ -29,7 +29,7 @@ public class WebSocketNodeBaseTest : IntegrationTestBase
     {
         _webSocketNode.PostData(2);
         foreach (var sm in _serverMocks)
-            Eventually(() => sm.Verify(s => s.Multicast(2)), "Data wasn't broadcasted");
+            Eventually(() => sm.Verify(s => s.WsMulticastAsync(2)), "Data wasn't broadcasted");
     }
 
     #region Test setup

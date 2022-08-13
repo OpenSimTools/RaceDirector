@@ -24,7 +24,7 @@ public abstract class WebSocketNodeBase<TTrigger, TData>
         });
         DataObserver = Observer.Create<TData>(data =>
         {
-            foreach (var s in servers) s.Multicast(data);
+            foreach (var s in servers) s.WsMulticastAsync(data);
         });
     }
 

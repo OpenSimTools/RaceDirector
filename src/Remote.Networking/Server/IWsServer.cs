@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RaceDirector.Remote.Networking.Server;
 
-public interface IWsServer<T> : ITcpServer
+public interface IWsServer<in TOut> : ITcpServer
 {
-    bool Multicast(T t);
+    bool WsMulticastAsync(TOut message);
 }

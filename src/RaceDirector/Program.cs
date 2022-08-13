@@ -9,9 +9,9 @@ using RaceDirector.Config;
 namespace RaceDirector;
 
 [SupportedOSPlatform("windows")]
-static class Program
+public static class Program
 {
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         var plugins = PluginLoader.InstantiatePlugins();
 

@@ -10,60 +10,79 @@ namespace RaceDirector.Remote.Networking.Server;
 /// <summary>
 /// WebSocket server that serialises messages differently based on the endpoint that was requested.
 /// </summary>
-/// <typeparam name="T">Type of message that can be broadcasted.</typeparam>
+/// <typeparam name="TIn">Type of message that can be received from clients.</typeparam>
+/// <typeparam name="TOut">Type of message that can be sent to client.</typeparam>
 /// <remarks>NetCoreServer is poorly designed for extensibility. This class could be a lot simpler.</remarks>
-public class MultiEndpointWsServer<T> : WsServer, IWsServer<T>
+public class MultiEndpointWsServer<TOut, TIn> : WsServer, IWsServer<TOut>
 {
-    private readonly List<IEndpoint<T>> _endpoints;
+    private readonly List<IEndpoint<TOut, TIn>> _endpoints;
     protected readonly ILogger Logger;
 
-    public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<IEndpoint<T>> endpoints, ILogger logger)
+    public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<IEndpoint<TOut, TIn>> endpoints, ILogger logger)
         : base(address, port)
     {
         _endpoints = endpoints.ToList();
         Logger = logger;
     }
 
-    protected override TcpSession CreateSession()
+    protected sealed override TcpSession CreateSession()
     {
         return new MultiEndpointWsSession(this);
     }
+    
+    /// <summary>
+    /// Override this to handle incoming messages from a session.
+    /// </summary>
+    /// <param name="session">Session that received the message</param>
+    /// <param name="message">Message received</param>
+    protected virtual void OnWsReceived(WsSession session, TIn message) { }
         
     /// <summary>
     /// Multicasts data to all clients connected. Serialisation depends on the endpoint that
     /// clients are connected to.
     /// </summary>
-    /// <param name="t">Message</param>
-    public bool Multicast(T t)
+    /// <param name="message">Message</param>
+    public bool WsMulticastAsync(TOut message)
+    {
+        return WsMulticastAsync(message, _ => true);
+    }
+
+    /// <summary>
+    /// Multicasts data to all connected clients matching a condition.
+    /// Serialisation depends on the endpoint that clients are connected to.
+    /// </summary>
+    /// <param name="message">Message</param>
+    /// <param name="condition">Should this session be sent the message?</param>
+    public bool WsMulticastAsync(TOut message, Func<WsSession, bool> condition)
     {
         if (!IsStarted)
         {
-            Logger.LogTrace("Server stopped; skipping message {T}", t);
+            Logger.LogTrace("Server stopped; skipping message {T}", message);
             return false;
         }
 
-        Logger.LogTrace("Sending message {T}", t);
+        Logger.LogTrace("Sending message {T}", message);
+        var ret = true;
         foreach (var session in Sessions.Values)
         {
-            if (session is MultiEndpointWsSession mewsSession)
-            {
-                mewsSession.SendAsync(t);
-            }
+            if (session is not MultiEndpointWsSession mewsSession) continue;
+            if (condition(mewsSession))
+                ret &= mewsSession.WsSendAsync(message);
         }
 
-        return true;
+        return ret;
     }
 
     private class MultiEndpointWsSession : WsSession
     {
-        private readonly MultiEndpointWsServer<T> _server;
-        private IEndpoint<T>? _matchedEndpoint;
-        private bool _wsHandshaked;
+        private readonly MultiEndpointWsServer<TOut, TIn> _server;
+        private IEndpoint<TOut, TIn>? _matchedEndpoint;
+        private bool _wsConnected;
 
-        public MultiEndpointWsSession(MultiEndpointWsServer<T> server) : base(server)
+        public MultiEndpointWsSession(MultiEndpointWsServer<TOut, TIn> server) : base(server)
         {
             _server = server;
-            _wsHandshaked = false;
+            _wsConnected = false;
         }
 
         public override bool OnWsConnecting(HttpRequest request, HttpResponse response) {
@@ -73,15 +92,24 @@ public class MultiEndpointWsServer<T> : WsServer, IWsServer<T>
 
         public override void OnWsConnected(HttpRequest request) {
             _server.Logger.LogDebug("Client connected");
-            _wsHandshaked = true;
+            _wsConnected = true;
         }
 
-        public bool SendAsync(T t)
+        public sealed override void OnWsReceived(byte[] buffer, long offset, long size)
         {
-            if (_wsHandshaked && _matchedEndpoint != null)
-                return SendTextAsync(_matchedEndpoint.Transform(t));
-            else
+            if (_matchedEndpoint is null)
+                return;
+            var payload = new ReadOnlySpan<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
+            var message = _matchedEndpoint.Codec.Decode(payload);
+            _server.OnWsReceived(this, message);
+        }
+
+        public bool WsSendAsync(TOut t)
+        {
+            if (!_wsConnected || _matchedEndpoint is null)
                 return false;
+            var payload = _matchedEndpoint.Codec.Encode(t);
+            return SendTextAsync(payload);
         }
     }
 }

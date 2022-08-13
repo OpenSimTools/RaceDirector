@@ -3,7 +3,9 @@ using RaceDirector.Remote.Networking.Server;
 using System.Net;
 using System.Text;
 using Microsoft.Extensions.Logging.Abstractions;
+using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
+using RaceDirector.Remote.Networking.Codec;
 using Xunit;
 using Xunit.Categories;
 
@@ -12,12 +14,12 @@ namespace Remote.Networking.Tests.Server;
 [IntegrationTest]
 public class MultiEndpointWsServerTest
 {
-    private static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
+    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
 
     [Fact]
     public void FailsConnectionIfNoMatchingEndpoint()
     {
-        WithServerClient(Enumerable.Empty<IEndpoint<int>>(), "GET", (server, client) => {
+        WithServerClient(Enumerable.Empty<IEndpoint<int, Nothing>>(), "/", (_, client) => {
             Assert.False(client.ConnectAndWait());
         });
     }
@@ -26,27 +28,30 @@ public class MultiEndpointWsServerTest
     public void ReceivedBroadcastForMatchingEndpoint()
     {
         var endpoints = new [] {
-            new Endpoint<int>(Endpoint.PathMatcher("/foo"), _ => Encoding.UTF8.GetBytes("")),
-            new Endpoint<int>(Endpoint.PathMatcher("/bar"), i => Encoding.UTF8.GetBytes(i.ToString())),
-            new Endpoint<int>(Endpoint.PathMatcher("/baz"), _ => Encoding.UTF8.GetBytes("24")),
+            new Endpoint<int, Nothing>(Endpoint.PathMatcher("/foo"), TestCodec(_ => "")),
+            new Endpoint<int, Nothing>(Endpoint.PathMatcher("/bar"), TestCodec(i => i.ToString())),
+            new Endpoint<int, Nothing>(Endpoint.PathMatcher("/baz"), TestCodec(_ => "24"))
         };
         WithServerClient(endpoints, "/bar", (server, client) =>
         {
             Assert.True(client.ConnectAndWait(), "Client could not connect");
-            server.Multicast(42);
-            Assert.Equal("42", client.NextString());
+            server.WsMulticastAsync(42);
+            Assert.Equal("42", client.Next());
         });
     }
 
     #region Test setup
 
-    private void WithServerClient<T>(IEnumerable<IEndpoint<T>> endpoints, string path, Action<IWsServer<T>, JsonWsClient> action)
+    private void WithServerClient(IEnumerable<IEndpoint<int, Nothing>> endpoints, string path, Action<IWsServer<int>, SyncWsClient<string, string>> action)
     {
         var serverPort = Tcp.FreePort();
-        using var server = new MultiEndpointWsServer<T>(IPAddress.Any, serverPort, endpoints, NullLogger.Instance);
+        using var server = new MultiEndpointWsServer<int, Nothing>(IPAddress.Any, serverPort, endpoints, NullLogger.Instance);
         server.Start();
-        using var client = new JsonWsClient(Timeout, serverPort, path);
+        using var client = new SyncWsClient<string, string>($"ws://{IPAddress.Loopback}:{serverPort}{path}", StringCodec.UTF8, _timeout);
         action(server, client);
     }
+
+    private ICodec<int, Nothing> TestCodec(Func<int, string> f) => Encoder<int>.From(i => Encoding.UTF8.GetBytes(f(i))).ToCodec();
+
     #endregion
 }
