@@ -3,7 +3,7 @@ using RaceDirector.Remote.Networking.Codec;
 
 namespace RaceDirector.Remote.Networking.Client;
 
-public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient
+public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient, IWsClient<TOut>
 {
     public Task Connected => _connectedCompletionSource.Task;
 
@@ -51,9 +51,9 @@ public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient
 
     protected virtual void OnWsReceived(TIn message) { }
 
-    public void SendAsync(TOut message)
+    public bool WeSendAsync(TOut message)
     {
         var payload = _codec.Encode(message);
-        SendAsync(payload);
+        return SendAsync(payload);
     }
 }
