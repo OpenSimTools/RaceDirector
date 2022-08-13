@@ -1,4 +1,3 @@
-using RaceDirector.Remote.Networking.Utils;
 using RaceDirector.Remote.Networking.Server;
 using System.Net;
 using System.Text;
@@ -6,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
 using RaceDirector.Remote.Networking.Codec;
+using TestUtils;
 using Xunit;
 using Xunit.Categories;
 
@@ -14,7 +14,7 @@ namespace Remote.Networking.Tests.Server;
 [IntegrationTest]
 public class MultiEndpointWsServerTest
 {
-    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
 
     [Fact]
     public void FailsConnectionIfNoMatchingEndpoint()
@@ -47,7 +47,7 @@ public class MultiEndpointWsServerTest
         var serverPort = Tcp.FreePort();
         using var server = new MultiEndpointWsServer<int, Nothing>(IPAddress.Any, serverPort, endpoints, NullLogger.Instance);
         server.Start();
-        using var client = new SyncWsClient<string, string>($"ws://{IPAddress.Loopback}:{serverPort}{path}", StringCodec.UTF8, _timeout);
+        using var client = new SyncWsClient<string, string>($"ws://{IPAddress.Loopback}:{serverPort}{path}", StringCodec.UTF8, Timeout);
         action(server, client);
     }
 

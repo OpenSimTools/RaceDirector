@@ -12,7 +12,7 @@ using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
 using RaceDirector.Remote.Networking.Codec;
 using RaceDirector.Remote.Networking.Json;
-using RaceDirector.Remote.Networking.Utils;
+using TestUtils;
 using Xunit;
 using Xunit.Categories;
 

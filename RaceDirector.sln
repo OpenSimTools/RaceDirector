@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Plugin", "src\Remote
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remote.Plugin.Tests", "tests\Remote.Plugin.Tests\Remote.Plugin.Tests.csproj", "{159A089A-A532-4995-929C-B595247DDE8F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtils", "tests\TestUtils\TestUtils.csproj", "{23620357-3A81-4641-8F1D-D86E931D6CCB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{159A089A-A532-4995-929C-B595247DDE8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{159A089A-A532-4995-929C-B595247DDE8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{159A089A-A532-4995-929C-B595247DDE8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23620357-3A81-4641-8F1D-D86E931D6CCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23620357-3A81-4641-8F1D-D86E931D6CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23620357-3A81-4641-8F1D-D86E931D6CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23620357-3A81-4641-8F1D-D86E931D6CCB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

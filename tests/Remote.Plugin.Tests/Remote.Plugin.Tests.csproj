@@ -27,5 +27,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Remote.Plugin\Remote.Plugin.csproj" />
+        <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
     </ItemGroup>
 </Project>

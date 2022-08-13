@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace RaceDirector.Remote.Networking.Utils;
+namespace TestUtils;
 
 public static class Tcp
 {

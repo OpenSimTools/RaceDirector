@@ -1,19 +1,25 @@
-using HUD.Tests.Base;
 using Moq;
 using RaceDirector.Remote.Networking.Server;
 using RaceDirector.Remote.Pipeline;
 using Xunit;
+using Xunit.Categories;
+using static TestUtils.EventuallyAssertion;
 
 namespace Remote.Plugin.Tests.Pipeline;
 
-public class WebSocketNodeBaseTest : IntegrationTestBase
+[IntegrationTest]
+public class WebSocketNodeBaseTest
 {
+    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
+
     [Fact]
     public void ServerIsStartedWhenTriggered()
     {
         _webSocketNode.PostTrigger(true);
         foreach (var sm in _serverMocks)
-            Eventually(() => sm.Verify(s => s.Start()), "Server wasn't started");
+            Eventually(() => sm.Verify(s => s.Start()))
+                .OrError("Server wasn't started")
+                .Within(Timeout);
     }
 
     [Fact]
@@ -21,7 +27,9 @@ public class WebSocketNodeBaseTest : IntegrationTestBase
     {
         _webSocketNode.PostTrigger(false);
         foreach (var sm in _serverMocks)
-            Eventually(() => sm.Verify(s => s.Stop(), "Server didn't stop"));
+            Eventually(() => sm.Verify(s => s.Stop()))
+                .OrError("Server didn't stop")
+                .Within(Timeout);
     }
 
     [Fact]
@@ -29,7 +37,9 @@ public class WebSocketNodeBaseTest : IntegrationTestBase
     {
         _webSocketNode.PostData(2);
         foreach (var sm in _serverMocks)
-            Eventually(() => sm.Verify(s => s.WsMulticastAsync(2)), "Data wasn't broadcasted");
+            Eventually(() => sm.Verify(s => s.WsMulticastAsync(2)))
+                .OrError("Data wasn't broadcasted")
+                .Within(Timeout);
     }
 
     #region Test setup

@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HUD.Plugin\HUD.Plugin.csproj" />
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
   </ItemGroup>
 
 </Project>

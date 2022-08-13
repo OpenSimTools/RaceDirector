@@ -26,5 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Remote.Networking\Remote.Networking.csproj" />
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
   </ItemGroup>
 </Project>
