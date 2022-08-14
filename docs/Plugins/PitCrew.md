@@ -27,9 +27,16 @@ It can also be overridden via the command line:
 ## Server
 
 A separate package can be downloaded from the same location as RaceDirector and run in a similar
-way.
+way. The default port is 8042.
 
-Once the server is running, telemetry pushed by RaceDirector will be broadcasted  to all
-connected clients. Currently there is no UI, so a WebSocket client (e.g.
-[a Web-based one](http://livepersoninc.github.io/ws-test-page/)) is required to access it from
-the same URL that the client is pushing telemetry to.
+Once the server is running, telemetry pushed by RaceDirector will be broadcasted to all
+connected clients. Currently there is no UI, so a WebSocket client or a
+[Web browser test page](http://livepersoninc.github.io/ws-test-page/) is required to access it
+from the same URL where the client is pushing telemetry to.
+
+It should look like this:
+```
+{"Fuel":{"Left":12.34}}
+{"Fuel":{"Left":12.33}}
+...
+```
