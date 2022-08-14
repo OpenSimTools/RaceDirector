@@ -96,7 +96,7 @@ public class MultiEndpointWsServer<TOut, TIn> : WsServer, IWsServer<TOut>
         {
             if (_matchedEndpoint is null)
                 return;
-            var payload = new ReadOnlySpan<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
+            var payload = new ReadOnlyMemory<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
             var message = _matchedEndpoint.Codec.Decode(payload);
             _server.OnWsReceived(this, message);
         }
@@ -106,7 +106,7 @@ public class MultiEndpointWsServer<TOut, TIn> : WsServer, IWsServer<TOut>
             if (!_wsConnected || _matchedEndpoint is null)
                 return false;
             var payload = _matchedEndpoint.Codec.Encode(t);
-            return SendTextAsync(payload);
+            return SendTextAsync(payload.Span);
         }
     }
 }

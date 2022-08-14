@@ -27,7 +27,7 @@ public class R3EDashEncoder : IEncoder<IGameTelemetry>
         _config = config;
     }
 
-    public ReadOnlySpan<byte> Encode(IGameTelemetry gt)
+    public ReadOnlyMemory<byte> Encode(IGameTelemetry gt)
     {
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream, JsonWriterOptions))

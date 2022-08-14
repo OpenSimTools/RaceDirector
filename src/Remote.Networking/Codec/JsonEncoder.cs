@@ -9,5 +9,5 @@ public class JsonEncoder<T> : IEncoder<T>
     /// </summary>
     /// <param name="t">Message</param>
     /// <returns>JSON payload</returns>
-    public ReadOnlySpan<byte> Encode(T? t) => JsonSerializer.SerializeToUtf8Bytes(t);
+    public ReadOnlyMemory<byte> Encode(T? t) => JsonSerializer.SerializeToUtf8Bytes(t);
 }

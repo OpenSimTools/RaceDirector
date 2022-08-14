@@ -2,7 +2,7 @@
 
 public interface IDecoder<out T>
 {
-    T Decode(ReadOnlySpan<byte> payload);
+    T Decode(ReadOnlyMemory<byte> payload);
 }
 
 public static class DecoderEx
@@ -12,8 +12,8 @@ public static class DecoderEx
 
     private record DecoderOnly<T>(IDecoder<T> Decoder) : ICodec<Nothing, T>
     {
-        public ReadOnlySpan<byte> Encode(Nothing t) => Array.Empty<byte>();
+        public ReadOnlyMemory<byte> Encode(Nothing t) => Array.Empty<byte>();
 
-        public T Decode(ReadOnlySpan<byte> payload) => Decoder.Decode(payload);
+        public T Decode(ReadOnlyMemory<byte> payload) => Decoder.Decode(payload);
     }
 }

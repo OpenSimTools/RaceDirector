@@ -13,7 +13,7 @@ public class StringCodec : ICodec<string, string>
         _encoding = encoding;
     }
 
-    public ReadOnlySpan<byte> Encode(string? t) => t is null ? Array.Empty<byte>() : _encoding.GetBytes(t);
+    public ReadOnlyMemory<byte> Encode(string? t) => t is null ? Array.Empty<byte>() : _encoding.GetBytes(t);
 
-    public string Decode(ReadOnlySpan<byte> ba) => _encoding.GetString(ba);
+    public string Decode(ReadOnlyMemory<byte> payload) => _encoding.GetString(payload.Span);
 }

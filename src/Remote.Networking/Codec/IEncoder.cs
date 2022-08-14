@@ -2,12 +2,12 @@
 
 public interface IEncoder<in T>
 {
-    ReadOnlySpan<byte> Encode(T t);
+    ReadOnlyMemory<byte> Encode(T t);
 }
 
 public class Encoder<T> : IEncoder<T>
 {
-    public delegate ReadOnlySpan<byte> EncodeF(T t);
+    public delegate ReadOnlyMemory<byte> EncodeF(T t);
 
     private readonly EncodeF _f;
     public static IEncoder<T> From(EncodeF f) => new Encoder<T>(f);
@@ -17,7 +17,7 @@ public class Encoder<T> : IEncoder<T>
         _f = f;
     }
 
-    public ReadOnlySpan<byte> Encode(T t) => _f(t);
+    public ReadOnlyMemory<byte> Encode(T t) => _f(t);
 }
 
 public static class EncoderEx
@@ -30,8 +30,8 @@ public static class EncoderEx
 
     private record EncoderOnly<T>(IEncoder<T> Encoder) : ICodec<T, Nothing>
     {
-        public ReadOnlySpan<byte> Encode(T t) => Encoder.Encode(t);
+        public ReadOnlyMemory<byte> Encode(T t) => Encoder.Encode(t);
 
-        public Nothing Decode(ReadOnlySpan<byte> ba) => new();
+        public Nothing Decode(ReadOnlyMemory<byte> payload) => new();
     }
 }

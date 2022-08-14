@@ -10,6 +10,7 @@ using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using System.Linq;
+using RaceDirector.Remote.Networking.Codec;
 using RaceDirector.Remote.Networking.Json;
 using static RaceDirector.Pipeline.Telemetry.V0.IVehicleFlags;
 
@@ -1892,13 +1893,12 @@ public class R3EDashTransformerTest
 
     #region Test setup
 
-    private static JsonDocument ToR3EDash(GameTelemetry gt)
+    private static JsonDocument ToR3EDash(IGameTelemetry gt)
     {
         var config = new R3EDashEncoder.Configuration();
         var encoder = new R3EDashEncoder(config);
         var payload = encoder.Encode(gt);
-        var jsonString = System.Text.Encoding.UTF8.GetString(payload);
-        return JsonDocument.Parse(jsonString);
+        return new JsonDocumentDecoder().Decode(payload);
     }
 
     #endregion

@@ -9,5 +9,5 @@ public class JsonDecoder<T> : IDecoder<T>
     /// </summary>
     /// <param name="payload">JSON UTF8 bytes</param>
     /// <returns>Converted message</returns>
-    public T Decode(ReadOnlySpan<byte> payload) => JsonSerializer.Deserialize<T>(payload)!;
+    public T Decode(ReadOnlyMemory<byte> payload) => JsonSerializer.Deserialize<T>(payload.Span)!;
 }

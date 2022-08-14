@@ -44,7 +44,7 @@ public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient, IWsClient<TO
 
     public override void OnWsReceived(byte[] buffer, long offset, long size)
     {
-        var payload = new ReadOnlySpan<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
+        var payload = new ReadOnlyMemory<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
         var message = _codec.Decode(payload);
         OnWsReceived(message);
     }
@@ -54,6 +54,6 @@ public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient, IWsClient<TO
     public bool WeSendAsync(TOut message)
     {
         var payload = _codec.Encode(message);
-        return SendTextAsync(payload);
+        return SendTextAsync(payload.Span);
     }
 }
