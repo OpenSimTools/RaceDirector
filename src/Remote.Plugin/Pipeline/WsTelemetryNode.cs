@@ -9,9 +9,9 @@ namespace RaceDirector.Remote.Pipeline;
 /// <summary>
 /// Exposes live telemetry as a web socket server.
 /// </summary>
-public class WebSocketTelemetryNode : WebSocketNodeBase<IRunningGame, IGameTelemetry>, INode
+public class WsTelemetryNode : WsNodeBase<IRunningGame, IGameTelemetry>, INode
 {
-    public WebSocketTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers,
+    public WsTelemetryNode(IEnumerable<IWsServer<IGameTelemetry>> servers,
             IEnumerable<IWsClient<IGameTelemetry>> clients) :
         base(servers.Select(s => s.ToRemotePublisher())
             .Concat(clients.Select(c => c.ToRemotePublisher())))

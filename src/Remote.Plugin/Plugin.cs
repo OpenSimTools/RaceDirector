@@ -10,6 +10,6 @@ public class Plugin : PluginBase<PluginBase.Config>
     protected override void Init(PluginBase.Config _, IServiceCollection services)
     {
         services
-            .AddTransientWithInterfaces<WebSocketTelemetryNode>();
+            .AddTransientWithInterfaces<WsTelemetryNode>();
     }
 }

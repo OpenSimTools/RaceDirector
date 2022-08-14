@@ -31,7 +31,7 @@ public static class WsClientEx
 
     private record RemotePublisher<T>(IWsClient<T> Client) : IRemotePublisher<T>
     {
-        public void PublishAsync(T t) => Client.WeSendAsync(t);
+        public void PublishAsync(T t) => Client.WsSendAsync(t);
 
         public void Start() => Client.Connect();
 

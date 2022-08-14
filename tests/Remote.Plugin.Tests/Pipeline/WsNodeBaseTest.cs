@@ -8,14 +8,14 @@ using static TestUtils.EventuallyAssertion;
 namespace Remote.Plugin.Tests.Pipeline;
 
 [IntegrationTest]
-public class WebSocketNodeBaseTest
+public class WsNodeBaseTest
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
 
     [Fact]
     public void ServerIsStartedWhenTriggered()
     {
-        _webSocketNode.PostTrigger(true);
+        _wsNode.PostTrigger(true);
         foreach (var sm in _publisherMocks)
             Eventually(() => sm.Verify(s => s.Start()))
                 .OrError("Server wasn't started")
@@ -25,7 +25,7 @@ public class WebSocketNodeBaseTest
     [Fact]
     public void ServerIsStoppedWhenTriggered()
     {
-        _webSocketNode.PostTrigger(false);
+        _wsNode.PostTrigger(false);
         foreach (var sm in _publisherMocks)
             Eventually(() => sm.Verify(s => s.Stop()))
                 .OrError("Server didn't stop")
@@ -35,7 +35,7 @@ public class WebSocketNodeBaseTest
     [Fact]
     public void DataIsBroadcastedWhenReceived()
     {
-        _webSocketNode.PostData(2);
+        _wsNode.PostData(2);
         foreach (var sm in _publisherMocks)
             Eventually(() => sm.Verify(s => s.PublishAsync(2)))
                 .OrError("Data wasn't broadcasted")
@@ -45,18 +45,18 @@ public class WebSocketNodeBaseTest
     #region Test setup
 
     private readonly IEnumerable<Mock<IRemotePublisher<int>>> _publisherMocks;
-    private readonly TestWebSocketNode _webSocketNode;
+    private readonly TestWsNode _wsNode;
 
-    public WebSocketNodeBaseTest()
+    public WsNodeBaseTest()
     {
         _publisherMocks = Enumerable.Range(1, 3).Select(_ => new Mock<IRemotePublisher<int>>()).ToArray();
         var mockedServers = _publisherMocks.Select(m => m.Object).ToArray();
-        _webSocketNode = new TestWebSocketNode(mockedServers);
+        _wsNode = new TestWsNode(mockedServers);
     }
 
-    private class TestWebSocketNode : WebSocketNodeBase<bool, int>
+    private class TestWsNode : WsNodeBase<bool, int>
     {
-        public TestWebSocketNode(params IRemotePublisher<int>[] publishers) : base(publishers) { }
+        public TestWsNode(params IRemotePublisher<int>[] publishers) : base(publishers) { }
 
         protected override bool PublisherShouldStart(bool trigger)
         {

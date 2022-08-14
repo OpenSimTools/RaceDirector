@@ -46,7 +46,7 @@ public class DecoupledAcceptanceTest : ReactiveTest
             {
                 new FakeProcessMonitorNode(new[] {fakeGame}, fakeProcesses, testScheduler),
                 new TelemetryReaderNode(new[] {fakeGame}),
-                new WebSocketTelemetryNode(new[] {wsServerMock.Object}, new [] {wsClientMock.Object})
+                new WsTelemetryNode(new[] {wsServerMock.Object}, new [] {wsClientMock.Object})
             }
         );
 
@@ -61,7 +61,7 @@ public class DecoupledAcceptanceTest : ReactiveTest
         testScheduler.AdvanceTo(39);
         wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
-        wsClientMock.Verify(s => s.WeSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsClientMock.Verify(s => s.WsSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsClientMock.Reset();
 
         testScheduler.AdvanceTo(40);
@@ -84,7 +84,7 @@ public class DecoupledAcceptanceTest : ReactiveTest
         testScheduler.AdvanceTo(79);
         wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
-        wsClientMock.Verify(s => s.WeSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsClientMock.Verify(s => s.WsSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsClientMock.Reset();
 
         testScheduler.AdvanceTo(80);

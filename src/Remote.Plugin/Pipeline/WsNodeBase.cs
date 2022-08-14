@@ -8,12 +8,12 @@ namespace RaceDirector.Remote.Pipeline;
 /// </summary>
 /// <typeparam name="TTrigger">Trigger type</typeparam>
 /// <typeparam name="TData">Data type</typeparam>
-public abstract class WebSocketNodeBase<TTrigger, TData>
+public abstract class WsNodeBase<TTrigger, TData>
 {
     protected readonly IObserver<TTrigger> TriggerObserver;
     protected readonly IObserver<TData> DataObserver;
 
-    protected WebSocketNodeBase(IEnumerable<IRemotePublisher<TData>> publishers)
+    protected WsNodeBase(IEnumerable<IRemotePublisher<TData>> publishers)
     {
         TriggerObserver = Observer.Create<TTrigger>(trigger =>
         {
