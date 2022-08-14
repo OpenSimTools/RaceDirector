@@ -2,18 +2,13 @@
 
 ![build](https://github.com/OpenSimTools/RaceDirector/actions/workflows/ci.yaml/badge.svg)
 
-At the moment the software is a replacement for RaceRoom's closed source
-[Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip) command. The major
-difference is that it can export telemetry from other games (see [supported games](docs/Games.md)).
+RaceDirector is the sim racer's Swiss Army knife.
 
-It is a console application that every 15ms will read the memory mapped file that RaceRoom exposes,
-only when the game is running. It will then expose that data on a WebSocket. The supported fields
-are those required by [RaceRoom's WebHud](https://github.com/sector3studios/webhud), and can be found
-[here](docs/Plugins/HUD/README.md).
-
-Please note that
-[OtterHUD](https://forum.sector3studios.com/index.php?threads/otterhud-a-custom-webhud-with-additional-features.13152/)
-(closed source) requires more fields than *currently* supported.
+The main software implements a pluggable architecture and a default set of components for sim
+racing. Plugins can be written to extend it with new functionality. In this early development
+phase, some plugins come bundled with it:
+ - [HUD](./docs/Plugins/HUD.md)
+ - [PitCrew](./docs/Plugins/PitCrew.md)
 
 ## Install
 
@@ -24,46 +19,9 @@ The package can be found in the "Artifacts" section of the
 
 ## Run
 
-Since RaceRoom's WebHud requires a specific older minor version of the memory mapped files,
-it will be necessary to override the default one using a command line argument or editing
-`application.conf` in the same directory.
+Execute `RaceDirector.exe` from the installation directory.
 
-```
-.\RaceDirector.exe --RaceDirector.HUD.Plugin:DashboardServer:R3EDash:MinorVersion=8
-```
-
-To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser window can be
-pointed to https://sector3studios.github.io/webhud/dist/.
-
-Alternatively, the telemetry can be seen connecting to the WebSocket port
-(`ws://localhost:8070/r3e`) using a client or a
-[Web browser test page](http://livepersoninc.github.io/ws-test-page/)):
-```
-{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
-{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
-...
-```
-
-### PitCrew Plugin
-
-The PitCrew plugin allows telemetry to be sent to a server, where other team mates can see it.
-This plugin is disabled by default, and it needs to be enabled before use. The server endpoint
-can be configured in the dedicated section of `application.conf`.
-
-```json
-{
-  "RaceDirector.PitCrew.Plugin": {
-    "Enabled": true,
-    "ServerUrl": "ws://myserver:8042/"
-  }
-}
-```
-
-It can also be overridden via the command line:
-
-```
---RaceDirector.PitCrew.Plugin:Enabled=true --RaceDirector.PitCrew.Plugin:ServerUrl=ws://myserver:8042/
-```
+The software can be configured editing the `application.json` file in the same location.
 
 ## Build
 
