@@ -5,10 +5,14 @@ using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.HUD.Pipeline;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Utils;
+using RaceDirector.Remote.Networking.Codec;
+using RaceDirector.Remote.Networking.Json;
+using TestUtils;
 using Xunit;
 using Xunit.Categories;
 
@@ -17,9 +21,9 @@ namespace HUD.Plugin.Tests.Pipeline;
 [IntegrationTest]
 public class DashboardServerTest
 {
-    private static TimeSpan Timeout { get => TimeSpan.FromMilliseconds(500); }
+    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
 
-    private static Bogus.Faker<GameTelemetry> gtFaker = new AutoFaker<GameTelemetry>()
+    private static readonly Bogus.Faker<GameTelemetry> GtFaker = new AutoFaker<GameTelemetry>()
         .Configure(b => b
             .WithBinder<MoqBinder>()
             // For some reason AutoBogus/Moq can't generate IDistance or IFraction<IDistance>
@@ -32,14 +36,14 @@ public class DashboardServerTest
     {
         using var server = new DashboardServer(new DashboardServer.Config { Address = IPAddress.Any, Port = _serverPort }, TestLogger);
         Assert.True(server.Start(), "Server did not start");
-        using var client = new JsonWsClient(Timeout, _serverPort, "/r3e");
-        var telemetry = gtFaker.Generate();
+        using var client = new SyncWsClient<Nothing, JsonDocument>($"ws://{IPAddress.Loopback}:{_serverPort}/r3e", new JsonDocumentDecoder().ToCodec(), Timeout);
 
         Assert.True(client.ConnectAndWait(), "Client could not connect");
-        server.Multicast(telemetry);
-        var message = client.NextJson();
-        Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMajor").ValueKind);
-        Assert.Equal(System.Text.Json.JsonValueKind.Number, message.Path("VersionMinor").ValueKind);
+        Assert.True(server.WsMulticastAsync(GtFaker.Generate()), "Could not multicast to all connected clients");
+
+        var message = client.Next();
+        Assert.Equal(JsonValueKind.Number, message?.Path("VersionMajor").ValueKind);
+        Assert.Equal(JsonValueKind.Number, message?.Path("VersionMinor").ValueKind);
     }
 
     #region Test setup

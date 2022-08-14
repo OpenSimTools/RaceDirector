@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json;
 
-namespace RaceDirector.Remote.Networking.Utils;
+namespace RaceDirector.Remote.Networking.Json;
 
-public static class JsonWriterExtensions
+public static class JsonWriterEx
 {
     public static void WriteObject(this Utf8JsonWriter writer, String propertyName, Action<Utf8JsonWriter> f)
     {

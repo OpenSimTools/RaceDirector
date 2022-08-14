@@ -1,10 +1,11 @@
 ﻿using NetCoreServer;
+using RaceDirector.Remote.Networking.Codec;
 
 namespace RaceDirector.Remote.Networking.Server;
 
-public interface IEndpoint<T>
+public interface IEndpoint<in TOut, out TIn>
 {
-    bool Matches(HttpRequest request);
+    ICodec<TOut, TIn> Codec { get; }
 
-    byte[] Transform(T t);
+    bool Matches(HttpRequest request);
 }

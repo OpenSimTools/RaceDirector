@@ -1,22 +1,21 @@
 ﻿using NetCoreServer;
 using System;
+using RaceDirector.Remote.Networking.Codec;
 
 namespace RaceDirector.Remote.Networking.Server;
 
-public class Endpoint<T> : IEndpoint<T>
+public class Endpoint<TOut, TIn> : IEndpoint<TOut, TIn>
 {
     private readonly Func<HttpRequest, bool> _matches;
-    private readonly Func<T, byte[]> _transform;
+    public ICodec<TOut, TIn> Codec { get; }
 
-    public Endpoint(Func<HttpRequest, bool> matches, Func<T, byte[]> transform)
+    public Endpoint(Func<HttpRequest, bool> matches, ICodec<TOut, TIn> codec)
     {
         _matches = matches;
-        _transform = transform;
+        Codec = codec;
     }
 
     public bool Matches(HttpRequest request) => _matches(request);
-
-    public byte[] Transform(T t) => _transform(t);
 }
 
 public static class Endpoint

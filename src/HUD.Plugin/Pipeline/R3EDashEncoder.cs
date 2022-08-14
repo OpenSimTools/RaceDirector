@@ -2,15 +2,16 @@
 using System.Text.Json;
 using System.IO;
 using System;
-using RaceDirector.Remote.Networking.Utils;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using System.Text;
+using RaceDirector.Remote.Networking.Codec;
+using RaceDirector.Remote.Networking.Json;
 
 namespace RaceDirector.HUD.Pipeline;
 
-public class R3EDashTransformer
+public class R3EDashEncoder : IEncoder<IGameTelemetry>
 {
     public class Configuration
     {
@@ -21,21 +22,19 @@ public class R3EDashTransformer
     private static readonly JsonWriterOptions JsonWriterOptions = new();
 
     private readonly Configuration _config;
-    public R3EDashTransformer(Configuration config)
+    public R3EDashEncoder(Configuration config)
     {
         _config = config;
     }
 
-    public byte[] ToR3EDash(IGameTelemetry gt)
+    public ReadOnlyMemory<byte> Encode(IGameTelemetry gt)
     {
-        using (var stream = new MemoryStream())
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream, JsonWriterOptions))
         {
-            using (var writer = new Utf8JsonWriter(stream, JsonWriterOptions))
-            {
-                WriteR3EDash(writer, gt);
-            }
-            return stream.ToArray();
+            WriteR3EDash(writer, gt);
         }
+        return stream.ToArray();
     }
 
     private void WriteR3EDash(Utf8JsonWriter w, IGameTelemetry gt)

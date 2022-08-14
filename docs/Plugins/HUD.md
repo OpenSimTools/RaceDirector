@@ -1,8 +1,44 @@
-# RaceDirector HUD
+# HUD Plugin
 
 The HUD plugin implements support for several ways of exposing telemetry to applications and dashboards.
 
-## RaceRoom Dash Protocol
+At the moment it is a little more than a replacement for RaceRoom's closed source
+[Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip) command. The major
+difference is that it can export telemetry from other games (see [supported games](../Games.md)).
+
+It is a console application that every 15ms will read the memory mapped file that RaceRoom exposes,
+only when the game is running. It will then expose that data on a WebSocket. The supported fields are
+those required by [RaceRoom's WebHud](https://github.com/sector3studios/webhud), and can be found below.
+
+Please note that
+[OtterHUD](https://forum.sector3studios.com/index.php?threads/otterhud-a-custom-webhud-with-additional-features.13152/)
+(closed source) requires more fields than *currently* supported.
+
+## Configuration
+
+Since RaceRoom's WebHud requires a specific older minor version of the memory mapped files,
+it will be necessary to override the default one using a command line argument or editing
+`application.conf` in the same directory.
+
+```
+.\RaceDirector.exe --RaceDirector.HUD.Plugin:DashboardServer:R3EDash:MinorVersion=8
+```
+
+To see it in action, RaceRoom can be configured to use the WebHud or a Web Browser window can be
+pointed to https://sector3studios.github.io/webhud/dist/.
+
+Alternatively, the telemetry can be seen connecting to the WebSocket port
+(`ws://localhost:8070/r3e`) using a client or a
+[Web browser test page](http://livepersoninc.github.io/ws-test-page/)):
+```
+{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
+{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
+...
+```
+
+## Protocols
+
+### RaceRoom Dash
 
 It is an alternative to [RaceRoom's Dash](https://github.com/sector3studios/webhud/blob/master/dist/dash.zip), exposing a WebSocket with telemetry information (on `ws://localhost:8070/r3e`). The advantage is that it works with all simulators supported by RaceDirector, and not only RaceRoom.
 

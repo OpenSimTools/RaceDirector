@@ -10,6 +10,7 @@ using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
+using RaceDirector.Remote.Networking.Client;
 using RaceDirector.Remote.Networking.Server;
 using RaceDirector.Remote.Pipeline;
 using RaceDirector.Tests.Pipeline.Utils;
@@ -39,12 +40,13 @@ public class DecoupledAcceptanceTest : ReactiveTest
         };
 
         var wsServerMock = new Mock<IWsServer<IGameTelemetry>>();
+        var wsClientMock = new Mock<IWsClient<IGameTelemetry>>();
 
         PipelineBuilder.LinkNodes(new INode[]
             {
                 new FakeProcessMonitorNode(new[] {fakeGame}, fakeProcesses, testScheduler),
                 new TelemetryReaderNode(new[] {fakeGame}),
-                new WebSocketTelemetryNode(new[] {wsServerMock.Object})
+                new WsTelemetryNode(new[] {wsServerMock.Object}, new [] {wsClientMock.Object})
             }
         );
 
@@ -52,31 +54,47 @@ public class DecoupledAcceptanceTest : ReactiveTest
         wsServerMock.Verify(s => s.Start());
         wsServerMock.VerifyNoOtherCalls();
         wsServerMock.Reset();
+        wsClientMock.Verify(s => s.Connect());
+        wsClientMock.VerifyNoOtherCalls();
+        wsClientMock.Reset();
 
         testScheduler.AdvanceTo(39);
-        wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
+        wsClientMock.Verify(s => s.WsSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsClientMock.Reset();
 
         testScheduler.AdvanceTo(40);
         wsServerMock.Verify(s => s.Stop());
+        wsClientMock.Verify(s => s.Disconnect());
         testScheduler.AdvanceTo(59);
         wsServerMock.VerifyNoOtherCalls();
         wsServerMock.Reset();
+        wsClientMock.VerifyNoOtherCalls();
+        wsClientMock.Reset();
 
         testScheduler.AdvanceTo(60);
         wsServerMock.Verify(s => s.Start());
         wsServerMock.VerifyNoOtherCalls();
         wsServerMock.Reset();
+        wsClientMock.Verify(s => s.Connect());
+        wsClientMock.VerifyNoOtherCalls();
+        wsClientMock.Reset();
 
         testScheduler.AdvanceTo(79);
-        wsServerMock.Verify(s => s.Multicast(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsServerMock.Verify(s => s.WsMulticastAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
         wsServerMock.Reset();
+        wsClientMock.Verify(s => s.WsSendAsync(Match.Create<IGameTelemetry>(_ => true)), Times.Exactly(20 / 3));
+        wsClientMock.Reset();
 
         testScheduler.AdvanceTo(80);
         wsServerMock.Verify(s => s.Stop());
+        wsClientMock.Verify(s => s.Disconnect());
         testScheduler.AdvanceTo(99);
         wsServerMock.VerifyNoOtherCalls();
         wsServerMock.Reset();
+        wsClientMock.VerifyNoOtherCalls();
+        wsClientMock.Reset();
     }
 
     private Recorded<Notification<TestGameTelemetry>>[] FakeTelemetry(long tickIncrements, long maxTick,
