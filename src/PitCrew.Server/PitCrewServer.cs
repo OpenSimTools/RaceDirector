@@ -6,16 +6,16 @@ using RaceDirector.Remote.Networking.Server;
 
 namespace PitCrew.Server;
 
-public class PitCrewServer : MultiEndpointWsServer<string, string>
+public class PitCrewServer : MultiEndpointWsServer<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>
 {
-    private static readonly IEndpoint<string, string>[] _endpoint =
+    private static readonly IEndpoint<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>[] _endpoint =
     {
-        new Endpoint<string, string>(_ => true, StringCodec.UTF8)
+        new Endpoint<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(_ => true, new IdentityCodec())
     };
 
     public PitCrewServer(Config config, ILogger<PitCrewServer> logger) : base(IPAddress.Any, config.Port, _endpoint, logger) {}
 
-    protected override void OnWsReceived(WsSession session, string message)
+    protected override void OnWsReceived(WsSession session, ReadOnlyMemory<byte> message)
     {
         WsMulticastAsync(message, otherSession => otherSession.Id != session.Id);
     }
