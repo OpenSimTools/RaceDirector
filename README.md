@@ -47,11 +47,13 @@ Alternatively, the telemetry can be seen connecting to the WebSocket port
 ### PitCrew Plugin
 
 The PitCrew plugin allows telemetry to be sent to a server, where other team mates can see it.
-The server endpoint can be configured in the dedicated section of `application.conf`:
+This plugin is disabled by default, and it needs to be enabled before use. The server endpoint
+can be configured in the dedicated section of `application.conf`.
 
 ```json
 {
   "RaceDirector.PitCrew.Plugin": {
+    "Enabled": true,
     "ServerUrl": "ws://myserver:8042/"
   }
 }
@@ -60,7 +62,7 @@ The server endpoint can be configured in the dedicated section of `application.c
 It can also be overridden via the command line:
 
 ```
---RaceDirector.PitCrew.Plugin:ServerUrl=ws://myserver:8042/
+--RaceDirector.PitCrew.Plugin:Enabled=true --RaceDirector.PitCrew.Plugin:ServerUrl=ws://myserver:8042/
 ```
 
 ## Build

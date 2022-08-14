@@ -1,15 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using RaceDirector.DependencyInjection;
 using RaceDirector.Remote.Pipeline;
 using RaceDirector.Plugin;
 
 namespace RaceDirector.Remote;
 
-public class Plugin : IPlugin
+public class Plugin : PluginBase<PluginBase.Config>
 {
-
-    public void Init(IConfiguration configuration, IServiceCollection services)
+    protected override void Init(PluginBase.Config _, IServiceCollection services)
     {
         services
             .AddTransientWithInterfaces<WebSocketTelemetryNode>();

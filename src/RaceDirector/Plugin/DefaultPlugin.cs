@@ -22,7 +22,7 @@ public class DefaultPlugin : PluginBase<DefaultPlugin.Configuration>
             .AddTransientWithInterfaces<TelemetryReaderNode>();
     }
 
-    public class Configuration
+    public class Configuration : PluginBase.Config
     {
         public ProcessMonitorNode.Config ProcessMonitor { get; set; } = null!;
         public GamesConfiguration Games { get; set; } = null!;

@@ -7,7 +7,7 @@ namespace RaceDirector.HUD;
 
 public class Plugin : PluginBase<Plugin.Configuration>
 {
-    public class Configuration
+    public class Configuration : PluginBase.Config
     {
         public DashboardServer.Config DashboardServer { get; set; } = null!;
     }

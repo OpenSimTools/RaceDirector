@@ -13,8 +13,6 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        var plugins = PluginLoader.InstantiatePlugins();
-
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((_, configurationBuilder) =>
             {
@@ -25,8 +23,7 @@ public static class Program
             })
             .ConfigureServices((context, services) =>
             {
-                foreach (var p in plugins)
-                    p.Init(context.Configuration, services);
+                PluginLoader.InitPlugins(context.Configuration, services);
             })
             .Build();
 
