@@ -1,59 +1,95 @@
-﻿using NetCoreServer;
-using RaceDirector.Remote.Networking.Codec;
+﻿using System.Net;
+using NetCoreServer;
 
 namespace RaceDirector.Remote.Networking.Client;
 
-public abstract class WsClient<TOut, TIn> : NetCoreServer.WsClient, IWsClient<TOut>
+public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
 {
+    /// <summary>
+    /// Latest version specified in the WebSocket Protocol RFC6455
+    /// https://www.iana.org/assignments/websocket/websocket.xml#version-number
+    /// </summary>
+    private const int WsProtocolVersion = 13;
+
     public Task Connected => _connectedCompletionSource.Task;
 
-    private readonly ICodec<TOut, TIn> _codec;
+    private WsClient _inner;
+    private readonly Codec<TOut, TIn> _codec;
     private readonly TaskCompletionSource _connectedCompletionSource;
     private readonly string _path;
 
-    public WsClient(string uri, ICodec<TOut, TIn> codec) : this(new Uri(uri), codec) { }
+    public bool Connect() => _inner.ConnectAsync();
+
+    public bool Disconnect() => _inner.Disconnect();
+    
+    public void Dispose() => _inner.Dispose();
+
+    public event MessageHandler<TIn>? MessageHandler;
+
+    public WsClient(string uri, Codec<TOut, TIn> codec) : this(new Uri(uri), codec) { }
 
     /// <summary>
     /// Initialises a WebSocket client, without connecting.
     /// </summary>
     /// <param name="uri">Server URI with host, port and path.</param>
     /// <param name="codec">Encoder/decoder to/from binary messages.</param>
-    public WsClient(Uri uri, ICodec<TOut, TIn> codec) : base(uri.Host, uri.Port)
+    public WsClient(Uri uri, Codec<TOut, TIn> codec)
     {
         if (uri.Scheme != Uri.UriSchemeWs)
             throw new NotSupportedException($"Protocol {uri.Scheme} is not supported. Use {Uri.UriSchemeWs} instead.");
+        _inner = CreateInnerClient(uri);
         _codec = codec;
         _connectedCompletionSource = new TaskCompletionSource();
         _path = uri.AbsolutePath;
     }
 
-    public override void OnWsConnecting(HttpRequest request)
+    private InnerClient CreateInnerClient(Uri uri)
     {
-        request.SetBegin(HttpMethod.Get.Method, _path);
-        request.SetHeader("Connection", "Upgrade");
-        request.SetHeader("Upgrade", "websocket");
-        request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
-        request.SetHeader("Sec-WebSocket-Version", "13");
-        request.SetBody();
+        if (IPAddress.TryParse(uri.Host, out var address))
+            return new InnerClient(this, new IPEndPoint(address, uri.Port));            
+        return new InnerClient(this, new DnsEndPoint(uri.Host, uri.Port));
     }
 
-    public override void OnWsConnected(HttpResponse response)
-    {
-        _connectedCompletionSource.SetResult();
-    }
-
-    public override void OnWsReceived(byte[] buffer, long offset, long size)
-    {
-        var payload = new ReadOnlyMemory<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
-        var message = _codec.Decode(payload);
-        OnWsReceived(message);
-    }
-
-    protected virtual void OnWsReceived(TIn message) { }
-
-    public bool WsSendAsync(TOut message)
+    public void WsSendAsync(TOut message)
     {
         var payload = _codec.Encode(message);
-        return SendTextAsync(payload.Span);
+        _inner.SendTextAsync(payload.Span);
+    }
+
+    private class InnerClient : WsClient
+    {
+        private readonly WsClient<TOut, TIn> _outer;
+
+        internal InnerClient(WsClient<TOut, TIn> outer, DnsEndPoint dnsEndPoint) : base(dnsEndPoint)
+        {
+            _outer = outer;
+        }
+        
+        internal InnerClient(WsClient<TOut, TIn> outer, IPEndPoint ipEndPoint) : base(ipEndPoint)
+        {
+            _outer = outer;
+        }
+
+        public override void OnWsConnecting(HttpRequest request)
+        {
+            request.SetBegin(HttpMethod.Get.Method, _outer._path);
+            request.SetHeader("Connection", "Upgrade");
+            request.SetHeader("Upgrade", "websocket");
+            request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
+            request.SetHeader("Sec-WebSocket-Version", WsProtocolVersion.ToString());
+            request.SetBody();
+        }
+
+        public override void OnWsConnected(HttpResponse response)
+        {
+            _outer._connectedCompletionSource.SetResult();
+        }
+
+        public override void OnWsReceived(byte[] buffer, long offset, long size)
+        {
+            var payload = new ReadOnlyMemory<byte>(buffer, Convert.ToInt32(offset), Convert.ToInt32(size));
+            var message = _outer._codec.Decode(payload);
+            _outer.MessageHandler?.Invoke(message);
+        }        
     }
 }

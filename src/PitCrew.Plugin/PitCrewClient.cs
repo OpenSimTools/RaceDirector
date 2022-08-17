@@ -2,18 +2,18 @@
 using RaceDirector.PitCrew.Protocol;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Codec;
 
 namespace RaceDirector.PitCrew;
 
 public class PitCrewClient : WsClient<IGameTelemetry, Nothing>
 {
-    private static readonly IEncoder<IGameTelemetry> Encoder = new JsonEncoder<Telemetry>()
-            .Wrap<IGameTelemetry, Telemetry>(gt =>
-                new Telemetry(new Fuel(gt?.Player?.Fuel.Left))
-            );
-
-    public PitCrewClient(string serverUrl) : base(serverUrl, Encoder.ToCodec())
+    public PitCrewClient(string serverUrl) : base(serverUrl, Codec.EncodeOnly(GameTelemetryEncode))
     {
     }
+
+    private static readonly Encode<IGameTelemetry> GameTelemetryEncode = gt => TelemetryEncoder(TransformTelemetry(gt));
+
+    private static readonly Encode<Telemetry> TelemetryEncoder = Codec.JsonEncode<Telemetry>();
+
+    private static Telemetry TransformTelemetry(IGameTelemetry gt) => new(new Fuel(gt.Player?.Fuel.Left));
 }
