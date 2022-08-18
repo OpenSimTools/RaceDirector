@@ -10,12 +10,14 @@ using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.V0;
+using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
 using RaceDirector.Remote.Networking.Server;
 using RaceDirector.Remote.Pipeline;
 using RaceDirector.Tests.Pipeline.Utils;
 using Xunit;
 using Xunit.Categories;
+using ISession = RaceDirector.Pipeline.Telemetry.V0.ISession;
 
 namespace RaceDirector.Tests.Pipeline;
 
@@ -39,8 +41,8 @@ public class DecoupledAcceptanceTest : ReactiveTest
             [80] = Array.Empty<string>()
         };
 
-        var wsServerMock = new Mock<IWsServer<IGameTelemetry>>();
-        var wsClientMock = new Mock<IWsClient<IGameTelemetry>>();
+        var wsServerMock = new Mock<IWsServer<IGameTelemetry, Nothing>>();
+        var wsClientMock = new Mock<IWsClient<IGameTelemetry, Nothing>>();
 
         PipelineBuilder.LinkNodes(new INode[]
             {

@@ -11,12 +11,14 @@ public interface IRemotePublisher<in T> : IStartable
 
 public static class WsServerEx
 {
-    public static IRemotePublisher<T> ToRemotePublisher<T>(this IWsServer<T> server)
-        => new RemotePublisher<T>(server);
+    public static IRemotePublisher<TOut> ToRemotePublisher<TOut, TIn>(this IWsServer<TOut, TIn> server)
+        => new RemotePublisher<TOut, TIn> { Server = server };
 
-    private record RemotePublisher<T>(IWsServer<T> Server) : IRemotePublisher<T>
+    private readonly struct RemotePublisher<TOut, TIn> : IRemotePublisher<TOut>
     {
-        public void PublishAsync(T t) => Server.WsMulticastAsync(t);
+        internal IWsServer<TOut, TIn> Server { get; init; }
+
+        public void PublishAsync(TOut t) => Server.WsMulticastAsync(t);
 
         public void Start() => Server.Start();
 
@@ -26,12 +28,14 @@ public static class WsServerEx
 
 public static class WsClientEx
 {
-    public static IRemotePublisher<T> ToRemotePublisher<T>(this IWsClient<T> server)
-        => new RemotePublisher<T>(server);
+    public static IRemotePublisher<TOut> ToRemotePublisher<TOut, TIn>(this IWsClient<TOut, TIn> client)
+        => new RemotePublisher<TOut, TIn> { Client = client };
 
-    private record RemotePublisher<T>(IWsClient<T> Client) : IRemotePublisher<T>
+    private readonly struct RemotePublisher<TOut, TIn> : IRemotePublisher<TOut>
     {
-        public void PublishAsync(T t) => Client.WsSendAsync(t);
+        internal IWsClient<TOut, TIn> Client { get; init; }
+
+        public void PublishAsync(TOut t) => Client.WsSendAsync(t);
 
         public void Start() => Client.Connect();
 

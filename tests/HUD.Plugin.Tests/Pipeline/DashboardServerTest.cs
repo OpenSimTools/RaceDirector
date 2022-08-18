@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Codec;
 using RaceDirector.Remote.Networking.Json;
 using TestUtils;
 using Xunit;
@@ -36,10 +35,11 @@ public class DashboardServerTest
     {
         using var server = new DashboardServer(new DashboardServer.Config { Address = IPAddress.Any, Port = _serverPort }, TestLogger);
         Assert.True(server.Start(), "Server did not start");
-        using var client = new SyncWsClient<Nothing, JsonDocument>($"ws://{IPAddress.Loopback}:{_serverPort}/r3e", new JsonDocumentDecoder().ToCodec(), Timeout);
+        using var client = new SyncWsClient<Nothing, JsonDocument>($"ws://{IPAddress.Loopback}:{_serverPort}/r3e", Codec.JsonDocument, Timeout);
 
         Assert.True(client.ConnectAndWait(), "Client could not connect");
-        Assert.True(server.WsMulticastAsync(GtFaker.Generate()), "Could not multicast to all connected clients");
+
+        server.WsMulticastAsync(GtFaker.Generate());
 
         var message = client.Next();
         Assert.Equal(JsonValueKind.Number, message?.Path("VersionMajor").ValueKind);

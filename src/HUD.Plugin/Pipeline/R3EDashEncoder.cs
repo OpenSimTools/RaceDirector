@@ -6,12 +6,11 @@ using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using System.Text;
-using RaceDirector.Remote.Networking.Codec;
 using RaceDirector.Remote.Networking.Json;
 
 namespace RaceDirector.HUD.Pipeline;
 
-public class R3EDashEncoder : IEncoder<IGameTelemetry>
+public class R3EDashEncoder
 {
     public class Configuration
     {

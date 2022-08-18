@@ -1,22 +1,20 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging;
-using NetCoreServer;
-using RaceDirector.Remote.Networking.Codec;
+using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Server;
 
 namespace PitCrew.Server;
 
 public class PitCrewServer : MultiEndpointWsServer<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>
 {
-    private static readonly IEndpoint<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>[] _endpoint =
+    private static readonly HttpEndpoint<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>[] Endpoint =
     {
-        new Endpoint<ReadOnlyMemory<byte>, ReadOnlyMemory<byte>>(_ => true, new IdentityCodec())
+        new(_ => true, Codec.Identity)
     };
 
-    public PitCrewServer(Config config, ILogger<PitCrewServer> logger) : base(IPAddress.Any, config.Port, _endpoint, logger) {}
-
-    protected override void OnWsReceived(WsSession session, ReadOnlyMemory<byte> message)
+    public PitCrewServer(Config config, ILogger<PitCrewServer> logger) :
+        base(IPAddress.Any, config.Port, Endpoint, logger)
     {
-        WsMulticastAsync(message, otherSession => otherSession.Id != session.Id);
+        MessageHandler += (session, message) => WsMulticastAsync(message, otherSession => otherSession.Id != session.Id);
     }
 }

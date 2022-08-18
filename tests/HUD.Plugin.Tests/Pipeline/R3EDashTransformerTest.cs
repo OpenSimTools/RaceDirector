@@ -10,7 +10,7 @@ using RaceDirector.Pipeline.Telemetry.V0;
 using AutoBogus.Moq;
 using static RaceDirector.Pipeline.Telemetry.V0.RaceDuration;
 using System.Linq;
-using RaceDirector.Remote.Networking.Codec;
+using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Json;
 using static RaceDirector.Pipeline.Telemetry.V0.IVehicleFlags;
 
@@ -1898,7 +1898,7 @@ public class R3EDashTransformerTest
         var config = new R3EDashEncoder.Configuration();
         var encoder = new R3EDashEncoder(config);
         var payload = encoder.Encode(gt);
-        return new JsonDocumentDecoder().Decode(payload);
+        return Codec.JsonDocument.Decode(payload);
     }
 
     #endregion

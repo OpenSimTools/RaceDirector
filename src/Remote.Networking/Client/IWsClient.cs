@@ -1,9 +1,12 @@
 ﻿namespace RaceDirector.Remote.Networking.Client;
 
-public interface IWsClient<in TOut>
+public interface IWsClient<in TOut, out TIn> : IDisposable
 {
     bool Connect();
+
     bool Disconnect();
 
-    bool WsSendAsync(TOut t);
+    event MessageHandler<TIn> MessageHandler;
+    
+    void WsSendAsync(TOut t);
 }
