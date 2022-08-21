@@ -33,7 +33,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace RaceDirector.Pipeline.Games.ACC.Contrib
+namespace RaceDirector.Pipeline.Games.ACC;
+
+public static class Contrib
 {
     public static class Constant
     {
@@ -127,7 +129,7 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
         }
     }
 
-    namespace Data
+    public static class Data
     {
         public struct Shared {
             public SPageFilePhysics Physics;
@@ -330,7 +332,8 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public Constant.RainIntensity RainIntensityIn10min;
             public Constant.RainIntensity RainIntensityIn30min;
             public int CurrentTyreSet; // Tyre Set currently in use
-            public int StrategyTyreSet; // Next Tyre set per strategy int gapAhead Distance in ms to car in front int gapBehind Distance in ms to car behind
+            public int StrategyTyreSet; // Next Tyre set per strategy
+            public int gapAhead; // Distance in ms to car in front int gapBehind Distance in ms to car behind
         }
 
         /// <summary>

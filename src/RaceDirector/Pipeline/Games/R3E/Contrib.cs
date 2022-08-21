@@ -30,10 +30,11 @@
 // 
 //////////////////////////////////////////////////////////////////////////
 
-using System;
 using System.Runtime.InteropServices;
 
-namespace RaceDirector.Pipeline.Games.R3E.Contrib
+namespace RaceDirector.Pipeline.Games.R3E;
+
+public static class Contrib
 {
     public static class Constant
     {
@@ -215,7 +216,7 @@ namespace RaceDirector.Pipeline.Games.R3E.Contrib
         };
     }
 
-    namespace Data
+    public static class Data
     {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct RaceDuration<T>
