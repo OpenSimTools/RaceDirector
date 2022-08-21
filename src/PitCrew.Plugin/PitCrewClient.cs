@@ -14,5 +14,10 @@ public class PitCrewClient : WsClient<IGameTelemetry, Nothing>
     private static readonly Encode<IGameTelemetry> TelemetryEncoder =
         gt => Codec.JsonEncode<Telemetry>()(TransformTelemetry(gt));
 
-    private static Telemetry TransformTelemetry(IGameTelemetry gt) => new(new Fuel(gt.Player?.Fuel.Left));
+    private static Telemetry TransformTelemetry(IGameTelemetry gt) =>
+        new
+        (
+            new Fuel(gt.Player?.Fuel.Left.L ?? -1.0), // TODO don't send if no player
+            new PitMenu(null)
+        );
 }

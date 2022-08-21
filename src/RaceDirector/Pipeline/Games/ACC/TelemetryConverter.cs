@@ -242,6 +242,7 @@ internal class TelemetryConverter
 
     private static Player? ToPlayer(ref Contrib.Data.Shared sharedData)
     {
+        // TODO return null if player not driving
         return new Player
         (
             RawInputs: new RawInputs // TODO
@@ -273,11 +274,11 @@ internal class TelemetryConverter
                 TransmissionPercent: 0
             ),
             Tires: Array.Empty<Tire[]>(),
-            Fuel: new Fuel // TODO
+            Fuel: new Fuel
             (
-                Max: 0,
-                Left: 0,
-                PerLap: null
+                Max: ICapacity.FromL(0), // TODO
+                Left: ICapacity.FromL(sharedData.Physics.Fuel),
+                PerLap: null // TODO
             ),
             Engine: new Engine // TODO
             (
@@ -316,7 +317,11 @@ internal class TelemetryConverter
                 BlueFlagWarnings: null,
                 GiveBackPositions: 0
             ),
-            OvertakeAllowed: null // TODO
+            OvertakeAllowed: null, // TODO
+            PitMenu: new PitMenu
+            (
+                FuelToAdd: ICapacity.FromL(sharedData.Physics.Fuel)
+            )
         );
     }
 }

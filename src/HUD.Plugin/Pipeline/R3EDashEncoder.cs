@@ -413,9 +413,9 @@ public class R3EDashEncoder
             // LocalAcceleration.Z
             // TotalMass
 
-            w.WriteRoundedNumber("FuelLeft", gt.Player?.Fuel.Left ?? -1.0);
-            w.WriteRoundedNumber("FuelCapacity", gt.Player?.Fuel.Max ?? -1.0);
-            w.WriteRoundedNumber("FuelPerLap", gt.Player?.Fuel.PerLap ?? -1.0);
+            w.WriteRoundedNumber("FuelLeft", gt.Player?.Fuel.Left.L ?? -1.0);
+            w.WriteRoundedNumber("FuelCapacity", gt.Player?.Fuel.Max.L ?? -1.0);
+            w.WriteRoundedNumber("FuelPerLap", gt.Player?.Fuel.PerLap?.L ?? -1.0);
 
             // EngineWaterTemp
             // EngineOilTemp

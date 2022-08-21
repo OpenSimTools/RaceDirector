@@ -148,7 +148,7 @@ public static class Contrib
             public int PacketId; // Current step index
             public float Gas; // Gas pedal input value (from -0 to 1.0)
             public float Brake; // Brake pedal input value (from -0 to 1.0)
-            public float Fuel; // Amount of fuel remaining in kg
+            public float Fuel; // Amount of fuel remaining in kg [Wrong: it's in liters!]
             public int Gear; // Current gear
             public int Rpm; // Engine revolutions per minute
             public float SteerAngle; // Steering input value (from -1.0 to 1.0)

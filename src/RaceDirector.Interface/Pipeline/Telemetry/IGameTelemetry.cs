@@ -686,6 +686,8 @@ namespace RaceDirector.Pipeline.Telemetry
             IPlayerWarnings Warnings { get; }
 
             bool? OvertakeAllowed { get; }
+            
+            IPitMenu PitMenu { get; }
         }
 
         // FIXME
@@ -831,11 +833,11 @@ namespace RaceDirector.Pipeline.Telemetry
         // TODO define quantities (litres, gallons, etc.)
         public interface IFuel
         {
-            double Max { get; } // R3E FuelCapacity
+            ICapacity Max { get; } // R3E FuelCapacity
 
-            double Left { get; } // R3E FuelLeft
+            ICapacity Left { get; } // R3E FuelLeft
 
-            double? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
+            ICapacity? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
         }
 
         public interface IEngine
@@ -887,6 +889,11 @@ namespace RaceDirector.Pipeline.Telemetry
             IBoundedValue<uint>? BlueFlagWarnings { get; } // R3E Flags.BlackAndWhite
             // TrackLimitWarnings // ACC does not expose this in telemetry
             uint GiveBackPositions { get; } // R3E YellowPositionsGained
+        }
+
+        public interface IPitMenu
+        {
+            ICapacity? FuelToAdd { get; }
         }
     }
 

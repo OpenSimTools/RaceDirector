@@ -532,9 +532,9 @@ internal class TelemetryConverter
             Tires: ToTires(ref sharedData),
             Fuel: new Fuel
             (
-                Max: sharedData.FuelCapacity,
-                Left: sharedData.FuelLeft,
-                PerLap: sharedData.FuelPerLap
+                Max: ICapacity.FromL(sharedData.FuelCapacity),
+                Left: ICapacity.FromL(sharedData.FuelLeft),
+                PerLap: ICapacity.FromL(sharedData.FuelPerLap)
             ),
             Engine: new Engine
             (
@@ -574,7 +574,11 @@ internal class TelemetryConverter
                 BlueFlagWarnings: ToBlueFlagWarnings(sharedData.Flags.BlackAndWhite),
                 GiveBackPositions: PositiveOrZero(sharedData.Flags.YellowPositionsGained)
             ),
-            OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake)
+            OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake),
+            PitMenu: new PitMenu
+            (
+                FuelToAdd: null
+            )
         );
     }
 

@@ -251,3 +251,12 @@ public interface ITemperature
         public double C => (F - CToFDiff) * FToKCRatio;
     }
 }
+
+public interface ICapacity
+{
+    double L { get; }
+
+    static ICapacity FromL(double value) => new CapacityLiters(value);
+
+    public record CapacityLiters(double L) : ICapacity;
+}

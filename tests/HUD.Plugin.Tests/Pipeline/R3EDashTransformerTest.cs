@@ -867,9 +867,9 @@ public class R3EDashTransformerTest
             .WithPlayer(p => p with
             {
                 Fuel = new Fuel(
-                    Max: 5.6,
-                    Left: 3.4,
-                    PerLap: 1.2
+                    Max: ICapacity.FromL(5.6),
+                    Left: ICapacity.FromL(3.4),
+                    PerLap: ICapacity.FromL(1.2)
                 )
             })
         );

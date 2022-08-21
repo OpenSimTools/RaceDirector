@@ -201,7 +201,8 @@ public record Player
     WaitTimeToggled? PushToPass,
     PlayerPitStop PitStop,
     PlayerWarnings Warnings,
-    bool? OvertakeAllowed
+    bool? OvertakeAllowed,
+    PitMenu PitMenu
 ) : IPlayer
 {
     IRawInputs IPlayer.RawInputs => RawInputs;
@@ -218,6 +219,7 @@ public record Player
     IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
     PlayerPitStop IPlayer.PitStopStatus => PitStop;
     IPlayerWarnings IPlayer.Warnings => Warnings;
+    IPitMenu IPlayer.PitMenu => PitMenu;
 }
 
 public record RawInputs
@@ -302,9 +304,9 @@ public record TemperaturesMatrix
 
 public record Fuel
 (
-    double Max,
-    double Left,
-    double? PerLap
+    ICapacity Max,
+    ICapacity Left,
+    ICapacity? PerLap
 ) : IFuel;
 
 public record Engine
@@ -349,6 +351,11 @@ public record PlayerWarnings
     IBoundedValue<uint>? BlueFlagWarnings,
     uint GiveBackPositions
 ) : IPlayerWarnings;
+
+public record PitMenu
+(
+    ICapacity? FuelToAdd
+) : IPitMenu;
 
 public static class DistanceFraction
 {
