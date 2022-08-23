@@ -13,6 +13,6 @@ public class Plugin : PluginBase<Plugin.Configuration>
 
     protected override void Init(Configuration configuration, IServiceCollection services)
     {
-        services.AddTransientWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl));
+        services.AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl));
     }
 }
