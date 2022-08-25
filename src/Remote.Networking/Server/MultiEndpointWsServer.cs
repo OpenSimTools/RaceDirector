@@ -1,5 +1,7 @@
 ﻿using NetCoreServer;
 using System.Net;
+using System.Reactive;
+using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 
 namespace RaceDirector.Remote.Networking.Server;
@@ -18,6 +20,8 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
     private readonly ILogger _logger;
 
     public event MessageHandler<TIn>? MessageHandler;
+    public IObserver<TOut> Out { get; }
+    public IObservable<TIn> In { get; }
 
     public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<HttpEndpoint<TOut, TIn>> endpoints, ILogger logger)
     {
@@ -25,6 +29,11 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
         _baseUri = new UriBuilder(Uri.UriSchemeWs, address.ToString(), port).Uri;
         _endpoints = endpoints.ToList();
         _logger = logger;
+
+        var subject = new Subject<TIn>();
+        MessageHandler += (_, i) => subject.OnNext(i);
+        In = subject;
+        Out = Observer.Create<TOut>(WsMulticastAsync);
     }
 
     public bool Start() => _inner.Start();

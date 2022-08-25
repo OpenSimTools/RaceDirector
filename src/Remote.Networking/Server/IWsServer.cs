@@ -1,11 +1,7 @@
 ﻿namespace RaceDirector.Remote.Networking.Server;
 
-public interface IWsServer<in TOut, out TIn> : IDisposable
+public interface IWsServer<in TOut, out TIn> : IStartableConsumer<TOut>, IProducer<TIn>
 {
-    bool Start();
-
-    bool Stop();
-
     event MessageHandler<TIn> MessageHandler;
 
     /// <summary>

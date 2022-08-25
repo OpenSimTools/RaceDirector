@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using System.Reactive;
+using System.Reactive.Subjects;
 using NetCoreServer;
 
 namespace RaceDirector.Remote.Networking.Client;
@@ -11,7 +13,10 @@ public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
     /// </summary>
     private const int WsProtocolVersion = 13;
 
+    // FIXME it can disconnect after connection
     public Task Connected => _connectedCompletionSource.Task;
+    public IObserver<TOut> Out { get; }
+    public IObservable<TIn> In { get; }
 
     private WsClient _inner;
     private readonly Codec<TOut, TIn> _codec;
@@ -41,6 +46,11 @@ public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
         _codec = codec;
         _connectedCompletionSource = new TaskCompletionSource();
         _path = uri.AbsolutePath;
+
+        var subject = new Subject<TIn>();
+        MessageHandler += i => subject.OnNext(i);
+        In = subject;
+        Out = Observer.Create<TOut>(WsSendAsync);
     }
 
     private InnerClient CreateInnerClient(Uri uri)
