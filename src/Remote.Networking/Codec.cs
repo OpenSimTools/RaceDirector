@@ -11,7 +11,19 @@ public readonly struct Codec<TE, TD>
 
 public delegate ReadOnlyMemory<byte> Encode<in T>(T t);
 
+public static class EncodeEx
+{
+    public static Encode<TA> Select<TA, TB>(this Encode<TB> encode, Func<TA, TB> f) =>
+        a => encode(f(a));
+}
+
 public delegate T Decode<out T>(ReadOnlyMemory<byte> payload);
+
+public static class DecodeEx
+{
+    public static Decode<TB> Select<TA, TB>(this Decode<TA> decode, Func<TA, TB> f) =>
+        payload => f(decode(payload));
+}
 
 public static class Codec
 {
