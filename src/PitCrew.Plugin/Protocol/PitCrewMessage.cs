@@ -1,5 +1,11 @@
 ﻿namespace RaceDirector.PitCrew.Protocol;
 
+public record PitCrewMessage
+(
+    Telemetry? Telemetry,
+    PitStrategyRequest? PitStrategyRequest
+);
+
 /// <summary>
 /// Telemetry information
 /// </summary>
@@ -27,3 +33,5 @@ public record PitMenu
 (
     double? FuelToAdd
 );
+
+public record PitStrategyRequest(double? FuelToAdd) : IPitStrategyRequest;

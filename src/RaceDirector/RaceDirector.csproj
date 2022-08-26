@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DeviceIO.Plugin\DeviceIO.Plugin.csproj" />
     <ProjectReference Include="..\HUD.Plugin\HUD.Plugin.csproj" />
     <ProjectReference Include="..\PitCrew.Plugin\PitCrew.Plugin.csproj" />
     <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />

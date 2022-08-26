@@ -5,10 +5,11 @@ namespace RaceDirector.PitCrew.Pipeline;
 
 public class PitCrewNode : INode
 {
-    public IObservable<IRequestPitStrategy> PitStrategyObservable { get; }
+    public IObservable<IPitStrategyRequest> PitStrategyObservable { get; }
 
     public PitCrewNode(PitCrewClient client)
     {
         PitStrategyObservable = client.In;
+        PitStrategyObservable.Subscribe(psr => Console.WriteLine(psr));
     }
 }
