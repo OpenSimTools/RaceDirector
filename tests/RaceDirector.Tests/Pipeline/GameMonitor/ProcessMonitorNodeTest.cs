@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Reactive.Testing;
 using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Tests.Pipeline.Utils;
+using TestUtils;
 using Xunit;
 using Xunit.Categories;
 

@@ -1,9 +1,7 @@
 ﻿using Microsoft.Reactive.Testing;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 
-namespace RaceDirector.Tests.Pipeline.Utils;
+namespace TestUtils;
 
 public static class TestableObserverExtensions
 {

@@ -5,6 +5,7 @@ using RaceDirector.Plugin;
 
 namespace RaceDirector.PitCrew;
 
+
 public class Plugin : PluginBase<Plugin.Configuration>
 {
     public class Configuration : PluginBase.Config

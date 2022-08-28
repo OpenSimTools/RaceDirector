@@ -7,6 +7,7 @@ using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.Tests.Pipeline.Utils;
 using System;
 using System.Reactive.Linq;
+using TestUtils;
 using Xunit;
 using Xunit.Categories;
 
