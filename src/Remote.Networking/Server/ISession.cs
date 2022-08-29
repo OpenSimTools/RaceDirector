@@ -1,6 +1,8 @@
 ﻿namespace RaceDirector.Remote.Networking.Server;
 
-public interface ISession
+public interface ISession<TOut>
 {
-    public object Id { get; }
+    object Id { get; }
+
+    bool WsSendAsync(TOut t);
 }

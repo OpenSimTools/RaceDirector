@@ -1,8 +1,10 @@
 ﻿namespace RaceDirector.Remote.Networking.Server;
 
-public interface IWsServer<in TOut, out TIn> : IStartableConsumer<TOut>, IProducer<TIn>
+public interface IWsServer<TOut, out TIn> : IStartableConsumer<TOut>, IProducer<TIn>
 {
-    event MessageHandler<TIn> MessageHandler;
+    int Port { get; }
+
+    event MessageHandler<TIn, TOut> MessageHandler;
 
     /// <summary>
     /// Multicasts data to all clients connected. Serialisation depends on the endpoint that
@@ -17,5 +19,5 @@ public interface IWsServer<in TOut, out TIn> : IStartableConsumer<TOut>, IProduc
     /// </summary>
     /// <param name="message">Message</param>
     /// <param name="condition">Should this session be sent the message?</param>
-    void WsMulticastAsync(TOut message, Func<ISession, bool> condition);
+    bool WsMulticastAsync(TOut message, Func<ISession<TOut>, bool> condition);
 }

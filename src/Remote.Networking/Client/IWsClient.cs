@@ -4,5 +4,5 @@ public interface IWsClient<in TOut, out TIn> : IConnectableConsumer<TOut>, IProd
 {
     event MessageHandler<TIn> MessageHandler;
     
-    void WsSendAsync(TOut t);
+    bool WsSendAsync(TOut t);
 }

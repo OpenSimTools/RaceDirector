@@ -7,6 +7,7 @@ using RaceDirector.Remote.Networking.Client;
 using TestUtils;
 using Xunit;
 using Xunit.Categories;
+using static TestUtils.EventuallyAssertion;
 
 namespace Remote.Networking.Tests.Server;
 
@@ -35,7 +36,28 @@ public class MultiEndpointWsServerTest
         {
             Assert.True(client.ConnectAndWait(), "Client could not connect");
             server.WsMulticastAsync(42);
-            Assert.Equal("42", client.Next());
+            Eventually(() => Assert.Equal("42", client.Next()))
+                .Within(Timeout);
+        });
+    }
+
+    [Fact]
+    public void DoesNotSendEmptyPayloads()
+    {
+        var endpoint = new HttpEndpoint<int, Nothing>(_ => true, new Codec<int, Nothing>
+            {
+                Encode = i => i > 0 ? Encoding.UTF8.GetBytes(i.ToString()) : ReadOnlyMemory<byte>.Empty,
+                Decode = Codec.Nothing.Decode
+            });
+        WithServerClient(new [] { endpoint }, "/", (server, client) =>
+        {
+            Assert.True(client.ConnectAndWait(), "Client could not connect");
+
+            server.WsMulticastAsync(0);
+            server.WsMulticastAsync(1);
+
+            Eventually(() => Assert.True(client.NextIsAvailable())).Within(Timeout);
+            Assert.Equal("1", client.Next());
         });
     }
 
