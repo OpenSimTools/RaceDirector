@@ -20,7 +20,7 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
     private static PitCrewMessage? TransformTelemetry(IGameTelemetry gt) =>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
-                new Fuel(gt.Player?.Fuel.Left.L ?? -1.0), // TODO don't send if no player
+                new Fuel(gt.Player.Fuel.Left.L),
                 new PitMenu(null)
             ),
             PitStrategyRequest: null

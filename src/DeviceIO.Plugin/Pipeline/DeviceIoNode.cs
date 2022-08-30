@@ -17,9 +17,15 @@ public class DeviceIoNode : INode
     {
         GameActionObserver = Observer.Create<GameAction>(ga =>
         {
-            var keys = configuration.KeyMappings[ga.ToString()];
-            KeyPresser.SendKeys(keys);
-            logger.LogTrace("Received {GameAction} sent {Keys}", ga, keys);
+            if (configuration.KeyMappings.TryGetValue(ga.ToString(), out var keys))
+            {
+                KeyPresser.SendKeys(keys);
+                logger.LogTrace("Received {GameAction} sent {Keys}", ga, keys);
+            }
+            else
+            {
+                logger.LogWarning("Received {GameAction} but no mapping found", ga);
+            }
         });
     }
 }

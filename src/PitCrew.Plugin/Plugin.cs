@@ -17,6 +17,7 @@ public class Plugin : PluginBase<Plugin.Configuration>
     {
         services
             .AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl))
-            .AddSingletonWithInterfaces<PitCrewNode>();
+            .AddSingletonWithInterfaces<PitCrewNode>()
+            .AddSingletonWithInterfaces<PitMenuNode>();
     }
 }
