@@ -11,11 +11,11 @@ namespace PitCrew.Plugin.Tests.Pipeline;
 public class PitMenuNodeTest : ReactiveTest
 {
     [Fact]
-    public void TransformsAnyPitStrategyRequestIntoPitMenuOpenAction()
+    public void AlwaysAddWhatIsRequestedInsteadOfChangingTheMenu()
     {
         var testScheduler = new TestScheduler();
         var input = testScheduler.CreateColdObservable(
-            OnNext<IPitStrategyRequest>(0, new PitStrategyRequest(null)),
+            OnNext<IPitStrategyRequest>(0, new PitStrategyRequest(3)),
             OnCompleted<IPitStrategyRequest>(10)
         );
         var output = testScheduler.CreateObserver<GameAction>();
@@ -28,6 +28,11 @@ public class PitMenuNodeTest : ReactiveTest
 
         output.Messages.AssertEqual(
             OnNext(1, GameAction.PitMenuOpen), // TODO why 1?!
+            OnNext(1, GameAction.PitMenuDown),
+            OnNext(1, GameAction.PitMenuDown),
+            OnNext(1, GameAction.PitMenuRight),
+            OnNext(1, GameAction.PitMenuRight),
+            OnNext(1, GameAction.PitMenuRight),
             OnCompleted<GameAction>(10)
         );
     }

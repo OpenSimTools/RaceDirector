@@ -7,7 +7,7 @@ namespace RaceDirector.DeviceIO;
 
 public class Plugin : PluginBase<Plugin.Configuration>
 {
-    public class Configuration : PluginBase.Config, DeviceIoNode.Configuration
+    public class Configuration : PluginBase.Config, DeviceIoNode.IConfiguration
     {
         public Dictionary<string, string> KeyMappings { get; } = new ();
     }
@@ -15,7 +15,7 @@ public class Plugin : PluginBase<Plugin.Configuration>
     protected override void Init(Configuration configuration, IServiceCollection services)
     {
         services
-            .AddTransient<DeviceIoNode.Configuration>(_ => configuration)
+            .AddTransient<DeviceIoNode.IConfiguration>(_ => configuration)
             .AddSingletonWithInterfaces<DeviceIoNode>();
     }
 }

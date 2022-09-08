@@ -15,6 +15,11 @@ public class PitMenuNode : INode
     {
         var subject = new Subject<IPitStrategyRequest>();
         PitStrategyObserver = subject;
-        GameActionObservable = subject.Select(_ => GameAction.PitMenuOpen);
+        GameActionObservable = subject.SelectMany(psr =>
+            // TODO This is for ACC. We should have a generic interface
+            new[] { GameAction.PitMenuOpen, GameAction.PitMenuDown, GameAction.PitMenuDown }
+                .ToObservable()
+                .Concat(Observable.Repeat(GameAction.PitMenuRight, psr.FuelToAdd))
+        );
     }
 }

@@ -25,11 +25,11 @@ public class PitCrewClientTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest?>();
             pitCrewClient.In.Subscribe(testObserver);
 
-            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2.2}}");
+            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2}}");
 
             EventuallyAssertion.Eventually(() =>
                     Assert.Equal(
-                        new [] { new PitStrategyRequest(2.2) },
+                        new [] { new PitStrategyRequest(2) },
                         testObserver.ReceivedValues()
                     )
                 )

@@ -1,12 +1,10 @@
 ﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Reactive.Linq;
-using System.Runtime.Versioning;
 using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Games.R3E;
 
-[SupportedOSPlatform("windows")]
 public class Game : IGame
 {
     public class Config

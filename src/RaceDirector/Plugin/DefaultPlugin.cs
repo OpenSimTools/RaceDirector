@@ -2,14 +2,11 @@
 using RaceDirector.DependencyInjection;
 using RaceDirector.Pipeline.GameMonitor;
 using RaceDirector.Pipeline.Telemetry;
-using System.Runtime.Versioning;
 
 namespace RaceDirector.Plugin;
 
-[SupportedOSPlatform("windows")]
 public class DefaultPlugin : PluginBase<DefaultPlugin.Configuration>
 {
-    [SupportedOSPlatform("windows")]
     protected override void Init(Configuration configuration, IServiceCollection services)
     {
         services

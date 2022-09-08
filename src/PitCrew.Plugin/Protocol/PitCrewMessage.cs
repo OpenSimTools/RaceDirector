@@ -31,7 +31,7 @@ public record Fuel
 /// <param name="FuelToAdd">Liters of fuel to add in the pit stop</param>
 public record PitMenu
 (
-    double? FuelToAdd
+    int? FuelToAdd
 );
 
-public record PitStrategyRequest(double? FuelToAdd) : IPitStrategyRequest;
+public record PitStrategyRequest(int FuelToAdd) : IPitStrategyRequest;
