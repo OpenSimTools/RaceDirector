@@ -9,7 +9,8 @@ public class Plugin : PluginBase<Plugin.Configuration>
 {
     public class Configuration : PluginBase.Config, DeviceIoNode.IConfiguration
     {
-        public Dictionary<string, string> KeyMappings { get; } = new ();
+        public Dictionary<string, string> KeyMappings { get; } = new();
+        public TimeSpan WaitBetweenKeys { get; } = TimeSpan.Zero;
     }
 
     protected override void Init(Configuration configuration, IServiceCollection services)

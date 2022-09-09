@@ -14,7 +14,8 @@ public class DeviceIoNode : INode
 
     public interface IConfiguration
     {
-        public Dictionary<string, string> KeyMappings { get; }
+        Dictionary<string, string> KeyMappings { get; }
+        TimeSpan WaitBetweenKeys { get; }
     }
     
     public IObserver<GameAction> GameActionObserver { get; }
@@ -35,7 +36,7 @@ public class DeviceIoNode : INode
         if (_configuration.KeyMappings.TryGetValue(ga.ToString(), out var keys))
         {
             SendKeys.SendWait(keys);
-            Thread.Sleep(5); // TODO make configurable
+            Thread.Sleep(_configuration.WaitBetweenKeys);
             _logger.LogTrace("Received {GameAction} sent {Keys}", ga, keys);
         }
         else
