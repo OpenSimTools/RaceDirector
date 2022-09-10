@@ -14,7 +14,7 @@ public class Game : IGame
 
     private Config _config;
 
-    public string GameName => "R3E";
+    public string GameName => Names.R3E;
 
     public string[] GameProcessNames => new[] { "RRRE64", "RRRE" };
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using RaceDirector.DependencyInjection;
 using RaceDirector.PitCrew.Pipeline;
+using RaceDirector.PitCrew.Pipeline.Games;
 using RaceDirector.Plugin;
 
 namespace RaceDirector.PitCrew;
@@ -17,6 +18,7 @@ public class Plugin : PluginBase<Plugin.Configuration>
     {
         services
             .AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl))
+            .AddSingletonWithInterfaces<ACCPitMenuNavigator>()
             .AddSingletonWithInterfaces<PitCrewNode>()
             .AddSingletonWithInterfaces<PitMenuNode>();
     }

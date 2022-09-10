@@ -14,7 +14,7 @@ public class Game : IGame
 
     private readonly Config _config;
 
-    public string GameName => "ACC";
+    public string GameName => Names.ACC;
 
     public string[] GameProcessNames => new[] { "AC2-Win64-Shipping" };
 

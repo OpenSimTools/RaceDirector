@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DeviceIO.Interface\DeviceIO.Interface.csproj" />
+    <ProjectReference Include="..\PitCrew.Interface\PitCrew.Interface.csproj" />
     <ProjectReference Include="..\Remote.Plugin\Remote.Plugin.csproj" />
   </ItemGroup>
 
