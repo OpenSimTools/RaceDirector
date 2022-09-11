@@ -19,7 +19,8 @@ public class PitMenuNode : INode
     public PitMenuNode(IGamePitMenuNavigator todoSelectBasedOnGame)
     {
         var pitStrategySubject = new Subject<IPitStrategyRequest>();
-        var gameTelemetrySubject = new Subject<IGameTelemetry>();
+        // Cache last value and publish on subscription
+        var gameTelemetrySubject = new ReplaySubject<IGameTelemetry>(1);
         PitStrategyObserver = pitStrategySubject;
         GameTelemetryObserver = gameTelemetrySubject;
         GameActionObservable = pitStrategySubject

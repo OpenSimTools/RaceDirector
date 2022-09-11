@@ -2,6 +2,7 @@
 using RaceDirector.Pipeline.Telemetry.V0;
 using System;
 using System.Linq;
+using static System.Array;
 using static RaceDirector.Pipeline.Telemetry.V0.IVehicleFlags;
 
 // TODO this is in the interface project to make testing easier, but it might be abused
@@ -23,6 +24,16 @@ public record GameTelemetry
     IVehicle[] IGameTelemetry.Vehicles => Vehicles;
     IFocusedVehicle? IGameTelemetry.FocusedVehicle => FocusedVehicle;
     IPlayer? IGameTelemetry.Player => Player;
+
+    public static GameTelemetry Empty = new(
+        GameState.Unknown,
+        UsingVR: null,
+        Event: null,
+        Session: null,
+        Vehicles: Empty<Vehicle>(),
+        FocusedVehicle: null,
+        Player: null
+    );
 }
 
 public record Event

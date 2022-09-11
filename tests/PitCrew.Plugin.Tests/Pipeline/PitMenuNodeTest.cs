@@ -17,10 +17,10 @@ public class PitMenuNodeTest : ReactiveTest
     public void DelegatesPitMenuNavigation()
     {
         var testScheduler = new TestScheduler();
-        var psr = new PitStrategyRequest(42);
+        var psr = new Mock<IPitStrategyRequest>().Object;
 
         var pitStrategyObservable = testScheduler.CreateColdObservable(
-            OnNext<IPitStrategyRequest>(3, psr),
+            OnNext(3, psr),
             OnCompleted<IPitStrategyRequest>(5)
         );
 
