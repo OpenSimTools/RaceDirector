@@ -21,7 +21,7 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
                 new Fuel(gt.Player.Fuel.Left.L),
-                new PitMenu(null)
+                new PitMenu(gt.Player.PitMenu.FuelToAdd?.L)
             ),
             PitStrategyRequest: null
         );

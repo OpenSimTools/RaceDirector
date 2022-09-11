@@ -310,7 +310,7 @@ internal class TelemetryConverter
             OvertakeAllowed: null, // TODO
             PitMenu: new PitMenu
             (
-                FuelToAdd: ICapacity.FromL(sharedData.Physics.Fuel)
+                FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd)
             )
         );
     }

@@ -2,5 +2,5 @@
 
 public interface IPitStrategyRequest
 {
-    int FuelToAdd { get; }
+    double FuelToAdd { get; }
 }
