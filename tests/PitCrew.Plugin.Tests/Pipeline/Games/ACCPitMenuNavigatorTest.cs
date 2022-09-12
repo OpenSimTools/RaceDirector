@@ -1,4 +1,5 @@
-﻿using Microsoft.Reactive.Testing;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Reactive.Testing;
 using Moq;
 using RaceDirector.DeviceIO.Pipeline;
 using RaceDirector.Pipeline.Telemetry;
@@ -27,7 +28,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         var pmn = new ACCPitMenuNavigator();
         var psr = new PitStrategyRequest(7);
 
-        var output = testScheduler.Start(() => pmn.SetStrategy(psr, gameTelemetryObservable));
+        var output = testScheduler
+            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),
@@ -49,7 +51,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         var pmn = new ACCPitMenuNavigator();
         var psr = new PitStrategyRequest(7);
 
-        var output = testScheduler.Start(() => pmn.SetStrategy(psr, gameTelemetryObservable));
+        var output = testScheduler
+            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),
@@ -73,7 +76,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         var pmn = new ACCPitMenuNavigator();
         var psr = new PitStrategyRequest(3);
 
-        var output = testScheduler.Start(() => pmn.SetStrategy(psr, gameTelemetryObservable));
+        var output = testScheduler
+            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),

@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using Microsoft.Extensions.Logging;
 using RaceDirector.DeviceIO.Pipeline;
 using RaceDirector.Pipeline;
 using RaceDirector.Pipeline.GameMonitor.V0;
@@ -19,7 +20,7 @@ public class PitMenuNode : INode
 
     public IObservable<GameAction> GameActionObservable { get; }
 
-    public PitMenuNode(IEnumerable<IGamePitMenuNavigator> pitMenuNavigators)
+    public PitMenuNode(IEnumerable<IGamePitMenuNavigator> pitMenuNavigators, ILogger<PitMenuNode> logger)
     {
         var pitStrategySubject = new Subject<IPitStrategyRequest>();
         var gameTelemetrySubject = new ReplaySubject<IGameTelemetry>(1);
@@ -31,7 +32,7 @@ public class PitMenuNode : INode
         GameActionObservable = pitStrategySubject
             .SelectMany(pitStrategy =>
                 PitMenuNavigator(runningGameSubject, pitMenuNavigators).SelectMany(navigator =>
-                    navigator.SetStrategy(pitStrategy, gameTelemetrySubject)
+                    navigator.SetStrategy(pitStrategy, gameTelemetrySubject, logger)
                 )
             );
     }
@@ -45,9 +46,9 @@ public class PitMenuNode : INode
     {
         public string GameName => throw new NotSupportedException();
 
-        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gameTelemetryObservable)
+        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger)
         {
-            // TODO log
+            logger.LogWarning("This game does not support setting pit strategies");
             return Observable.Empty<GameAction>();
         }
     }

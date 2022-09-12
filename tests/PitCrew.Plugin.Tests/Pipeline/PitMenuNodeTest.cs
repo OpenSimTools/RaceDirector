@@ -1,4 +1,6 @@
 ﻿using System.Reactive.Linq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Reactive.Testing;
 using Moq;
 using RaceDirector.DeviceIO.Pipeline;
@@ -40,7 +42,7 @@ public class PitMenuNodeTest : ReactiveTest
         pitMenuNavigatorMock
             .SetupGet(_ => _.GameName).Returns(_testGameName);
 
-        var node = new PitMenuNode(new [] { pitMenuNavigatorMock.Object });
+        var node = new PitMenuNode(new [] { pitMenuNavigatorMock.Object }, NullLogger<PitMenuNode>.Instance);
 
         node.GameActionObservable.Subscribe(gameActionObserver);
         pitStrategyObservable.Subscribe(node.PitStrategyObserver);
@@ -67,7 +69,7 @@ public class PitMenuNodeTest : ReactiveTest
         pitMenuNavigatorMock
             .SetupGet(_ => _.GameName).Returns($"NOT{_testGameName}");
 
-        var node = new PitMenuNode(new [] { pitMenuNavigatorMock.Object });
+        var node = new PitMenuNode(new[] {pitMenuNavigatorMock.Object}, NullLogger<PitMenuNode>.Instance);
 
         node.GameActionObservable.Subscribe(gameActionObserver);
         pitStrategyObservable.Subscribe(node.PitStrategyObserver);
@@ -96,14 +98,15 @@ public class PitMenuNodeTest : ReactiveTest
         pitMenuNavigatorMock
             .SetupGet(_ => _.GameName).Returns(_testGameName);
         pitMenuNavigatorMock
-            .Setup(_ => _.SetStrategy(psr, It.IsAny<IObservable<IGameTelemetry>>()))
+            .Setup(_ => _.SetStrategy(psr,
+                It.IsAny<IObservable<IGameTelemetry>>(), It.IsAny<ILogger>()))
             .Returns(_testScheduler.CreateColdObservable(
                 OnNext(7, GameAction.PitMenuUp),
                 OnNext(7, GameAction.PitMenuDown),
                 OnCompleted<GameAction>(11)
             ));
 
-        var node = new PitMenuNode(new [] { pitMenuNavigatorMock.Object });
+        var node = new PitMenuNode(new [] { pitMenuNavigatorMock.Object }, NullLogger<PitMenuNode>.Instance);
 
         node.GameActionObservable.Subscribe(gameActionObserver);
         pitStrategyObservable.Subscribe(node.PitStrategyObserver);
@@ -116,11 +119,5 @@ public class PitMenuNodeTest : ReactiveTest
             OnNext(3+7, GameAction.PitMenuDown),
             OnCompleted<GameAction>(3+11)
         );
-    }
-
-    private record GamePitMenuNavigator(string GameName, IObservable<GameAction> Strategy) : IGamePitMenuNavigator
-    {
-        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request,
-            IObservable<IGameTelemetry> gameTelemetryObservable) => Strategy;
     }
 }

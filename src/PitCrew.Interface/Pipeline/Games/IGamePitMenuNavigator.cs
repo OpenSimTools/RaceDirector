@@ -1,4 +1,5 @@
-﻿using RaceDirector.DeviceIO.Pipeline;
+﻿using Microsoft.Extensions.Logging;
+using RaceDirector.DeviceIO.Pipeline;
 using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Protocol;
@@ -7,5 +8,5 @@ namespace RaceDirector.PitCrew.Pipeline.Games;
 
 public interface IGamePitMenuNavigator : IGameInfo
 {
-    IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gameTelemetryObservable);
+    IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger);
 }
