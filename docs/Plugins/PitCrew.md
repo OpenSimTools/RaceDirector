@@ -1,8 +1,9 @@
 ﻿# PitCrew Plugin
 
-The PitCrew plugin allows telemetry to be sent to a server, where other team mates can see it.
-It provides functionality similar to [RST PitManager](https://racingsimtools.com/add-ons)
-([video](https://youtu.be/HaRj2sznYLA)).
+The PitCrew plugin provides remote pit stop control similar to what is offered by
+[RST PitManager](https://racingsimtools.com/add-ons) ([video](https://youtu.be/HaRj2sznYLA))
+or [ACC Live](https://accdrive.com/). Telemetry is sent to a server, where other team mates
+can see it. Incoming pit strategy requests are sent to the game.
 
 ## Configuration
 
@@ -24,6 +25,9 @@ It can also be overridden via the command line:
 --RaceDirector.PitCrew.Plugin:Enabled=true --RaceDirector.PitCrew.Plugin:ServerUrl=ws://myserver:8042/
 ```
 
+PitCrew relies on the [DeviceIO plugin](DeviceIO.md) to control the pit menu. Make sure that it
+is configured correctly.
+
 ## Server
 
 A separate package can be downloaded from the same location as RaceDirector and run in a similar
@@ -35,8 +39,17 @@ connected clients. Currently there is no UI, so a WebSocket client or a
 from the same URL where the client is pushing telemetry to.
 
 It should look like this:
-```
-{"Fuel":{"Left":12.34}}
-{"Fuel":{"Left":12.33}}
+```json lines
+{"Telemetry":{"Fuel":{"Left":12.34},"PitMenu":{"FuelToAdd":56}}}
+{"Telemetry":{"Fuel":{"Left":12.33},"PitMenu":{"FuelToAdd":56}}}
 ...
+```
+
+The same connection can be used to set the fuel strategy in game by sending a message like this:
+```json
+{
+  "PitStrategyRequest": {
+    "FuelToAdd": 42
+  }
+}
 ```

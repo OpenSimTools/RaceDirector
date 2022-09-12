@@ -30,7 +30,7 @@ pointed to https://sector3studios.github.io/webhud/dist/.
 Alternatively, the telemetry can be seen connecting to the WebSocket port
 (`ws://localhost:8070/r3e`) using a client or a
 [Web browser test page](http://livepersoninc.github.io/ws-test-page/)):
-```
+```json lines
 {"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
 {"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
 ...

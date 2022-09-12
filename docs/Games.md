@@ -156,7 +156,10 @@
 | Player.PushToPass.ActivationsLeft.Total               | ✓       |             |
 | Player.PushToPass.EngagedTimeLeft                     | ✓       |             |
 | Player.PushToPass.WaitTimeLeft                        | ✓       |             |
-| Player.PitStop                                        | ✓       |             |
+| Player.PitMenu.FocusedItem                            | ✓       | ✗           |
+| Player.PitMenu.FuelToAdd                              | ✗       | ✓           |
+| Player.PitMenu.SelectedItems                          | ✓       | ✗           |
+| Player.PitStopStatus                                  | ✓       |             |
 | Player.Warnings.IncidentPoints                        |         |             |
 | Player.Warnings.BlueFlagWarnings                      | ✓       |             |
 | Player.Warnings.GiveBackPositions                     | ✓       |             |
