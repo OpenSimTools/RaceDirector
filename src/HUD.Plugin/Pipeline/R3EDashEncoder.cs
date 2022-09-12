@@ -817,7 +817,7 @@ public class R3EDashEncoder
     private static readonly (PlayerPitStop, int)[] PitActionMapping = {
         (PlayerPitStop.Preparing,        1 << 0),
         (PlayerPitStop.ServingPenalty,   1 << 1),
-        (PlayerPitStop.DriverChange,     1 << 2),
+        (PlayerPitStop.DriverSwap,       1 << 2),
         (PlayerPitStop.Refuelling,       1 << 3),
         (PlayerPitStop.ChangeFrontTires, 1 << 4),
         (PlayerPitStop.ChangeRearTires,  1 << 5),

@@ -398,7 +398,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 EnteringPitsUnderRed, // R3E, ACC PitEntry
                 ExceededDriverStintLimit, // ACC
                 ExitingPitsUnderRed, // R3E, ACC PitExit
-                FailedDriverChange, // R3E
+                FailedDriverSwap, // R3E
                 FalseStart, // R3E
                 IgnoredBlueFlags, // R3E
                 IgnoredDriveThroughPenalty, // R3E
@@ -874,7 +874,7 @@ namespace RaceDirector.Pipeline.Telemetry
             Requested        = 1 << 0,
             Preparing        = 1 << 1,
             ServingPenalty   = 1 << 2,
-            DriverChange     = 1 << 3,
+            DriverSwap       = 1 << 3,
             Refuelling       = 1 << 4,
             ChangeFrontTires = 1 << 5,
             ChangeRearTires  = 1 << 6,
@@ -894,7 +894,65 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface IPitMenu
         {
+            PitMenuFocusedItem FocusedItem { get; }
+            PitMenuSelectedItems SelectedItems { get; }
+            
             ICapacity? FuelToAdd { get; }
+        }
+
+        public enum PitMenuFocusedItem
+        {
+            Unavailable  = 0,
+            
+            ServePenalty = 1,
+            DriverSwap   = 2,
+
+            // Adjustments
+            Fuel                = 7,
+            FrontWingAdjustment = 8,
+            RearWingAdjustment  = 9,
+
+            // Change
+            Tires       = 14,
+            FrontTires  = 15,
+            RearTires   = 16,
+            Brakes      = 17,
+            FrontBrakes = 18,
+            RearBrakes  = 19,
+
+            // Fix damage
+            AllDamage        = 24,
+            BodyworkDamage   = 25,
+            FrontWingDamage  = 26,
+            RearWingDamage   = 27,
+            SuspensionDamage = 28
+        }
+        
+        [Flags]
+        public enum PitMenuSelectedItems
+        {
+            ServePenalty = 1 << 1,
+            DriverSwap   = 1 << 2,
+
+            // Adjustments
+            Fuel                = 1 << 7,
+            FrontWingAdjustment = 1 << 8,
+            RearWingAdjustment  = 1 << 9,
+
+            // Change
+            Tires       = FrontTires | RearTires,
+            FrontTires  = 1 << 15,
+            RearTires   = 1 << 16,
+            Brakes      = FrontBrakes | RearBrakes,
+            FrontBrakes = 1 << 18,
+            RearBrakes  = 1 << 19,
+
+            // Fix damage
+            AllDamage        = BodyworkDamage | SuspensionDamage,
+            BodyworkDamage   = FrontWingDamage | RearWingDamage,
+            FrontWingDamage  = 1 << 26,
+            RearWingDamage   = 1 << 27,
+            SuspensionDamage = 1 << 28
         }
     }
 

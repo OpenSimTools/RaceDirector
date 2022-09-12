@@ -979,7 +979,7 @@ public class R3EDashTransformerTest
     [InlineData(PlayerPitStop.Requested, 1, 0)]
     [InlineData(PlayerPitStop.Preparing, 0, 1)]
     [InlineData(PlayerPitStop.ServingPenalty, 0, 2)]
-    [InlineData(PlayerPitStop.DriverChange, 0, 4)]
+    [InlineData(PlayerPitStop.DriverSwap, 0, 4)]
     [InlineData(PlayerPitStop.Refuelling, 0, 8)]
     [InlineData(PlayerPitStop.ChangeFrontTires, 0, 16)]
     [InlineData(PlayerPitStop.ChangeRearTires, 0, 32)]

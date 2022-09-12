@@ -577,6 +577,8 @@ internal class TelemetryConverter
             OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake),
             PitMenu: new PitMenu
             (
+                FocusedItem: ToFocusedItem(sharedData.PitMenuSelection),
+                SelectedItems: ToSelectedItems(sharedData.PitMenuState),
                 FuelToAdd: null
             )
         );
@@ -597,7 +599,7 @@ internal class TelemetryConverter
     {
         (1, PlayerPitStop.Preparing),
         (2, PlayerPitStop.ServingPenalty),
-        (4, PlayerPitStop.DriverChange),
+        (4, PlayerPitStop.DriverSwap),
         (8, PlayerPitStop.Refuelling),
         (16, PlayerPitStop.ChangeFrontTires),
         (32, PlayerPitStop.ChangeRearTires),
@@ -729,6 +731,41 @@ internal class TelemetryConverter
             _ => 0
         };
         return new BoundedValue<uint>(blueWarnings, 2);
+    }
+
+    private static PitMenuFocusedItem ToFocusedItem(Contrib.Constant.PitMenuSelection value) => value switch
+    {
+        Contrib.Constant.PitMenuSelection.Penalty => PitMenuFocusedItem.ServePenalty,
+        Contrib.Constant.PitMenuSelection.Driverchange => PitMenuFocusedItem.DriverSwap,
+        Contrib.Constant.PitMenuSelection.Fuel => PitMenuFocusedItem.Fuel,
+        Contrib.Constant.PitMenuSelection.Fronttires => PitMenuFocusedItem.FrontTires,
+        Contrib.Constant.PitMenuSelection.Reartires => PitMenuFocusedItem.RearTires,
+        Contrib.Constant.PitMenuSelection.Frontwing => PitMenuFocusedItem.FrontWingDamage,
+        Contrib.Constant.PitMenuSelection.Rearwing => PitMenuFocusedItem.RearWingDamage,
+        Contrib.Constant.PitMenuSelection.Suspension => PitMenuFocusedItem.SuspensionDamage,
+        _ => PitMenuFocusedItem.Unavailable
+    };
+
+    private PitMenuSelectedItems ToSelectedItems(Contrib.Data.PitMenuState value)
+    {
+        PitMenuSelectedItems selected = 0;
+        if (value.Penalty > 0)
+            selected |= PitMenuSelectedItems.ServePenalty;
+        if (value.Driverchange > 0)
+            selected |= PitMenuSelectedItems.DriverSwap;
+        if (value.Fuel > 0)
+            selected |= PitMenuSelectedItems.Fuel;
+        if (value.FrontTires > 0)
+            selected |= PitMenuSelectedItems.FrontTires;
+        if (value.RearTires > 0)
+            selected |= PitMenuSelectedItems.RearTires;
+        if (value.FrontWing > 0)
+            selected |= PitMenuSelectedItems.FrontWingDamage;
+        if (value.RearWing > 0)
+            selected |= PitMenuSelectedItems.RearWingDamage;
+        if (value.Suspension > 0)
+            selected |= PitMenuSelectedItems.SuspensionDamage;
+        return selected;
     }
 
     private static uint PositiveOrZero(int value) => value > 0 ? (uint) value : 0;

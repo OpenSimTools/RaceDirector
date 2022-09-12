@@ -365,6 +365,8 @@ public record PlayerWarnings
 
 public record PitMenu
 (
+    PitMenuFocusedItem FocusedItem,
+    PitMenuSelectedItems SelectedItems,
     ICapacity? FuelToAdd
 ) : IPitMenu;
 

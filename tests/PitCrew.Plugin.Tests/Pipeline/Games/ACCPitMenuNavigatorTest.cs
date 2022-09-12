@@ -1,7 +1,6 @@
 ﻿using Microsoft.Reactive.Testing;
 using Moq;
 using RaceDirector.DeviceIO.Pipeline;
-using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
@@ -95,6 +94,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
                 var playerMock = new Mock<IPlayer>();
                 playerMock.SetupGet(_ => _.PitMenu)
                     .Returns(() => new PitMenu(
+                        FocusedItem: PitMenuFocusedItem.Unavailable,
+                        SelectedItems: 0,
                         FuelToAdd: fuelToAdd 
                     ));
                 return playerMock.Object;

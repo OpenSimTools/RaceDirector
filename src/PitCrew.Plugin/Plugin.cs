@@ -19,6 +19,7 @@ public class Plugin : PluginBase<Plugin.Configuration>
         services
             .AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl))
             .AddSingletonWithInterfaces<ACCPitMenuNavigator>()
+            .AddSingletonWithInterfaces<R3EPitMenuNavigator>()
             .AddSingletonWithInterfaces<PitCrewNode>()
             .AddSingletonWithInterfaces<PitMenuNode>();
     }
