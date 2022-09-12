@@ -300,7 +300,7 @@ internal class TelemetryConverter
             PersonalBestDelta: null, // TODO
             Drs: null, // TODO
             PushToPass: null, // TODO
-            PitStop: PlayerPitStop.None,
+            PitStopStatus: PlayerPitStopStatus.None,
             Warnings: new PlayerWarnings // TODO
             (
                 IncidentPoints: null,
@@ -311,7 +311,7 @@ internal class TelemetryConverter
             PitMenu: new PitMenu
             (
                 FocusedItem: PitMenuFocusedItem.Unavailable,
-                SelectedItems: 0,
+                SelectedItems: PitMenuSelectedItems.Unavailable,
                 FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd)
             )
         );

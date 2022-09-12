@@ -567,7 +567,7 @@ internal class TelemetryConverter
             PersonalBestDelta: TimeSpan.FromSeconds(sharedData.TimeDeltaBestSelf),
             Drs: ToDrs(ref sharedData),
             PushToPass: ToPtp(ref sharedData),
-            PitStop: ToPlayerPitStop(ref sharedData),
+            PitStopStatus: ToPlayerPitStopStatus(ref sharedData),
             Warnings: new PlayerWarnings
             (
                 IncidentPoints: null,
@@ -584,29 +584,29 @@ internal class TelemetryConverter
         );
     }
 
-    private static PlayerPitStop ToPlayerPitStop(ref Contrib.Data.Shared sharedData)
+    private static PlayerPitStopStatus ToPlayerPitStopStatus(ref Contrib.Data.Shared sharedData)
     {
-        var playerPitStop = PlayerPitStop.None;
+        var playerPitStop = PlayerPitStopStatus.None;
         if (sharedData.PitState == 1)
-            playerPitStop |= PlayerPitStop.Requested;
+            playerPitStop |= PlayerPitStopStatus.Requested;
         foreach (var (pitActionFlag, playerPitStopFlag) in PitActionFlags)
             if ((sharedData.PitAction & pitActionFlag) != 0)
                 playerPitStop |= playerPitStopFlag;
         return playerPitStop;
     }
 
-    private static readonly (int, PlayerPitStop)[] PitActionFlags =
+    private static readonly (int, PlayerPitStopStatus)[] PitActionFlags =
     {
-        (1, PlayerPitStop.Preparing),
-        (2, PlayerPitStop.ServingPenalty),
-        (4, PlayerPitStop.DriverSwap),
-        (8, PlayerPitStop.Refuelling),
-        (16, PlayerPitStop.ChangeFrontTires),
-        (32, PlayerPitStop.ChangeRearTires),
-        (64, PlayerPitStop.RepairBody),
-        (128, PlayerPitStop.RepairFrontWing),
-        (256, PlayerPitStop.RepairRearWing),
-        (512, PlayerPitStop.RepairSuspension)
+        (1, PlayerPitStopStatus.Preparing),
+        (2, PlayerPitStopStatus.ServingPenalty),
+        (4, PlayerPitStopStatus.SwappingDrivers),
+        (8, PlayerPitStopStatus.Refuelling),
+        (16, PlayerPitStopStatus.ChangingFrontTires),
+        (32, PlayerPitStopStatus.ChangingRearTires),
+        (64, PlayerPitStopStatus.RepairingBodywork),
+        (128, PlayerPitStopStatus.RepairingFrontWing),
+        (256, PlayerPitStopStatus.RepairingRearWing),
+        (512, PlayerPitStopStatus.RepairingSuspension)
     };
 
     private static Orientation ToOrientation<T>(ref Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>

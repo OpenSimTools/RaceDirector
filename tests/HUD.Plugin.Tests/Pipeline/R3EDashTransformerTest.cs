@@ -460,7 +460,7 @@ public class R3EDashTransformerTest
                 {
                     Pit = v.Pit with { PitLanePhase = null }
                 })
-                .WithPlayer(p => p with { PitStop = 0 })
+                .WithPlayer(p => p with { PitStopStatus = PlayerPitStopStatus.None })
             );
 
         Assert.Equal(0, result.Path("InPitLane").GetInt32());
@@ -975,24 +975,24 @@ public class R3EDashTransformerTest
     }
 
     [Theory]
-    [InlineData(PlayerPitStop.None, 0, 0)]
-    [InlineData(PlayerPitStop.Requested, 1, 0)]
-    [InlineData(PlayerPitStop.Preparing, 0, 1)]
-    [InlineData(PlayerPitStop.ServingPenalty, 0, 2)]
-    [InlineData(PlayerPitStop.DriverSwap, 0, 4)]
-    [InlineData(PlayerPitStop.Refuelling, 0, 8)]
-    [InlineData(PlayerPitStop.ChangeFrontTires, 0, 16)]
-    [InlineData(PlayerPitStop.ChangeRearTires, 0, 32)]
-    [InlineData(PlayerPitStop.RepairBody, 0, 64)]
-    [InlineData(PlayerPitStop.RepairFrontWing, 0, 128)]
-    [InlineData(PlayerPitStop.RepairRearWing, 0, 256)]
-    [InlineData(PlayerPitStop.RepairSuspension, 0, 512)]
-    [InlineData(PlayerPitStop.Requested | PlayerPitStop.Preparing | PlayerPitStop.ServingPenalty, 1, 3)]
-    public void Player_PitStop(PlayerPitStop pitStop, int pitState, int pitAction)
+    [InlineData(PlayerPitStopStatus.None, 0, 0)]
+    [InlineData(PlayerPitStopStatus.Requested, 1, 0)]
+    [InlineData(PlayerPitStopStatus.Preparing, 0, 1)]
+    [InlineData(PlayerPitStopStatus.ServingPenalty, 0, 2)]
+    [InlineData(PlayerPitStopStatus.SwappingDrivers, 0, 4)]
+    [InlineData(PlayerPitStopStatus.Refuelling, 0, 8)]
+    [InlineData(PlayerPitStopStatus.ChangingFrontTires, 0, 16)]
+    [InlineData(PlayerPitStopStatus.ChangingRearTires, 0, 32)]
+    [InlineData(PlayerPitStopStatus.RepairingBodywork, 0, 64)]
+    [InlineData(PlayerPitStopStatus.RepairingFrontWing, 0, 128)]
+    [InlineData(PlayerPitStopStatus.RepairingRearWing, 0, 256)]
+    [InlineData(PlayerPitStopStatus.RepairingSuspension, 0, 512)]
+    [InlineData(PlayerPitStopStatus.Requested | PlayerPitStopStatus.Preparing | PlayerPitStopStatus.ServingPenalty, 1, 3)]
+    public void Player_PitStop(PlayerPitStopStatus pitStopStatus, int pitState, int pitAction)
     {
         var result = ToR3EDash(GeneratedGt
             .WithFocusedVehicle(v => v with { Pit = v.Pit with { PitLanePhase = null } })
-            .WithPlayer(p => p with { PitStop = pitStop }));
+            .WithPlayer(p => p with { PitStopStatus = pitStopStatus }));
 
         Assert.Equal(pitState, result.Path("PitState").GetInt32());
         Assert.Equal(pitAction, result.Path("PitAction").GetInt32());

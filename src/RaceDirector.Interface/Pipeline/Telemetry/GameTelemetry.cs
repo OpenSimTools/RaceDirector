@@ -210,7 +210,7 @@ public record Player
     TimeSpan? PersonalBestDelta,
     ActivationToggled? Drs,
     WaitTimeToggled? PushToPass,
-    PlayerPitStop PitStop,
+    PlayerPitStopStatus PitStopStatus,
     PlayerWarnings Warnings,
     bool? OvertakeAllowed,
     PitMenu PitMenu
@@ -228,7 +228,7 @@ public record Player
     ISectors? IPlayer.PersonalBestSectors => PersonalBestSectors;
     IActivationToggled? IPlayer.Drs => Drs;
     IWaitTimeToggled? IPlayer.PushToPass => PushToPass;
-    PlayerPitStop IPlayer.PitStopStatus => PitStop;
+    PlayerPitStopStatus IPlayer.PitStopStatus => PitStopStatus;
     IPlayerWarnings IPlayer.Warnings => Warnings;
     IPitMenu IPlayer.PitMenu => PitMenu;
 }

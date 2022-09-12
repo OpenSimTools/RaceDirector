@@ -799,7 +799,7 @@ public class R3EDashEncoder
             case PitLanePhase.Exiting:
                 return 4;
         }
-        if (gt.Player?.PitStopStatus.HasFlag(PlayerPitStop.Requested) ?? false)
+        if (gt.Player?.PitStopStatus.HasFlag(PlayerPitStopStatus.Requested) ?? false)
             return 1;
         return 0;
     }
@@ -814,17 +814,17 @@ public class R3EDashEncoder
         return pitAction;
     }
 
-    private static readonly (PlayerPitStop, int)[] PitActionMapping = {
-        (PlayerPitStop.Preparing,        1 << 0),
-        (PlayerPitStop.ServingPenalty,   1 << 1),
-        (PlayerPitStop.DriverSwap,       1 << 2),
-        (PlayerPitStop.Refuelling,       1 << 3),
-        (PlayerPitStop.ChangeFrontTires, 1 << 4),
-        (PlayerPitStop.ChangeRearTires,  1 << 5),
-        (PlayerPitStop.RepairBody,       1 << 6),
-        (PlayerPitStop.RepairFrontWing,  1 << 7),
-        (PlayerPitStop.RepairRearWing,   1 << 8),
-        (PlayerPitStop.RepairSuspension, 1 << 9)
+    private static readonly (PlayerPitStopStatus, int)[] PitActionMapping = {
+        (PlayerPitStopStatus.Preparing,           1 << 0),
+        (PlayerPitStopStatus.ServingPenalty,      1 << 1),
+        (PlayerPitStopStatus.SwappingDrivers,     1 << 2),
+        (PlayerPitStopStatus.Refuelling,          1 << 3),
+        (PlayerPitStopStatus.ChangingFrontTires,  1 << 4),
+        (PlayerPitStopStatus.ChangingRearTires,   1 << 5),
+        (PlayerPitStopStatus.RepairingBodywork,   1 << 6),
+        (PlayerPitStopStatus.RepairingFrontWing,  1 << 7),
+        (PlayerPitStopStatus.RepairingRearWing,   1 << 8),
+        (PlayerPitStopStatus.RepairingSuspension, 1 << 9)
     };
 
 

@@ -682,7 +682,7 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             IWaitTimeToggled? PushToPass { get; }
 
-            PlayerPitStop PitStopStatus { get; }
+            PlayerPitStopStatus PitStopStatus { get; }
 
             IPlayerWarnings Warnings { get; }
 
@@ -868,20 +868,25 @@ namespace RaceDirector.Pipeline.Telemetry
         }
 
         [Flags]
-        public enum PlayerPitStop
+        public enum PlayerPitStopStatus
         {
-            None             = 0,
-            Requested        = 1 << 0,
-            Preparing        = 1 << 1,
-            ServingPenalty   = 1 << 2,
-            DriverSwap       = 1 << 3,
-            Refuelling       = 1 << 4,
-            ChangeFrontTires = 1 << 5,
-            ChangeRearTires  = 1 << 6,
-            RepairBody       = 1 << 7,
-            RepairFrontWing  = 1 << 8,
-            RepairRearWing   = 1 << 9,
-            RepairSuspension = 1 << 10
+            None = 0,
+
+            Requested = 1 << 0,
+            Preparing = 1 << 1,
+
+            ServingPenalty  = 1 << 3,
+            SwappingDrivers = 1 << 4,
+            
+            Refuelling = 1 << 9,
+
+            ChangingFrontTires = 1 << 17,
+            ChangingRearTires  = 1 << 18,
+
+            RepairingBodywork   = 1 << 27,
+            RepairingFrontWing  = 1 << 28,
+            RepairingRearWing   = 1 << 29,
+            RepairingSuspension = 1 << 30
         }
 
         public interface IPlayerWarnings
@@ -902,57 +907,62 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum PitMenuFocusedItem
         {
-            Unavailable  = 0,
-            
-            ServePenalty = 1,
-            DriverSwap   = 2,
+            None        = 0,
+            Unavailable = 0,
+
+            PitStopRequest = 1,
+            ServePenalty   = 3,
+            DriverSwap     = 4,
 
             // Adjustments
-            Fuel                = 7,
-            FrontWingAdjustment = 8,
-            RearWingAdjustment  = 9,
+            Fuel                = 9,
+            FrontWingAdjustment = 10,
+            RearWingAdjustment  = 11,
 
             // Change
-            Tires       = 14,
-            FrontTires  = 15,
-            RearTires   = 16,
-            Brakes      = 17,
-            FrontBrakes = 18,
-            RearBrakes  = 19,
+            Tires       = 16,
+            FrontTires  = 17,
+            RearTires   = 18,
+            Brakes      = 19,
+            FrontBrakes = 20,
+            RearBrakes  = 21,
 
             // Fix damage
-            AllDamage        = 24,
-            BodyworkDamage   = 25,
-            FrontWingDamage  = 26,
-            RearWingDamage   = 27,
-            SuspensionDamage = 28
+            AllDamage        = 26,
+            BodyworkDamage   = 27,
+            FrontWingDamage  = 28,
+            RearWingDamage   = 29,
+            SuspensionDamage = 30
         }
         
         [Flags]
         public enum PitMenuSelectedItems
         {
-            ServePenalty = 1 << 1,
-            DriverSwap   = 1 << 2,
+            None        = 0,
+            Unavailable = 0,
+
+            ServePenalty = 1 << 3,
+            DriverSwap   = 1 << 4,
 
             // Adjustments
-            Fuel                = 1 << 7,
-            FrontWingAdjustment = 1 << 8,
-            RearWingAdjustment  = 1 << 9,
+            Fuel                = 1 << 9,
+            FrontWingAdjustment = 1 << 10,
+            RearWingAdjustment  = 1 << 11,
 
             // Change
             Tires       = FrontTires | RearTires,
-            FrontTires  = 1 << 15,
-            RearTires   = 1 << 16,
+            FrontTires  = 1 << 17,
+            RearTires   = 1 << 18,
             Brakes      = FrontBrakes | RearBrakes,
-            FrontBrakes = 1 << 18,
-            RearBrakes  = 1 << 19,
+            FrontBrakes = 1 << 20,
+            RearBrakes  = 1 << 21,
 
             // Fix damage
             AllDamage        = BodyworkDamage | SuspensionDamage,
             BodyworkDamage   = FrontWingDamage | RearWingDamage,
-            FrontWingDamage  = 1 << 26,
-            RearWingDamage   = 1 << 27,
-            SuspensionDamage = 1 << 28
+            FrontWingDamage  = 1 << 28,
+            RearWingDamage   = 1 << 29,
+            SuspensionDamage = 1 << 30
         }
     }
 
