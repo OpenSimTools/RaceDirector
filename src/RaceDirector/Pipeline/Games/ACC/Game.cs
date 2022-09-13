@@ -1,12 +1,10 @@
 ﻿using RaceDirector.Pipeline.Utils;
 using System;
 using System.Reactive.Linq;
-using System.Runtime.Versioning;
 using RaceDirector.Pipeline.Telemetry.V0;
 
 namespace RaceDirector.Pipeline.Games.ACC;
 
-[SupportedOSPlatform("windows")]
 public class Game : IGame
 {
     public class Config
@@ -16,7 +14,7 @@ public class Game : IGame
 
     private readonly Config _config;
 
-    public string GameName => "ACC";
+    public string GameName => Names.ACC;
 
     public string[] GameProcessNames => new[] { "AC2-Win64-Shipping" };
 

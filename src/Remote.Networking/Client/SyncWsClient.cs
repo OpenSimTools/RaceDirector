@@ -27,4 +27,6 @@ public class SyncWsClient<TOut, TIn> : WsClient<TOut, TIn>
             throw new TimeoutException("Message not received within timeout");
         return body;
     }
+
+    public bool NextIsAvailable() => _received.Count > 0;
 }

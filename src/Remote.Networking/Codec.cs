@@ -11,16 +11,44 @@ public readonly struct Codec<TE, TD>
 
 public delegate ReadOnlyMemory<byte> Encode<in T>(T t);
 
+public static class EncodeEx
+{
+    public static Encode<TA> Select<TA, TB>(this Encode<TB> encode, Func<TA, TB> f) =>
+        a => encode(f(a));
+
+    public static Encode<T?> IgnoreNull<T>(this Encode<T> encode) =>
+        t => t is null ? ReadOnlyMemory<byte>.Empty : encode(t);
+}
+
 public delegate T Decode<out T>(ReadOnlyMemory<byte> payload);
+
+public static class DecodeEx
+{
+    public static Decode<TB> Select<TA, TB>(this Decode<TA> decode, Func<TA, TB> f) =>
+        payload => f(decode(payload));
+
+    public static Decode<T?> IgnoreErrors<T>(this Decode<T> decode) =>
+        payload =>
+        {
+            try
+            {
+                return decode(payload);
+            }
+            catch
+            {
+                return default;
+            }
+        };
+}
 
 public static class Codec
 {
-    public static Codec<string?, string> UTF8String = String(Encoding.UTF8);
+    public static Codec<string, string> UTF8String = String(Encoding.UTF8);
 
-    public static Codec<string?, string> String(Encoding encoding) => new()
+    public static Codec<string, string> String(Encoding encoding) => new()
     {
 
-        Encode = t => t is null ? Array.Empty<byte>() : encoding.GetBytes(t),
+        Encode = t => encoding.GetBytes(t),
         Decode = payload => encoding.GetString(payload.Span)
     };
     
@@ -35,7 +63,7 @@ public static class Codec
 
     public static Codec<Nothing, JsonDocument> JsonDocument = new()
     {
-        Encode = _ => ReadOnlyMemory<byte>.Empty, // TODO 
+        Encode = _ => ReadOnlyMemory<byte>.Empty, // TODO
         Decode = payload => System.Text.Json.JsonDocument.Parse(payload)
     };
 

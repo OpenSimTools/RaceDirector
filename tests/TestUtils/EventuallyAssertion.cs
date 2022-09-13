@@ -14,7 +14,7 @@ public class EventuallyAssertion
 
     public EventuallyAssertion OrError(string message)
     {
-        this._errorMessage = message;
+        _errorMessage = message;
         return this;
     }
 

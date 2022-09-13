@@ -8,6 +8,7 @@ using Microsoft.Reactive.Testing;
 using System.Linq;
 using RaceDirector.Tests.Pipeline.Utils;
 using System.Reactive;
+using TestUtils;
 
 namespace RaceDirector.Tests.Pipeline;
 

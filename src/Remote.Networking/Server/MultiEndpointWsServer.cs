@@ -1,5 +1,7 @@
 ﻿using NetCoreServer;
 using System.Net;
+using System.Reactive;
+using System.Reactive.Subjects;
 using Microsoft.Extensions.Logging;
 
 namespace RaceDirector.Remote.Networking.Server;
@@ -17,7 +19,11 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
     private readonly List<HttpEndpoint<TOut, TIn>> _endpoints;
     private readonly ILogger _logger;
 
-    public event MessageHandler<TIn>? MessageHandler;
+    public event MessageHandler<TIn, TOut>? MessageHandler;
+    public IObserver<TOut> Out { get; }
+    public IObservable<TIn> In { get; }
+
+    public int Port => _inner.Port;
 
     public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<HttpEndpoint<TOut, TIn>> endpoints, ILogger logger)
     {
@@ -25,6 +31,11 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
         _baseUri = new UriBuilder(Uri.UriSchemeWs, address.ToString(), port).Uri;
         _endpoints = endpoints.ToList();
         _logger = logger;
+
+        var subject = new Subject<TIn>();
+        MessageHandler += (_, i) => subject.OnNext(i);
+        In = subject;
+        Out = Observer.Create<TOut>(WsMulticastAsync);
     }
 
     public bool Start() => _inner.Start();
@@ -36,7 +47,7 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
     public void WsMulticastAsync(TOut message) =>
         _inner.WsMulticastAsync(message, _ => true);
 
-    public void WsMulticastAsync(TOut message, Func<ISession, bool> condition) =>
+    public bool WsMulticastAsync(TOut message, Func<ISession<TOut>, bool> condition) =>
         _inner.WsMulticastAsync(message, condition);
 
     private class InnerServer : WsServer
@@ -53,7 +64,7 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
             return new InnerSession(_outer);
         }
         
-        internal bool WsMulticastAsync(TOut message, Func<ISession, bool> condition)
+        internal bool WsMulticastAsync(TOut message, Func<ISession<TOut>, bool> condition)
         {
             if (!IsStarted)
             {
@@ -84,13 +95,13 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
         }
     }
     
-    private class InnerSession : WsSession, ISession
+    private class InnerSession : WsSession, ISession<TOut>
     {
         private readonly MultiEndpointWsServer<TOut, TIn> _outer;
         private HttpEndpoint<TOut, TIn>? _matchedEndpoint;
         private bool _wsConnected;
 
-        object ISession.Id => base.Id;
+        object ISession<TOut>.Id => base.Id;
 
         internal InnerSession(MultiEndpointWsServer<TOut, TIn> outer) : base(outer._inner)
         {
@@ -124,7 +135,7 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
             if (!_wsConnected || _matchedEndpoint is null)
                 return false;
             var payload = _matchedEndpoint.Codec.Encode(t);
-            return SendTextAsync(payload.Span);
+            return payload.IsEmpty || SendTextAsync(payload.Span);
         }
     }
 }

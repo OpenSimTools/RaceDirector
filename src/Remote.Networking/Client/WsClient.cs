@@ -1,9 +1,11 @@
 ﻿using System.Net;
+using System.Reactive;
+using System.Reactive.Subjects;
 using NetCoreServer;
 
 namespace RaceDirector.Remote.Networking.Client;
 
-public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
+public class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
 {
     /// <summary>
     /// Latest version specified in the WebSocket Protocol RFC6455
@@ -11,7 +13,10 @@ public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
     /// </summary>
     private const int WsProtocolVersion = 13;
 
+    // FIXME it can disconnect after connection
     public Task Connected => _connectedCompletionSource.Task;
+    public IObserver<TOut> Out { get; }
+    public IObservable<TIn> In { get; }
 
     private WsClient _inner;
     private readonly Codec<TOut, TIn> _codec;
@@ -41,6 +46,11 @@ public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
         _codec = codec;
         _connectedCompletionSource = new TaskCompletionSource();
         _path = uri.AbsolutePath;
+
+        var subject = new Subject<TIn>();
+        MessageHandler += i => subject.OnNext(i);
+        In = subject;
+        Out = Observer.Create<TOut>(_ => WsSendAsync(_));
     }
 
     private InnerClient CreateInnerClient(Uri uri)
@@ -50,10 +60,10 @@ public abstract class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
         return new InnerClient(this, new DnsEndPoint(uri.Host, uri.Port));
     }
 
-    public void WsSendAsync(TOut message)
+    public bool WsSendAsync(TOut message)
     {
         var payload = _codec.Encode(message);
-        _inner.SendTextAsync(payload.Span);
+        return payload.IsEmpty || _inner.SendTextAsync(payload.Span);
     }
 
     private class InnerClient : WsClient

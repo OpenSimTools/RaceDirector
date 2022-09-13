@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\RaceDirector\RaceDirector.csproj" />
     <ProjectReference Include="..\RaceDirector.Tests.Ext.Process\RaceDirector.Tests.Ext.Process.csproj" />
+    <ProjectReference Include="..\TestUtils\TestUtils.csproj" />
   </ItemGroup>
 
 </Project>

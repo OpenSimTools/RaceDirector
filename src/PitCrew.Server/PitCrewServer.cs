@@ -15,6 +15,6 @@ public class PitCrewServer : MultiEndpointWsServer<ReadOnlyMemory<byte>, ReadOnl
     public PitCrewServer(Config config, ILogger<PitCrewServer> logger) :
         base(IPAddress.Any, config.Port, Endpoint, logger)
     {
-        MessageHandler += (session, message) => WsMulticastAsync(message, otherSession => otherSession.Id != session.Id);
+        MessageHandler += (session, message) => WsMulticastAsync(message, _ => !session.Id.Equals(_.Id));
     }
 }

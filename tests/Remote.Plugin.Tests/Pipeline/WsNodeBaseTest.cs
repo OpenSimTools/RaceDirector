@@ -16,7 +16,7 @@ public class WsNodeBaseTest
     public void ServerIsStartedWhenTriggered()
     {
         _wsNode.PostTrigger(true);
-        foreach (var sm in _publisherMocks)
+        foreach (var sm in _pusherMocks)
             Eventually(() => sm.Verify(s => s.Start()))
                 .OrError("Server wasn't started")
                 .Within(Timeout);
@@ -26,7 +26,7 @@ public class WsNodeBaseTest
     public void ServerIsStoppedWhenTriggered()
     {
         _wsNode.PostTrigger(false);
-        foreach (var sm in _publisherMocks)
+        foreach (var sm in _pusherMocks)
             Eventually(() => sm.Verify(s => s.Stop()))
                 .OrError("Server didn't stop")
                 .Within(Timeout);
@@ -36,29 +36,29 @@ public class WsNodeBaseTest
     public void DataIsBroadcastedWhenReceived()
     {
         _wsNode.PostData(2);
-        foreach (var sm in _publisherMocks)
-            Eventually(() => sm.Verify(s => s.PublishAsync(2)))
+        foreach (var sm in _pusherMocks)
+            Eventually(() => sm.Verify(s => s.PushAsync(2)))
                 .OrError("Data wasn't broadcasted")
                 .Within(Timeout);
     }
 
     #region Test setup
 
-    private readonly IEnumerable<Mock<IRemotePublisher<int>>> _publisherMocks;
+    private readonly IEnumerable<Mock<IRemotePusher<int>>> _pusherMocks;
     private readonly TestWsNode _wsNode;
 
     public WsNodeBaseTest()
     {
-        _publisherMocks = Enumerable.Range(1, 3).Select(_ => new Mock<IRemotePublisher<int>>()).ToArray();
-        var mockedServers = _publisherMocks.Select(m => m.Object).ToArray();
+        _pusherMocks = Enumerable.Range(1, 3).Select(_ => new Mock<IRemotePusher<int>>()).ToArray();
+        var mockedServers = _pusherMocks.Select(m => m.Object).ToArray();
         _wsNode = new TestWsNode(mockedServers);
     }
 
     private class TestWsNode : WsNodeBase<bool, int>
     {
-        public TestWsNode(params IRemotePublisher<int>[] publishers) : base(publishers) { }
+        public TestWsNode(params IRemotePusher<int>[] pushers) : base(pushers) { }
 
-        protected override bool PublisherShouldStart(bool trigger)
+        protected override bool PusherShouldStart(bool trigger)
         {
             return trigger;
         }

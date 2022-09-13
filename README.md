@@ -7,6 +7,7 @@ RaceDirector is the sim racer's Swiss Army knife.
 The main software implements a pluggable architecture and a default set of components for sim
 racing. Plugins can be written to extend it with new functionality. In this early development
 phase, some plugins come bundled with it:
+ - [DeviceIO](./docs/Plugins/DeviceIO.md)
  - [HUD](./docs/Plugins/HUD.md)
  - [PitCrew](./docs/Plugins/PitCrew.md)
 

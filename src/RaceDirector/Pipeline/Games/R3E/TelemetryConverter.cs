@@ -532,9 +532,9 @@ internal class TelemetryConverter
             Tires: ToTires(ref sharedData),
             Fuel: new Fuel
             (
-                Max: sharedData.FuelCapacity,
-                Left: sharedData.FuelLeft,
-                PerLap: sharedData.FuelPerLap
+                Max: ICapacity.FromL(sharedData.FuelCapacity),
+                Left: ICapacity.FromL(sharedData.FuelLeft),
+                PerLap: ICapacity.FromL(sharedData.FuelPerLap)
             ),
             Engine: new Engine
             (
@@ -567,40 +567,46 @@ internal class TelemetryConverter
             PersonalBestDelta: TimeSpan.FromSeconds(sharedData.TimeDeltaBestSelf),
             Drs: ToDrs(ref sharedData),
             PushToPass: ToPtp(ref sharedData),
-            PitStop: ToPlayerPitStop(ref sharedData),
+            PitStopStatus: ToPlayerPitStopStatus(ref sharedData),
             Warnings: new PlayerWarnings
             (
                 IncidentPoints: null,
                 BlueFlagWarnings: ToBlueFlagWarnings(sharedData.Flags.BlackAndWhite),
                 GiveBackPositions: PositiveOrZero(sharedData.Flags.YellowPositionsGained)
             ),
-            OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake)
+            OvertakeAllowed: NullableBoolean(sharedData.Flags.YellowOvertake),
+            PitMenu: new PitMenu
+            (
+                FocusedItem: ToFocusedItem(sharedData.PitMenuSelection),
+                SelectedItems: ToSelectedItems(sharedData.PitMenuState),
+                FuelToAdd: null
+            )
         );
     }
 
-    private static PlayerPitStop ToPlayerPitStop(ref Contrib.Data.Shared sharedData)
+    private static PlayerPitStopStatus ToPlayerPitStopStatus(ref Contrib.Data.Shared sharedData)
     {
-        var playerPitStop = PlayerPitStop.None;
+        var playerPitStop = PlayerPitStopStatus.None;
         if (sharedData.PitState == 1)
-            playerPitStop |= PlayerPitStop.Requested;
+            playerPitStop |= PlayerPitStopStatus.Requested;
         foreach (var (pitActionFlag, playerPitStopFlag) in PitActionFlags)
             if ((sharedData.PitAction & pitActionFlag) != 0)
                 playerPitStop |= playerPitStopFlag;
         return playerPitStop;
     }
 
-    private static readonly (int, PlayerPitStop)[] PitActionFlags =
+    private static readonly (int, PlayerPitStopStatus)[] PitActionFlags =
     {
-        (1, PlayerPitStop.Preparing),
-        (2, PlayerPitStop.ServingPenalty),
-        (4, PlayerPitStop.DriverChange),
-        (8, PlayerPitStop.Refuelling),
-        (16, PlayerPitStop.ChangeFrontTires),
-        (32, PlayerPitStop.ChangeRearTires),
-        (64, PlayerPitStop.RepairBody),
-        (128, PlayerPitStop.RepairFrontWing),
-        (256, PlayerPitStop.RepairRearWing),
-        (512, PlayerPitStop.RepairSuspension)
+        (1, PlayerPitStopStatus.Preparing),
+        (2, PlayerPitStopStatus.ServingPenalty),
+        (4, PlayerPitStopStatus.SwappingDrivers),
+        (8, PlayerPitStopStatus.Refuelling),
+        (16, PlayerPitStopStatus.ChangingFrontTires),
+        (32, PlayerPitStopStatus.ChangingRearTires),
+        (64, PlayerPitStopStatus.RepairingBodywork),
+        (128, PlayerPitStopStatus.RepairingFrontWing),
+        (256, PlayerPitStopStatus.RepairingRearWing),
+        (512, PlayerPitStopStatus.RepairingSuspension)
     };
 
     private static Orientation ToOrientation<T>(ref Contrib.Data.Orientation<T> value, Func<T, IAngle> f) =>
@@ -725,6 +731,41 @@ internal class TelemetryConverter
             _ => 0
         };
         return new BoundedValue<uint>(blueWarnings, 2);
+    }
+
+    private static PitMenuFocusedItem ToFocusedItem(Contrib.Constant.PitMenuSelection value) => value switch
+    {
+        Contrib.Constant.PitMenuSelection.Penalty => PitMenuFocusedItem.ServePenalty,
+        Contrib.Constant.PitMenuSelection.Driverchange => PitMenuFocusedItem.DriverSwap,
+        Contrib.Constant.PitMenuSelection.Fuel => PitMenuFocusedItem.Fuel,
+        Contrib.Constant.PitMenuSelection.Fronttires => PitMenuFocusedItem.FrontTires,
+        Contrib.Constant.PitMenuSelection.Reartires => PitMenuFocusedItem.RearTires,
+        Contrib.Constant.PitMenuSelection.Frontwing => PitMenuFocusedItem.FrontWingDamage,
+        Contrib.Constant.PitMenuSelection.Rearwing => PitMenuFocusedItem.RearWingDamage,
+        Contrib.Constant.PitMenuSelection.Suspension => PitMenuFocusedItem.SuspensionDamage,
+        _ => PitMenuFocusedItem.Unavailable
+    };
+
+    private PitMenuSelectedItems ToSelectedItems(Contrib.Data.PitMenuState value)
+    {
+        PitMenuSelectedItems selected = 0;
+        if (value.Penalty > 0)
+            selected |= PitMenuSelectedItems.ServePenalty;
+        if (value.Driverchange > 0)
+            selected |= PitMenuSelectedItems.DriverSwap;
+        if (value.Fuel > 0)
+            selected |= PitMenuSelectedItems.Fuel;
+        if (value.FrontTires > 0)
+            selected |= PitMenuSelectedItems.FrontTires;
+        if (value.RearTires > 0)
+            selected |= PitMenuSelectedItems.RearTires;
+        if (value.FrontWing > 0)
+            selected |= PitMenuSelectedItems.FrontWingDamage;
+        if (value.RearWing > 0)
+            selected |= PitMenuSelectedItems.RearWingDamage;
+        if (value.Suspension > 0)
+            selected |= PitMenuSelectedItems.SuspensionDamage;
+        return selected;
     }
 
     private static uint PositiveOrZero(int value) => value > 0 ? (uint) value : 0;

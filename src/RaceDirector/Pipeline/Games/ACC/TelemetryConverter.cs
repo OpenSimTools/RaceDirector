@@ -7,20 +7,10 @@ namespace RaceDirector.Pipeline.Games.ACC;
 
 internal class TelemetryConverter
 {
-    private static GameTelemetry NoMMFiles = new(
-        GameState: GameState.Menu,
-        UsingVR: null,
-        Event: null,
-        Session: null,
-        Vehicles: Array.Empty<Vehicle>(),
-        FocusedVehicle: null,
-        Player: null
-    );
-
     internal GameTelemetry Transform(ref Contrib.Data.Shared sharedData)
     {
         if (sharedData.Static.SmVersion.Length == 0)
-            return NoMMFiles;
+            return GameTelemetry.Empty;
         var smVersionMajor = Int32.Parse(sharedData.Static.SmVersion.Split('.')[0]);
         if (smVersionMajor != Contrib.Constant.SmVersionMajor)
             throw new ArgumentException("Incompatible major version");
@@ -242,6 +232,7 @@ internal class TelemetryConverter
 
     private static Player? ToPlayer(ref Contrib.Data.Shared sharedData)
     {
+        // TODO return null if player not driving
         return new Player
         (
             RawInputs: new RawInputs // TODO
@@ -273,11 +264,11 @@ internal class TelemetryConverter
                 TransmissionPercent: 0
             ),
             Tires: Array.Empty<Tire[]>(),
-            Fuel: new Fuel // TODO
+            Fuel: new Fuel
             (
-                Max: 0,
-                Left: 0,
-                PerLap: null
+                Max: ICapacity.FromL(0), // TODO
+                Left: ICapacity.FromL(sharedData.Physics.Fuel),
+                PerLap: null // TODO
             ),
             Engine: new Engine // TODO
             (
@@ -309,14 +300,20 @@ internal class TelemetryConverter
             PersonalBestDelta: null, // TODO
             Drs: null, // TODO
             PushToPass: null, // TODO
-            PitStop: PlayerPitStop.None,
+            PitStopStatus: PlayerPitStopStatus.None,
             Warnings: new PlayerWarnings // TODO
             (
                 IncidentPoints: null,
                 BlueFlagWarnings: null,
                 GiveBackPositions: 0
             ),
-            OvertakeAllowed: null // TODO
+            OvertakeAllowed: null, // TODO
+            PitMenu: new PitMenu
+            (
+                FocusedItem: PitMenuFocusedItem.Unavailable,
+                SelectedItems: PitMenuSelectedItems.Unavailable,
+                FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd)
+            )
         );
     }
 }

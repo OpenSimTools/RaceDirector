@@ -2,13 +2,11 @@
 using Microsoft.Extensions.Hosting;
 using RaceDirector.Pipeline;
 using RaceDirector.Plugin;
-using System.Runtime.Versioning;
 using Microsoft.Extensions.Configuration;
 using RaceDirector.Config;
 
 namespace RaceDirector;
 
-[SupportedOSPlatform("windows")]
 public static class Program
 {
     public static void Main(string[] args)

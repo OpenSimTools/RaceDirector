@@ -15,6 +15,8 @@ public abstract class PluginBase<TConfig> : IPlugin where TConfig : PluginBase.C
     {
         var configSection = configuration.GetSection(Name);
         var pluginConfig = configSection.Get<TConfig>();
+        //if (pluginConfig is null)
+        // TODO log that the plugin is not configured (inject logger in constructor?)
         if (pluginConfig.Enabled)
             Init(pluginConfig, services);
     }

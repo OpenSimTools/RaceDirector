@@ -2,8 +2,6 @@
 using IRunningGame = RaceDirector.Pipeline.GameMonitor.V0.IRunningGame;
 using RaceDirector.Pipeline;
 using RaceDirector.Remote.Networking;
-using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Server;
 
 namespace RaceDirector.Remote.Pipeline;
 
@@ -12,10 +10,9 @@ namespace RaceDirector.Remote.Pipeline;
 /// </summary>
 public class WsTelemetryNode : WsNodeBase<IRunningGame, IGameTelemetry>, INode
 {
-    public WsTelemetryNode(IEnumerable<IWsServer<IGameTelemetry, Nothing>> servers,
-            IEnumerable<IWsClient<IGameTelemetry, Nothing>> clients) :
-        base(servers.Select(s => s.ToRemotePublisher())
-            .Concat(clients.Select(c => c.ToRemotePublisher())))
+    public WsTelemetryNode(IEnumerable<IStartableConsumer<IGameTelemetry>> startable, IEnumerable<IConnectableConsumer<IGameTelemetry>> connectable) :
+        base(startable.Select(s => s.ToRemotePusher())
+        .Concat(connectable.Select(c => c.ToRemotePusher())))
     {
     }
 
@@ -23,7 +20,7 @@ public class WsTelemetryNode : WsNodeBase<IRunningGame, IGameTelemetry>, INode
 
     public IObserver<IGameTelemetry> GameTelemetryObserver => DataObserver;
 
-    protected override bool PublisherShouldStart(IRunningGame runningGame) {
+    protected override bool PusherShouldStart(IRunningGame runningGame) {
         return runningGame.IsRunning();
     }
 }

@@ -33,7 +33,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace RaceDirector.Pipeline.Games.ACC.Contrib
+namespace RaceDirector.Pipeline.Games.ACC;
+
+public static class Contrib
 {
     public static class Constant
     {
@@ -127,7 +129,7 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
         }
     }
 
-    namespace Data
+    public static class Data
     {
         public struct Shared {
             public SPageFilePhysics Physics;
@@ -146,7 +148,7 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public int PacketId; // Current step index
             public float Gas; // Gas pedal input value (from -0 to 1.0)
             public float Brake; // Brake pedal input value (from -0 to 1.0)
-            public float Fuel; // Amount of fuel remaining in kg
+            public float Fuel; // Amount of fuel remaining in kg [Wrong: it's in liters!]
             public int Gear; // Current gear
             public int Rpm; // Engine revolutions per minute
             public float SteerAngle; // Steering input value (from -1.0 to 1.0)
@@ -242,13 +244,13 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public int PacketId; // Current step index
             public Constant.Status Status;
             public Constant.SessionType Session;
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string CurrentTime; // Current lap time in wide character
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string LastTime; // Last lap time in wide character
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string BestTime; // Best lap time in wide character
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string Split; // Last split time in wide character
             public int CompletedLaps; // No of completed laps
             public int Position; // Current player position
@@ -261,14 +263,14 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public int CurrentSectorIndex; // Current track sector
             public int LastSectorTime; // Last sector time in milliseconds
             public int NumberOfLaps; // Number of completed laps
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string TyreCompound; // Tyre compound used
             public float ReplayTimeMultiplier; // Not used in ACC
             public float NormalizedCarPosition; // Car position on track spline(0.0 start to 1.0 finish)
             public int ActiveCars; // Number of cars on track
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 60)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
             public Coords[] CarCoordinates; // Coordinates of cars on track
-            [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 60)]
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
             public int[] CarID; // Car IDs of cars on track
             public int PlayerCarID; // Player Car ID
             public float PenaltyTime; // Penalty time to wait
@@ -298,17 +300,17 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public int RainTyres; // Are rain tyres equipped
             public int SessionIndex;
             public float UsedFuel; // Used fuel since last time refueling
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string DeltaLapTime; // Delta time in wide character
             public int IDeltaLapTime; // Delta time time in milliseconds
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string EstimatedLapTime; // Estimated lap time in wide character
             public int IEstimatedLapTime; // Estimated lap time in milliseconds
             public int IsDeltaPositive; // Delta positive(1) or negative(0)
             public int ISplit; // Last split time in milliseconds
             public int IsValidLap; // Check if Lap is valid for timing
             public float FuelEstimatedLaps; // Laps possible with current fuel level
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string TrackStatus; // Status of track
             public int MissingMandatoryPits; // Mandatory pitstops the player still has to do
             public float Clock; // Time of day in seconds
@@ -330,7 +332,8 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public Constant.RainIntensity RainIntensityIn10min;
             public Constant.RainIntensity RainIntensityIn30min;
             public int CurrentTyreSet; // Tyre Set currently in use
-            public int StrategyTyreSet; // Next Tyre set per strategy int gapAhead Distance in ms to car in front int gapBehind Distance in ms to car behind
+            public int StrategyTyreSet; // Next Tyre set per strategy
+            public int gapAhead; // Distance in ms to car in front int gapBehind Distance in ms to car behind
         }
 
         /// <summary>
@@ -341,21 +344,21 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
         [Serializable]
         public struct SPageFileStatic
         {
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string SmVersion; // Shared memory version
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 15)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 15)]
             public string AcVersion; // Assetto Corsa version
             public int NumberOfSessions; // Number of sessions
             public int NumCars; // Number of cars
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string CarModel; // Player car model see Appendix 2
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string Track; // Track name
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string PlayerName; // Player name
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string PlayerSurname; // Player surname
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string PlayerNick; // Player nickname
             public int SectorCount; // Number of sectors
             public float MaxTorque; // Not shown in ACC
@@ -386,15 +389,15 @@ namespace RaceDirector.Pipeline.Games.ACC.Contrib
             public float ErsMaxJ; // Not used in ACC
             public int IsTimedRace; // Not used in ACC
             public int HasExtraLap; // Not used in ACC
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string CarSkin; // Not used in ACC
             public int ReversedGridPositions; // Not used in ACC
             public int PitWindowStart; // Pit window opening time
             public int PitWindowEnd; // Pit windows closing time
             public int IsOnline; // If is a multiplayer session
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string DryTyresName; // Name of the dry tyres
-            [MarshalAsAttribute(UnmanagedType.ByValTStr, SizeConst = 33)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
             public string WetTyresName; // Name of the wet tyres
         }
 

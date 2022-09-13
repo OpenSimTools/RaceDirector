@@ -63,6 +63,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public enum GameState
         {
+            Unknown,
             Driving,
             Paused,  // R3E GamePaused - is the clock ticking? (-1 in main menu, 0 in replay, 1 in single player menu, 0 in multi player menu)
             Menu,    // R3E GameInMenus (-1 in main menu, 1 in single or multi player menu, 1 in monitor)
@@ -397,7 +398,7 @@ namespace RaceDirector.Pipeline.Telemetry
                 EnteringPitsUnderRed, // R3E, ACC PitEntry
                 ExceededDriverStintLimit, // ACC
                 ExitingPitsUnderRed, // R3E, ACC PitExit
-                FailedDriverChange, // R3E
+                FailedDriverSwap, // R3E
                 FalseStart, // R3E
                 IgnoredBlueFlags, // R3E
                 IgnoredDriveThroughPenalty, // R3E
@@ -681,11 +682,13 @@ namespace RaceDirector.Pipeline.Telemetry
             /// </summary>
             IWaitTimeToggled? PushToPass { get; }
 
-            PlayerPitStop PitStopStatus { get; }
+            PlayerPitStopStatus PitStopStatus { get; }
 
             IPlayerWarnings Warnings { get; }
 
             bool? OvertakeAllowed { get; }
+            
+            IPitMenu PitMenu { get; }
         }
 
         // FIXME
@@ -831,11 +834,11 @@ namespace RaceDirector.Pipeline.Telemetry
         // TODO define quantities (litres, gallons, etc.)
         public interface IFuel
         {
-            double Max { get; } // R3E FuelCapacity
+            ICapacity Max { get; } // R3E FuelCapacity
 
-            double Left { get; } // R3E FuelLeft
+            ICapacity Left { get; } // R3E FuelLeft
 
-            double? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
+            ICapacity? PerLap { get; } // R3E FuelPerLap, ACC fuelXLap, AC to be inferred
         }
 
         public interface IEngine
@@ -865,20 +868,25 @@ namespace RaceDirector.Pipeline.Telemetry
         }
 
         [Flags]
-        public enum PlayerPitStop
+        public enum PlayerPitStopStatus
         {
-            None             = 0,
-            Requested        = 1 << 0,
-            Preparing        = 1 << 1,
-            ServingPenalty   = 1 << 2,
-            DriverChange     = 1 << 3,
-            Refuelling       = 1 << 4,
-            ChangeFrontTires = 1 << 5,
-            ChangeRearTires  = 1 << 6,
-            RepairBody       = 1 << 7,
-            RepairFrontWing  = 1 << 8,
-            RepairRearWing   = 1 << 9,
-            RepairSuspension = 1 << 10
+            None = 0,
+
+            Requested = 1 << 0,
+            Preparing = 1 << 1,
+
+            ServingPenalty  = 1 << 3,
+            SwappingDrivers = 1 << 4,
+            
+            Refuelling = 1 << 9,
+
+            ChangingFrontTires = 1 << 17,
+            ChangingRearTires  = 1 << 18,
+
+            RepairingBodywork   = 1 << 27,
+            RepairingFrontWing  = 1 << 28,
+            RepairingRearWing   = 1 << 29,
+            RepairingSuspension = 1 << 30
         }
 
         public interface IPlayerWarnings
@@ -887,6 +895,74 @@ namespace RaceDirector.Pipeline.Telemetry
             IBoundedValue<uint>? BlueFlagWarnings { get; } // R3E Flags.BlackAndWhite
             // TrackLimitWarnings // ACC does not expose this in telemetry
             uint GiveBackPositions { get; } // R3E YellowPositionsGained
+        }
+
+        public interface IPitMenu
+        {
+            PitMenuFocusedItem FocusedItem { get; }
+            PitMenuSelectedItems SelectedItems { get; }
+            
+            ICapacity? FuelToAdd { get; }
+        }
+
+        public enum PitMenuFocusedItem
+        {
+            None        = 0,
+            Unavailable = 0,
+
+            PitStopRequest = 1,
+            ServePenalty   = 3,
+            DriverSwap     = 4,
+
+            // Adjustments
+            Fuel                = 9,
+            FrontWingAdjustment = 10,
+            RearWingAdjustment  = 11,
+
+            // Change
+            Tires       = 16,
+            FrontTires  = 17,
+            RearTires   = 18,
+            Brakes      = 19,
+            FrontBrakes = 20,
+            RearBrakes  = 21,
+
+            // Fix damage
+            AllDamage        = 26,
+            BodyworkDamage   = 27,
+            FrontWingDamage  = 28,
+            RearWingDamage   = 29,
+            SuspensionDamage = 30
+        }
+        
+        [Flags]
+        public enum PitMenuSelectedItems
+        {
+            None        = 0,
+            Unavailable = 0,
+
+            ServePenalty = 1 << 3,
+            DriverSwap   = 1 << 4,
+
+            // Adjustments
+            Fuel                = 1 << 9,
+            FrontWingAdjustment = 1 << 10,
+            RearWingAdjustment  = 1 << 11,
+
+            // Change
+            Tires       = FrontTires | RearTires,
+            FrontTires  = 1 << 17,
+            RearTires   = 1 << 18,
+            Brakes      = FrontBrakes | RearBrakes,
+            FrontBrakes = 1 << 20,
+            RearBrakes  = 1 << 21,
+
+            // Fix damage
+            AllDamage        = BodyworkDamage | SuspensionDamage,
+            BodyworkDamage   = FrontWingDamage | RearWingDamage,
+            FrontWingDamage  = 1 << 28,
+            RearWingDamage   = 1 << 29,
+            SuspensionDamage = 1 << 30
         }
     }
 
