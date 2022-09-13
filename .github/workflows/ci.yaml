@@ -21,7 +21,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: RaceDirector
-        path: src/RaceDirector/bin/Debug/net6.0/publish/**
+        path: src/RaceDirector/bin/Debug/net6.0-windows/publish/**
         if-no-files-found: error
     - if: ${{ github.ref == 'refs/heads/main' }}
       uses: actions/upload-artifact@v3
