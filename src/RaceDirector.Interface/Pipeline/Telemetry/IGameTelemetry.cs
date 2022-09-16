@@ -797,7 +797,8 @@ namespace RaceDirector.Pipeline.Telemetry
         public interface ITire
         {
             // Compound
-            // Pressure
+            IPressure Pressure { get; }
+
             double Dirt { get; } // [0,1] where 0 = no dirt
 
             double Grip { get; } // [0,1] where 0 = no grip, 1 = max grip
@@ -822,7 +823,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ITemperaturesMatrix
         {
-            ITemperature[][] CurrentTemperatures { get; }
+            ITemperature[][] CurrentTemperatures { get; } // TODO specify what this array means
 
             ITemperature OptimalTemperature { get; }
 
@@ -901,7 +902,6 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             PitMenuFocusedItem FocusedItem { get; }
             PitMenuSelectedItems SelectedItems { get; }
-            
             ICapacity? FuelToAdd { get; }
         }
 

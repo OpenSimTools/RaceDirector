@@ -286,6 +286,7 @@ public record VehicleDamage
 
 public record Tire
 (
+    IPressure Pressure,
     double Dirt,
     double Grip,
     double Wear,

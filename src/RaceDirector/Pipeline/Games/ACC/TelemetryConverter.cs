@@ -263,7 +263,7 @@ internal class TelemetryConverter
                 SuspensionPercent: 0,
                 TransmissionPercent: 0
             ),
-            Tires: Array.Empty<Tire[]>(),
+            Tires: ToTires(ref sharedData.Physics),
             Fuel: new Fuel
             (
                 Max: ICapacity.FromL(0), // TODO
@@ -315,5 +315,80 @@ internal class TelemetryConverter
                 FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd)
             )
         );
+    }
+
+    private static Tire[][] ToTires(ref Contrib.Data.SPageFilePhysics sharedDataPhysics)
+    {
+        return new[]
+        {
+            new[]
+            {
+                ToTire(ref sharedDataPhysics, ITireExtractor.FrontLeft),
+                ToTire(ref sharedDataPhysics, ITireExtractor.FrontRight)
+            },
+            new[]
+            {
+                ToTire(ref sharedDataPhysics, ITireExtractor.RearLeft),
+                ToTire(ref sharedDataPhysics, ITireExtractor.RearRight)
+            }
+        };
+    }
+
+    private static Tire ToTire(ref Contrib.Data.SPageFilePhysics sharedDataPhysics, ITireExtractor extract)
+    {
+        return new Tire
+        (
+            Pressure: IPressure.FromPsi(extract.CurrentTire(ref sharedDataPhysics.WheelPressure)),
+            Dirt: extract.CurrentTire(ref sharedDataPhysics.TyreDirtyLevel),
+            Grip: 0.0, // TODO
+            Wear: extract.CurrentTire(ref sharedDataPhysics.TyreWear),
+            Temperatures: new TemperaturesMatrix
+            (
+                CurrentTemperatures: new []
+                {
+                    // ACC exports only the core temperature
+                    new [] { ITemperature.FromC(extract.CurrentTire(ref sharedDataPhysics.TyreTemp)) }
+                },
+                OptimalTemperature: ITemperature.FromC(0.0), // TODO
+                ColdTemperature: ITemperature.FromC(0.0), // TODO
+                HotTemperature: ITemperature.FromC(0.0) // TODO
+            ),
+            BrakeTemperatures: new TemperaturesSingle(
+                CurrentTemperature: ITemperature.FromC(extract.CurrentTire(ref sharedDataPhysics.BrakeTemp)),
+                OptimalTemperature: ITemperature.FromC(0.0), // TODO
+                ColdTemperature: ITemperature.FromC(0.0), // TODO
+                HotTemperature: ITemperature.FromC(0.0) // TODO
+            )
+        );
+    }
+
+    private interface ITireExtractor
+    {
+        static ITireExtractor FrontLeft = new FrontLeftExtractor();
+        static ITireExtractor FrontRight = new FrontRightExtractor();
+        static ITireExtractor RearLeft = new RearLeftExtractor();
+        static ITireExtractor RearRight = new RearRightExtractor();
+
+        T CurrentTire<T>(ref Contrib.Data.Wheels<T> outer);
+
+        private class FrontLeftExtractor : ITireExtractor
+        {
+            T ITireExtractor.CurrentTire<T>(ref Contrib.Data.Wheels<T> outer) => outer.FL;
+        }
+
+        private class FrontRightExtractor : ITireExtractor
+        {
+            T ITireExtractor.CurrentTire<T>(ref Contrib.Data.Wheels<T> outer) => outer.FR;
+        }
+
+        private class RearLeftExtractor : ITireExtractor
+        {
+            T ITireExtractor.CurrentTire<T>(ref Contrib.Data.Wheels<T> outer) => outer.RL;
+        }
+
+        private class RearRightExtractor : ITireExtractor
+        {
+            T ITireExtractor.CurrentTire<T>(ref Contrib.Data.Wheels<T> outer) => outer.RR;
+        }
     }
 }

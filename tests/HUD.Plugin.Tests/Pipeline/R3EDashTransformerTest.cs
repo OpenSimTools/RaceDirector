@@ -642,6 +642,7 @@ public class R3EDashTransformerTest
         {
             Assert.Equal(-1.0, result.Path("TireGrip", tire).GetDouble());
             Assert.Equal(-1.0, result.Path("TireWear", tire).GetDouble());
+            Assert.Equal(-1.0, result.Path("TirePressure", tire).GetDouble());
             Assert.Equal(-1.0, result.Path("TireDirt", tire).GetDouble());
             Assert.Equal(-1.0, result.Path("TireTemp", tire, "CurrentTemp", "Left").GetDouble());
             Assert.Equal(-1.0, result.Path("TireTemp", tire, "CurrentTemp", "Center").GetDouble());
@@ -1073,11 +1074,12 @@ public class R3EDashTransformerTest
                 {
                     new []
                     {
-                        TireFaker.Generate() with {
-                            Dirt = 1.1,
-                            Grip = 1.2,
-                            Wear = 1.3,
-                            Temperatures = new TemperaturesMatrix(
+                        new Tire(
+                            Pressure: IPressure.FromKpa(1.0),
+                            Dirt: 1.1,
+                            Grip: 1.2,
+                            Wear: 1.3,
+                            Temperatures: new TemperaturesMatrix(
                                 CurrentTemperatures: new []
                                 {
                                     new [] {
@@ -1090,13 +1092,13 @@ public class R3EDashTransformerTest
                                 ColdTemperature: ITemperature.FromC(2.2),
                                 HotTemperature: ITemperature.FromC(2.3)
                             ),
-                            BrakeTemperatures = new TemperaturesSingle(
+                            BrakeTemperatures: new TemperaturesSingle(
                                 CurrentTemperature: ITemperature.FromC(4.1),
                                 OptimalTemperature: ITemperature.FromC(4.2),
                                 ColdTemperature: ITemperature.FromC(4.3),
                                 HotTemperature: ITemperature.FromC(4.4)
                             )
-                        }
+                        )
                     }
                 }
             })
@@ -1104,6 +1106,7 @@ public class R3EDashTransformerTest
 
         Assert.Equal(1.2, result.Path("TireGrip", "FrontLeft").GetDouble());
         Assert.Equal(1.3, result.Path("TireWear", "FrontLeft").GetDouble());
+        Assert.Equal(1.0, result.Path("TirePressure", "FrontLeft").GetDouble());
         Assert.Equal(1.1, result.Path("TireDirt", "FrontLeft").GetDouble());
         Assert.Equal(3.1, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Left").GetDouble());
         Assert.Equal(3.2, result.Path("TireTemp", "FrontLeft", "CurrentTemp", "Center").GetDouble());

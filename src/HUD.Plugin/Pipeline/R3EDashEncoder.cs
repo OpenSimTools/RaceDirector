@@ -515,10 +515,14 @@ public class R3EDashEncoder
             // TireFlatspot.FrontRight
             // TireFlatspot.RearLeft
             // TireFlatspot.RearRight
-            // TirePressure.FrontLeft
-            // TirePressure.FrontRight
-            // TirePressure.RearLeft
-            // TirePressure.RearRight
+
+            w.WriteObject("TirePressure", _ =>
+            {
+                ForEachTire(gt.Player?.Tires, (tireName, tire) =>
+                {
+                    w.WriteRoundedNumber(tireName, tire?.Pressure.Kpa ?? -1.0);
+                });
+            });
 
             w.WriteObject("TireDirt", _ =>
             {
