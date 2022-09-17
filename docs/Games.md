@@ -120,14 +120,15 @@
 | Player.VehicleDamage.EnginePercent                    | ✓       |             |
 | Player.VehicleDamage.SuspensionPercent                | ✓       |             |
 | Player.VehicleDamage.TransmissionPercent              | ✓       |             |
-| Player.Tyres[][].Dirt                                 | ✓       |             |
+| Player.Tyres[][].Pressure                             | ✓       | ✓           |
+| Player.Tyres[][].Dirt                                 | ✓       | ✓           |
 | Player.Tyres[][].Grip                                 | ✓       |             |
-| Player.Tyres[][].Wear                                 | ✓       |             |
-| Player.Tyres[][].Temperatures.CurrentTemperatures[][] | ✓       |             |
+| Player.Tyres[][].Wear                                 | ✓       | ✓           |
+| Player.Tyres[][].Temperatures.CurrentTemperatures[][] | ✓       | ✓           |
 | Player.Tyres[][].Temperatures.OptimalTemperature      | ✓       |             |
 | Player.Tyres[][].Temperatures.ColdTemperature         | ✓       |             |
 | Player.Tyres[][].Temperatures.HotTemperature          | ✓       |             |
-| Player.Tyres[][].BrakeTemperatures.CurrentTemperature | ✓       |             |
+| Player.Tyres[][].BrakeTemperatures.CurrentTemperature | ✓       | ✓           |
 | Player.Tyres[][].BrakeTemperatures.OptimalTemperature | ✓       |             |
 | Player.Tyres[][].BrakeTemperatures.ColdTemperature    | ✓       |             |
 | Player.Tyres[][].BrakeTemperatures.HotTemperature     | ✓       |             |
@@ -164,6 +165,10 @@
 | Player.Warnings.BlueFlagWarnings                      | ✓       |             |
 | Player.Warnings.GiveBackPositions                     | ✓       |             |
 | Player.OvertakeAllowed                                | ✓       |             |
+| Player.PitMenu.FocusedItem                            | ✓       | ✗           |
+| Player.PitMenu.SelectedItems                          | ✓       | ✗           |
 | Player.PitMenu.FuelToAdd                              | ✗       | ✓           |
+| Player.PitMenu.TireSet                                | ✗       | ✓           |
+| Player.PitMenu.TirePressures                          | ✗       | ✓           |
 
 [^approx]: Approximated

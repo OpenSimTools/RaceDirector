@@ -368,7 +368,9 @@ public record PitMenu
 (
     PitMenuFocusedItem FocusedItem,
     PitMenuSelectedItems SelectedItems,
-    ICapacity? FuelToAdd
+    ICapacity? FuelToAdd,
+    int? TireSet,
+    IPressure[][] TirePressures
 ) : IPitMenu;
 
 public static class DistanceFraction

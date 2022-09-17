@@ -312,7 +312,21 @@ internal class TelemetryConverter
             (
                 FocusedItem: PitMenuFocusedItem.Unavailable,
                 SelectedItems: PitMenuSelectedItems.Unavailable,
-                FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd)
+                FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd),
+                TireSet: sharedData.Graphic.MfdTyreSet,
+                TirePressures: new[]
+                {
+                    new[]
+                    {
+                        IPressure.FromPsi(sharedData.Graphic.MfdTyrePressure.FL),
+                        IPressure.FromPsi(sharedData.Graphic.MfdTyrePressure.FR),
+                    },
+                    new[]
+                    {
+                        IPressure.FromPsi(sharedData.Graphic.MfdTyrePressure.RL),
+                        IPressure.FromPsi(sharedData.Graphic.MfdTyrePressure.RR),
+                    }
+                }
             )
         );
     }

@@ -100,7 +100,9 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
                     .Returns(() => new PitMenu(
                         FocusedItem: PitMenuFocusedItem.Unavailable,
                         SelectedItems: 0,
-                        FuelToAdd: fuelToAdd 
+                        FuelToAdd: fuelToAdd,
+                        TireSet: null,
+                        TirePressures: Array.Empty<IPressure[]>()
                     ));
                 return playerMock.Object;
             });

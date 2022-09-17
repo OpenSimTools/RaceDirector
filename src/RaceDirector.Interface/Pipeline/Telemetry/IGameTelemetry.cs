@@ -903,6 +903,8 @@ namespace RaceDirector.Pipeline.Telemetry
             PitMenuFocusedItem FocusedItem { get; }
             PitMenuSelectedItems SelectedItems { get; }
             ICapacity? FuelToAdd { get; }
+            int? TireSet { get; }
+            IPressure[][] TirePressures { get; }
         }
 
         public enum PitMenuFocusedItem

@@ -325,10 +325,10 @@ It is an alternative to [RaceRoom's Dash](https://github.com/sector3studios/webh
 | TireFlatspot.FrontRight | |
 | TireFlatspot.RearLeft | |
 | TireFlatspot.RearRight | |
-| TirePressure.FrontLeft | |
-| TirePressure.FrontRight | |
-| TirePressure.RearLeft | |
-| TirePressure.RearRight | |
+| TirePressure.FrontLeft | ✓ |
+| TirePressure.FrontRight | ✓ |
+| TirePressure.RearLeft | ✓ |
+| TirePressure.RearRight | ✓ |
 | TireDirt.FrontLeft | ✓ |
 | TireDirt.FrontRight | ✓ |
 | TireDirt.RearLeft | ✓ |

@@ -579,7 +579,9 @@ internal class TelemetryConverter
             (
                 FocusedItem: ToFocusedItem(sharedData.PitMenuSelection),
                 SelectedItems: ToSelectedItems(sharedData.PitMenuState),
-                FuelToAdd: null
+                FuelToAdd: null,
+                TireSet: null,
+                TirePressures: Array.Empty<IPressure[]>()
             )
         );
     }
