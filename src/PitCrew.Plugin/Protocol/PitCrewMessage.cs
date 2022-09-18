@@ -9,8 +9,11 @@ public record PitCrewMessage
 public record Telemetry
 (
     double FuelLeftL,
+    TireValues<double>? TirePressuresKpa,
     PitMenu PitMenu
 );
+
+public record TireValues<T>(T FrontLeft, T FrontRight, T RearLeft, T RearRight);
 
 public record PitMenu
 (

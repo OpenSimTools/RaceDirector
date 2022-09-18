@@ -38,10 +38,22 @@ connected clients. Currently there is no UI, so a WebSocket client or a
 [Web browser test page](http://livepersoninc.github.io/ws-test-page/) is required to access it
 from the same URL where the client is pushing telemetry to.
 
-It should look like this:
+The received telemetry messages look like this:
 ```json lines
-{"Telemetry":{"FuelLeftL":12.34 /*...*/,"PitMenu":{"FuelToAddL":56  /*...*/}}}
-{"Telemetry":{"FuelLeftL":12.33 /*...*/,"PitMenu":{"FuelToAddL":56  /*...*/}}}
+{
+  "Telemetry": {
+    "FuelLeftL": 12.34,
+    "TirePressuresKpa": {
+      "FrontLeft": 186.16,
+      "FrontRight": 184.78,
+      "RearLeft": 187.54,
+      "RearRight": 186.16
+    },
+    "PitMenu": {
+      "FuelToAddL":56
+    }
+  }
+}
 ...
 ```
 
@@ -52,12 +64,12 @@ The same connection can be used to set the pit strategy in game by sending a mes
     "FuelToAddL": 42,
     "TireSet": 1,
     "FrontTires": {
-      "LeftPressureKpa": 186.16,
-      "RightPressureKpa": 184.78
+      "LeftPressureKpa": 182.13,
+      "RightPressureKpa": 180.75
     },
     "RearTires": {
-      "LeftPressureKpa": 187.54,
-      "RightPressureKpa": 186.16
+      "LeftPressureKpa": 183.51,
+      "RightPressureKpa": 182.13
     }
   }
 }

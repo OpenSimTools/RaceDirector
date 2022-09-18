@@ -22,6 +22,7 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
                 FuelLeftL: gt.Player.Fuel.Left.L,
+                TirePressuresKpa: ToTyrePressureValues(gt.Player.Tires),
                 PitMenu: new PitMenu
                 (
                     FuelToAddL: gt.Player.PitMenu.FuelToAdd?.L,
@@ -33,13 +34,28 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
             PitStrategyRequest: null
         );
 
+    private static TireValues<double>? ToTyrePressureValues(ITire[][] playerTires)
+    {
+        if (!IsTwoByTwo(playerTires))
+            return null;
+        var fronts = playerTires[0];
+        var rears = playerTires[1];
+        return new TireValues<double>(
+            fronts[0].Pressure.Kpa,
+            fronts[1].Pressure.Kpa,
+            rears[0].Pressure.Kpa,
+            rears[1].Pressure.Kpa
+        );
+    }
+
     private static PitMenuTires? ToPitMenuTires(IPressure[][] tirePressures, int index)
     {
-        if (tirePressures.Length <= index)
+        if (!IsTwoByTwo(tirePressures))
             return null;
         var axle = tirePressures[index];
-        if (axle.Length != 2)
-            return null;
         return new PitMenuTires(axle[0].Kpa, axle[1].Kpa);
     }
+
+    private static bool IsTwoByTwo<T>(T[][] matrix) =>
+        matrix.Length == 2 && matrix[0].Length == 2 && matrix[1].Length == 2;
 }
