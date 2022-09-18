@@ -40,16 +40,18 @@ from the same URL where the client is pushing telemetry to.
 
 It should look like this:
 ```json lines
-{"Telemetry":{"Fuel":{"Left":12.34},"PitMenu":{"FuelToAdd":56}}}
-{"Telemetry":{"Fuel":{"Left":12.33},"PitMenu":{"FuelToAdd":56}}}
+{"Telemetry":{"Fuel":{"Left":12.34 /*...*/ },"PitMenu":{"FuelToAddL":56  /*...*/}}}
+{"Telemetry":{"Fuel":{"Left":12.33 /*...*/ },"PitMenu":{"FuelToAddL":56  /*...*/}}}
 ...
 ```
 
-The same connection can be used to set the fuel strategy in game by sending a message like this:
+The same connection can be used to set the pit strategy in game by sending a message like this:
 ```json
 {
   "PitStrategyRequest": {
-    "FuelToAdd": 42
+    "FuelToAddL": 42,
+    "TireSet": 1,
+    "TirePressuresKpa": { "FL": 186.16, "FR": 184.78, "RL": 186.16, "RR": 187.54}
   }
 }
 ```

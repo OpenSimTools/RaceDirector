@@ -8,6 +8,7 @@ using RaceDirector.Remote.Networking.Server;
 using TestUtils;
 using Xunit;
 using Xunit.Categories;
+using static TestUtils.EventuallyAssertion;
 
 namespace PitCrew.Plugin.Tests.Pipeline;
 
@@ -27,9 +28,14 @@ public class PitCrewNodeTest
 
             server.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2}}");
 
-            EventuallyAssertion.Eventually(() =>
+            Eventually(() =>
                     Assert.Equal(
-                        new [] { new PitStrategyRequest(2) },
+                        new [] { new PitMenu
+                        (
+                            FuelToAddL: 2,
+                            TireSet: null,
+                            TirePressuresKpa: null
+                        )},
                         testObserver.ReceivedValues()
                     )
                 )

@@ -2,5 +2,14 @@
 
 public interface IPitStrategyRequest
 {
-    double FuelToAdd { get; }
+    double? FuelToAddL { get; }
+    int? TireSet { get; }
+    ITireValues<double>? TirePressuresKpa { get; }
 }
+
+public interface ITireValues<out T> {
+    T FL { get; }
+    T FR{ get; }
+    T RL{ get; }
+    T RR{ get; }
+};

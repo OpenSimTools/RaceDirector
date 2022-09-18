@@ -1,4 +1,5 @@
-﻿using RaceDirector.Pipeline.Telemetry.V0;
+﻿using RaceDirector.Pipeline.Telemetry.Physics;
+using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Protocol;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
@@ -21,8 +22,24 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
                 new Fuel(gt.Player.Fuel.Left.L),
-                new PitMenu(gt.Player.PitMenu.FuelToAdd?.L)
+                new PitMenu
+                (
+                    FuelToAddL: gt.Player.PitMenu.FuelToAdd?.L,
+                    TireSet: gt.Player.PitMenu.TireSet,
+                    TirePressuresKpa: ToTirePressuresKpa(gt.Player.PitMenu.TirePressures)
+                )
             ),
             PitStrategyRequest: null
         );
+
+    private static TireValues<double>? ToTirePressuresKpa(IPressure[][] tirePressures)
+    {
+        if (tirePressures.Length != 2)
+            return null;
+        var fronts = tirePressures[0];
+        var rears = tirePressures[1];
+        if (fronts.Length != 2 || rears.Length != 2)
+            return null;
+        return new TireValues<double>(fronts[0].Kpa, fronts[1].Kpa, rears[0].Kpa, rears[1].Kpa);
+    }
 }

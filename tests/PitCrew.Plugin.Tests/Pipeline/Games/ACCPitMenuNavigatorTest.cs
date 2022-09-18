@@ -26,10 +26,11 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         );
 
         var pmn = new ACCPitMenuNavigator();
-        var psr = new PitStrategyRequest(7);
+        var psrMock = new Mock<IPitStrategyRequest>();
+        psrMock.SetupGet(_ => _.FuelToAddL).Returns(7);
 
         var output = testScheduler
-            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
+            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),
@@ -49,10 +50,11 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         );
 
         var pmn = new ACCPitMenuNavigator();
-        var psr = new PitStrategyRequest(7);
+        var psrMock = new Mock<IPitStrategyRequest>();
+        psrMock.SetupGet(_ => _.FuelToAddL).Returns(7);
 
         var output = testScheduler
-            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
+            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),
@@ -74,10 +76,11 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         );
 
         var pmn = new ACCPitMenuNavigator();
-        var psr = new PitStrategyRequest(3);
+        var psrMock = new Mock<IPitStrategyRequest>();
+        psrMock.SetupGet(_ => _.FuelToAddL).Returns(3);
 
         var output = testScheduler
-            .Start(() => pmn.SetStrategy(psr, gameTelemetryObservable, NullLogger.Instance));
+            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
             OnNext(200, GameAction.PitMenuOpen),

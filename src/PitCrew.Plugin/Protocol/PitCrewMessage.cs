@@ -3,7 +3,7 @@
 public record PitCrewMessage
 (
     Telemetry? Telemetry,
-    PitStrategyRequest? PitStrategyRequest
+    PitMenu? PitStrategyRequest
 );
 
 /// <summary>
@@ -28,10 +28,17 @@ public record Fuel
 /// <summary>
 /// Pit menu
 /// </summary>
-/// <param name="FuelToAdd">Liters of fuel to add in the pit stop</param>
+/// <param name="FuelToAddL">Liters of fuel to add in the pit stop</param>
+/// <param name="TireSet">Tire set for next pit stop, null for default</param>
+/// <param name="TirePressuresKpa">Tire pressures in kpa (four-wheeled vehicles only), null for no tire change</param>
 public record PitMenu
 (
-    double? FuelToAdd
-);
+    double? FuelToAddL,
+    int? TireSet,
+    TireValues<double>? TirePressuresKpa
+) : IPitStrategyRequest
+{
+    ITireValues<double>? IPitStrategyRequest.TirePressuresKpa => TirePressuresKpa;
+};
 
-public record PitStrategyRequest(double FuelToAdd) : IPitStrategyRequest;
+public record TireValues<T>(T FL, T FR, T RL, T RR) : ITireValues<T>;

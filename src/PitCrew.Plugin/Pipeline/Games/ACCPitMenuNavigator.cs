@@ -15,13 +15,15 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
         IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger) =>
         new[] {GameAction.PitMenuOpen, GameAction.PitMenuDown, GameAction.PitMenuDown}
             .ToObservable()
-            .Concat(SetFuel(psr.FuelToAdd, gameTelemetryObservable, logger));
+            .Concat(SetFuel(psr.FuelToAddL, gameTelemetryObservable, logger));
 
-    private IObservable<GameAction> SetFuel(double requestedFuelToAdd,
+    private IObservable<GameAction> SetFuel(double? requestedFuelToAdd,
         IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger) =>
         gameTelemetryObservable.Take(1).SelectMany(t =>
         {
-            var fuelInMenu = t.Player?.PitMenu.FuelToAdd?.L ?? requestedFuelToAdd;
+            var fuelInMenu = t.Player?.PitMenu.FuelToAdd?.L;
+            if (fuelInMenu is null || requestedFuelToAdd is null)
+                return Observable.Empty<GameAction>();
             var fuelToAdd = (int) (requestedFuelToAdd - fuelInMenu);
             logger.LogDebug("Fuel change: {}", fuelToAdd);
             return fuelToAdd >= 0
