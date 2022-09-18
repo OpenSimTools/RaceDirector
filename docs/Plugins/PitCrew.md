@@ -40,8 +40,8 @@ from the same URL where the client is pushing telemetry to.
 
 It should look like this:
 ```json lines
-{"Telemetry":{"Fuel":{"Left":12.34 /*...*/ },"PitMenu":{"FuelToAddL":56  /*...*/}}}
-{"Telemetry":{"Fuel":{"Left":12.33 /*...*/ },"PitMenu":{"FuelToAddL":56  /*...*/}}}
+{"Telemetry":{"FuelLeftL":12.34 /*...*/,"PitMenu":{"FuelToAddL":56  /*...*/}}}
+{"Telemetry":{"FuelLeftL":12.33 /*...*/,"PitMenu":{"FuelToAddL":56  /*...*/}}}
 ...
 ```
 
@@ -51,7 +51,20 @@ The same connection can be used to set the pit strategy in game by sending a mes
   "PitStrategyRequest": {
     "FuelToAddL": 42,
     "TireSet": 1,
-    "TirePressuresKpa": { "FL": 186.16, "FR": 184.78, "RL": 186.16, "RR": 187.54}
+    "FrontTires": {
+      "LeftPressureKpa": 186.16,
+      "RightPressureKpa": 184.78
+    },
+    "RearTires": {
+      "LeftPressureKpa": 187.54,
+      "RightPressureKpa": 186.16
+    }
   }
 }
 ```
+
+Note:
+ - Fields or combinations not supported by the game will be ignored. Depending on game or racing series, it might not be possible to change only tyres on one axle.
+ - If `FuelToAddL` is not present or 0, the car will not be refuelled.
+ - If tire `TireSet` is the current one, tires will not be changed.
+ - If `FrontTires` or `RearTires` are not present, tires on that axle will not be changed.

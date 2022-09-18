@@ -28,13 +28,15 @@ public class PitCrewClientTest
             testServer.WsMulticastAsync(
                 @"{
                   ""PitStrategyRequest"": {
-                    ""FuelToAdd"": 2,
-                    ""TireSet"": 3,
-                    ""TirePressuresKpa"": {
-                      ""FL"": 4.1,
-                      ""FR"": 4.2,
-                      ""RL"": 4.3,
-                      ""RR"": 4.4
+                    ""FuelToAddL"": 1,
+                    ""TireSet"": 2,
+                    ""FrontTires"": {
+                      ""LeftPressureKpa"": 3.1,
+                      ""RightPressureKpa"": 3.2
+                    },
+                    ""RearTires"": {
+                      ""LeftPressureKpa"": 4.1,
+                      ""RightPressureKpa"": 4.2
                     }
                   }
                 }"
@@ -44,9 +46,10 @@ public class PitCrewClientTest
                     Assert.Equal(
                         new [] { new PitMenu
                         (
-                            FuelToAddL: 2,
-                            TireSet: 3,
-                            TirePressuresKpa: new TireValues<double>(4.1, 4.2, 4.3, 4.4)
+                            FuelToAddL: 1,
+                            TireSet: 2,
+                            FrontTires: new PitMenuTires(3.1, 3.2),
+                            RearTires: new PitMenuTires(4.1, 4.2)
                         )},
                         testObserver.ReceivedValues()
                     )
@@ -64,7 +67,7 @@ public class PitCrewClientTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest?>();
             pitCrewClient.In.Subscribe(testObserver);
 
-            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":true}}");
+            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAddL\":true}}");
 
             EventuallyAssertion.Eventually(() =>
                     Assert.Equal(

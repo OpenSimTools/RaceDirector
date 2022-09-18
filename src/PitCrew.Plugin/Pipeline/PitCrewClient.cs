@@ -21,25 +21,25 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
     private static PitCrewMessage? TransformTelemetry(IGameTelemetry gt) =>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
-                new Fuel(gt.Player.Fuel.Left.L),
-                new PitMenu
+                FuelLeftL: gt.Player.Fuel.Left.L,
+                PitMenu: new PitMenu
                 (
                     FuelToAddL: gt.Player.PitMenu.FuelToAdd?.L,
                     TireSet: gt.Player.PitMenu.TireSet,
-                    TirePressuresKpa: ToTirePressuresKpa(gt.Player.PitMenu.TirePressures)
+                    FrontTires: ToPitMenuTires(gt.Player.PitMenu.TirePressures, 0),
+                    RearTires: ToPitMenuTires(gt.Player.PitMenu.TirePressures, 1)
                 )
             ),
             PitStrategyRequest: null
         );
 
-    private static TireValues<double>? ToTirePressuresKpa(IPressure[][] tirePressures)
+    private static PitMenuTires? ToPitMenuTires(IPressure[][] tirePressures, int index)
     {
-        if (tirePressures.Length != 2)
+        if (tirePressures.Length <= index)
             return null;
-        var fronts = tirePressures[0];
-        var rears = tirePressures[1];
-        if (fronts.Length != 2 || rears.Length != 2)
+        var axle = tirePressures[index];
+        if (axle.Length != 2)
             return null;
-        return new TireValues<double>(fronts[0].Kpa, fronts[1].Kpa, rears[0].Kpa, rears[1].Kpa);
+        return new PitMenuTires(axle[0].Kpa, axle[1].Kpa);
     }
 }

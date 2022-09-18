@@ -4,12 +4,11 @@ public interface IPitStrategyRequest
 {
     double? FuelToAddL { get; }
     int? TireSet { get; }
-    ITireValues<double>? TirePressuresKpa { get; }
+    IPitMenuTires? FrontTires { get; }
+    IPitMenuTires? RearTires { get; }
 }
 
-public interface ITireValues<out T> {
-    T FL { get; }
-    T FR{ get; }
-    T RL{ get; }
-    T RR{ get; }
-};
+public interface IPitMenuTires {
+    double? LeftPressureKpa { get; }
+    double? RightPressureKpa { get; }
+}

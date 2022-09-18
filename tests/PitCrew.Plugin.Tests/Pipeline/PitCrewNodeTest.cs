@@ -26,7 +26,7 @@ public class PitCrewNodeTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest>();
             node.PitStrategyObservable.Subscribe(testObserver);
 
-            server.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2}}");
+            server.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAddL\":2}}");
 
             Eventually(() =>
                     Assert.Equal(
@@ -34,7 +34,8 @@ public class PitCrewNodeTest
                         (
                             FuelToAddL: 2,
                             TireSet: null,
-                            TirePressuresKpa: null
+                            FrontTires: null,
+                            RearTires: null
                         )},
                         testObserver.ReceivedValues()
                     )
