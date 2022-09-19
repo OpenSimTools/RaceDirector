@@ -46,7 +46,7 @@ public class PitMenuNode : INode
     {
         public string GameName => throw new NotSupportedException();
 
-        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger)
+        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gto, ILogger logger)
         {
             logger.LogWarning("This game does not support setting pit strategies");
             return Observable.Empty<GameAction>();

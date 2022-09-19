@@ -92,7 +92,16 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         );
     }
 
-    private IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd)
+    private IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd) =>
+        TelemetryWithPitMenu(new PitMenu(
+            FocusedItem: PitMenuFocusedItem.Unavailable,
+            SelectedItems: 0,
+            FuelToAdd: fuelToAdd,
+            TireSet: null,
+            TirePressures: Array.Empty<IPressure[]>()
+        ));
+    
+    private IGameTelemetry TelemetryWithPitMenu(IPitMenu pitMenu)
     {
         var telemetryMock = new Mock<IGameTelemetry>();
         telemetryMock.SetupGet(_ => _.Player)
@@ -100,13 +109,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             {
                 var playerMock = new Mock<IPlayer>();
                 playerMock.SetupGet(_ => _.PitMenu)
-                    .Returns(() => new PitMenu(
-                        FocusedItem: PitMenuFocusedItem.Unavailable,
-                        SelectedItems: 0,
-                        FuelToAdd: fuelToAdd,
-                        TireSet: null,
-                        TirePressures: Array.Empty<IPressure[]>()
-                    ));
+                    .Returns(() => pitMenu);
                 return playerMock.Object;
             });
         return telemetryMock.Object;

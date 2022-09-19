@@ -39,7 +39,7 @@ connected clients. Currently there is no UI, so a WebSocket client or a
 from the same URL where the client is pushing telemetry to.
 
 The received telemetry messages look like this:
-```json lines
+```json
 {
   "Telemetry": {
     "FuelLeftL": 12.34,
@@ -54,7 +54,6 @@ The received telemetry messages look like this:
     }
   }
 }
-...
 ```
 
 The same connection can be used to set the pit strategy in game by sending a message like this:
@@ -78,5 +77,5 @@ The same connection can be used to set the pit strategy in game by sending a mes
 Note:
  - Fields or combinations not supported by the game will be ignored. Depending on game or racing series, it might not be possible to change only tyres on one axle.
  - If `FuelToAddL` is not present or 0, the car will not be refuelled.
- - If tire `TireSet` is the current one, tires will not be changed.
+ - If `TireSet` is not present or is the current one, tires will not be changed.
  - If `FrontTires` or `RearTires` are not present, tires on that axle will not be changed.
