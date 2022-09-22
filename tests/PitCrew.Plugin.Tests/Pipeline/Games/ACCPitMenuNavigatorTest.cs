@@ -22,20 +22,17 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void DontChangeFuelIfNotPresentInTelemetry()
     {
-        var telemetryTicks = 3;
         
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(telemetryTicks, GameTelemetry.Empty),
-            OnCompleted<IGameTelemetry>(telemetryTicks + 1)
+            OnNext<IGameTelemetry>(TelemetryTicks, GameTelemetry.Empty),
+            OnCompleted<IGameTelemetry>(TelemetryTicks + 1)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-
         var output = _testScheduler
-            .Start(() => pmn.SetFuel(7, gameTelemetryObservable, NullLogger.Instance));
+            .Start(() => _pmn.SetFuel(7, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
 
@@ -43,20 +40,19 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     public void AddFuelIfCurrentIsLower()
     {
         var telemetryFuel = 5;
-        var telemetryTicks = 3;
 
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext(telemetryTicks, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
-            OnCompleted<IGameTelemetry>(telemetryTicks + 1)
+            OnNext(TelemetryTicks, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
+            OnCompleted<IGameTelemetry>(TelemetryTicks + 1)
         );
 
         var output = _testScheduler
             .Start(() => _pmn.SetFuel(telemetryFuel + 2, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
     
@@ -64,20 +60,19 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     public void RemovesFuelIfCurrentIsHigher()
     {
         var telemetryFuel = 5;
-        var telemetryTicks = 3;
 
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext(telemetryTicks, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
-            OnCompleted<IGameTelemetry>(telemetryTicks + 1)
+            OnNext(TelemetryTicks, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
+            OnCompleted<IGameTelemetry>(TelemetryTicks + 1)
         );
 
         var output = _testScheduler
             .Start(() => _pmn.SetFuel(telemetryFuel - 2, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuLeft),
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuLeft),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
     
@@ -88,7 +83,6 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void GoToKnownTireStateTireChangeOpenAndDrySet()
     {
-        const int timeoutTicks = 13;
         const int telemetryOffset = 5;
         
         var gameTelemetryObservable = _testScheduler.CreateHotObservable(
@@ -99,10 +93,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         var replySubject = new ReplaySubject<IGameTelemetry>(1);
         gameTelemetryObservable.Subscribe(replySubject);
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.GoToKnownTireState(replySubject, TimeSpan.FromTicks(timeoutTicks), _testScheduler)
+            _pmn.GoToKnownTireState(replySubject)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -114,123 +106,110 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void GoToKnownTireStateTireChangeOpenAndWet()
     {
-        const int timeoutTicks = 13;
         const int telemetryOffset = 5;
         
         var gameTelemetryObservable = _testScheduler.CreateHotObservable(
             OnNext(0, TelemetryWithTireSet(1)),
-            OnNext(Subscribed + 1 * timeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
+            OnNext(Subscribed + 1 * TimeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
             OnCompleted<IGameTelemetry>(Disposed)
         );
         var replySubject = new ReplaySubject<IGameTelemetry>(1);
         gameTelemetryObservable.Subscribe(replySubject);
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.GoToKnownTireState(replySubject, TimeSpan.FromTicks(timeoutTicks), _testScheduler)
+            _pmn.GoToKnownTireState(replySubject)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuRight),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(Subscribed + 1 * timeoutTicks + telemetryOffset)
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + 1 * TimeoutTicks + telemetryOffset)
         );
     }
     
     [Fact]
     public void GoToKnownTireStateTireChangeClosedAndDry()
     {
-        const int timeoutTicks = 13;
         const int telemetryOffset = 5;
         
         var gameTelemetryObservable = _testScheduler.CreateHotObservable(
             OnNext(0, TelemetryWithTireSet(1)),
-            OnNext(Subscribed + 2 * timeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
+            OnNext(Subscribed + 2 * TimeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
             OnCompleted<IGameTelemetry>(Disposed)
         );
         var replySubject = new ReplaySubject<IGameTelemetry>(1);
         gameTelemetryObservable.Subscribe(replySubject);
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.GoToKnownTireState(replySubject, TimeSpan.FromTicks(timeoutTicks), _testScheduler)
+            _pmn.GoToKnownTireState(replySubject)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuRight),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(Subscribed + 2 * timeoutTicks + telemetryOffset)
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + 2 * TimeoutTicks + telemetryOffset)
         );
     }
     
     [Fact]
     public void GoToKnownTireStateTireChangeClosedAndWet()
     {
-        const int timeoutTicks = 13;
         const int telemetryOffset = 5;
         
         var gameTelemetryObservable = _testScheduler.CreateHotObservable(
             OnNext(0, TelemetryWithTireSet(1)),
-            OnNext(Subscribed + 3 * timeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
+            OnNext(Subscribed + 3 * TimeoutTicks + telemetryOffset, TelemetryWithTireSet(2)),
             OnCompleted<IGameTelemetry>(Disposed)
         );
         var replySubject = new ReplaySubject<IGameTelemetry>(1);
         gameTelemetryObservable.Subscribe(replySubject);
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.GoToKnownTireState(replySubject, TimeSpan.FromTicks(timeoutTicks), _testScheduler)
+            _pmn.GoToKnownTireState(replySubject)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuRight),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(Subscribed + 3 * timeoutTicks + telemetryOffset)
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + 3 * TimeoutTicks + telemetryOffset)
         );
     }
 
     [Fact]
     public void GoToKnownTireStateSomethingWentWrong()
     {
-        const int timeoutTicks = 13;
-        
         var gameTelemetryObservable = _testScheduler.CreateHotObservable(
             OnCompleted<IGameTelemetry>(Disposed)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.GoToKnownTireState(gameTelemetryObservable, TimeSpan.FromTicks(timeoutTicks), _testScheduler)
+            _pmn.GoToKnownTireState(gameTelemetryObservable)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuRight),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 1 * timeoutTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + 2 * timeoutTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuUp),
-            OnNext(Subscribed + 3 * timeoutTicks, GameAction.PitMenuRight),
-            OnError<GameAction>(Subscribed + 4 * timeoutTicks, _ => true)
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 1 * TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + 2 * TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuRight),
+            OnError<GameAction>(Subscribed + 4 * TimeoutTicks, _ => true)
         );
     }
     
@@ -241,39 +220,35 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void SetTiresDoesNotChangeAnythingIfNotPresentInTelemetry()
     {
-        var telemetryTicks = 3;
         
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(telemetryTicks, GameTelemetry.Empty),
+            OnNext<IGameTelemetry>(TelemetryTicks, GameTelemetry.Empty),
             OnCompleted<IGameTelemetry>(Disposed)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.SetTires(
+            _pmn.SetTires(
                 psrTireSet: 1,
                 psrFrontLeftKpa: 2, psrFrontRightKpa: 3, psrRearLeftKpa: 4, psrRearRightKpa: 5,
                 gameTelemetryObservable, NullLogger.Instance
             )
         ).Messages.AssertEqual(
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
 
     [Fact]
     public void SetTiresDoesNotChangeAnythingIfNotRequested()
     {
-        var telemetryTicks = 3;
         
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(telemetryTicks, TelemetryWithTires(
+            OnNext<IGameTelemetry>(TelemetryTicks, TelemetryWithTires(
                 tireSet: 0,
                 tirePressures: new [] {
                     new [] { IPressure.FromPsi(2.3), IPressure.FromPsi(3.1) },
@@ -282,32 +257,29 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             OnCompleted<IGameTelemetry>(Disposed)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.SetTires(
+            _pmn.SetTires(
                 psrTireSet: null,
                 psrFrontLeftKpa: null, psrFrontRightKpa: null, psrRearLeftKpa: null, psrRearRightKpa: null,
                 gameTelemetryObservable, NullLogger.Instance
             )
         ).Messages.AssertEqual(
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
     
     [Fact]
     public void SetTiresAppliesTheDifference()
     {
-        var telemetryTicks = 3;
         
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(telemetryTicks, TelemetryWithTires(
+            OnNext<IGameTelemetry>(TelemetryTicks, TelemetryWithTires(
                 tireSet: 0,
                 tirePressures: new [] {
                     new [] { IPressure.FromPsi(2.3), IPressure.FromPsi(3.1) },
@@ -316,10 +288,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             OnCompleted<IGameTelemetry>(Disposed)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-
         _testScheduler.Start(() =>
-            pmn.SetTires(
+            _pmn.SetTires(
                 psrTireSet: 1,
                 psrFrontLeftKpa: IPressure.FromPsi(2.2).Kpa,
                 psrFrontRightKpa: IPressure.FromPsi(3.2).Kpa,
@@ -328,18 +298,18 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
                 gameTelemetryObservable, NullLogger.Instance
             )
         ).Messages.AssertEqual(
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuLeft),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(Subscribed + telemetryTicks)
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
         );
     }
 
@@ -347,8 +317,17 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     
     #region Test Setup
 
-    private readonly TestScheduler _testScheduler = new();
-    private readonly ACCPitMenuNavigator _pmn = new();
+    private const int TimeoutTicks = 13;
+    private const int TelemetryTicks = 3;
+    
+    private readonly TestScheduler _testScheduler;
+    private readonly ACCPitMenuNavigator _pmn;
+
+    public ACCPitMenuNavigatorTest()
+    {
+        _testScheduler = new TestScheduler();
+        _pmn = new ACCPitMenuNavigator(TimeSpan.FromTicks(TimeoutTicks), _testScheduler);
+    }
 
     private IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd) =>
         TelemetryWithPitMenu(new PitMenu(

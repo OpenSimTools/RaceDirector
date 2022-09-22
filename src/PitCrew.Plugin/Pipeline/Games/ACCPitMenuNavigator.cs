@@ -13,13 +13,20 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
 {
     public string GameName => Names.ACC;
 
-    private TimeSpan _timeout = TimeSpan.FromMilliseconds(500); // TODO
+    private readonly TimeSpan _timeout;
+    private readonly IScheduler? _schedulerOverride;
+
+    public ACCPitMenuNavigator(TimeSpan timeout, IScheduler? schedulerOverride = null)
+    {
+        _timeout = timeout;
+        _schedulerOverride = schedulerOverride;
+    }
 
     public IObservable<GameAction> SetStrategy(IPitStrategyRequest psr,
         IObservable<IGameTelemetry> gto, ILogger logger) =>
         new[] {GameAction.PitMenuOpen, GameAction.PitMenuDown, GameAction.PitMenuDown}.ToObservable()
             .Concat(SetFuel(psr.FuelToAddL, gto, logger))
-            .Concat(GoToKnownTireState(gto, _timeout))
+            .Concat(GoToKnownTireState(gto))
             .Concat(SetTires(psr.TireSet, psr.FrontTires?.LeftPressureKpa, psr.FrontTires?.RightPressureKpa,
                 psr.RearTires?.LeftPressureKpa, psr.RearTires?.RightPressureKpa, gto, logger))
             .Append(GameAction.PitMenuDown) // Leave selection to brakes entry
@@ -33,43 +40,18 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
             return AdjustValue("Fuel", fuelInMenu, requestedFuelToAdd, logger);
         });
 
-    // TODO Bad implementation, replace with the one below after tests
-    public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto, TimeSpan timeout,
-        IScheduler? scheduler = null)
+    public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto)
     {
         var tireSetTelemetry = gto.Select(_ => _.Player?.PitMenu.TireSet);
-        return new[] {GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight}.ToObservable()
-            .Concat(tireSetTelemetry.IfNoChange(
-                new[] {GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight}.ToObservable()
-                    .Concat(tireSetTelemetry.IfNoChange(
-                        new[] {GameAction.PitMenuDown, GameAction.PitMenuRight}.ToObservable()
-                            .Concat(tireSetTelemetry.IfNoChange(
-                                new[] {GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight}.ToObservable()
-                                    .Concat(tireSetTelemetry.IfNoChange(
-                                        Observable.Throw<GameAction>(new Exception("Pit menu in unknown state")),
-                                        timeout, scheduler
-                                    )),
-                                timeout, scheduler
-                            )),
-                        timeout, scheduler
-                    )),
-                timeout, scheduler
-            ));
+
+        return ChangeMonitor<int?, GameAction>.MonitorChanges(tireSetTelemetry, _timeout, _schedulerOverride)
+            .Send(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight)
+            .IfUnchangedSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
+            .IfUnchangedSend(GameAction.PitMenuDown, GameAction.PitMenuRight)
+            .IfUnchangedSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
+            .IfUnchangedFailWith(new Exception("Pit menu in unknown state"));
     }
-
-    // TODO Better implementation with builder pattern
-    // public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto)
-    // {
-    //     var tireSetTelemetry = gto.Select(_ => _.Player?.PitMenu.TireSet);
-    //
-    //     return WaitForChange(tireSetTelemetry)
-    //         .Send(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight)
-    //         .IfUnchangedSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
-    //         .IfUnchangedSend(GameAction.PitMenuDown, GameAction.PitMenuRight)
-    //         .IfUnchangedSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
-    //         .IfUnchangedFailWith(new Exception("Pit menu in unknown state"));
-    // }
-
+    
     public IObservable<GameAction> SetTires(int? psrTireSet, double? psrFrontLeftKpa, double? psrFrontRightKpa,
         double? psrRearLeftKpa, double? psrRearRightKpa, IObservable<IGameTelemetry> gto, ILogger logger) =>
         gto.Take(1).SelectMany(gt =>
