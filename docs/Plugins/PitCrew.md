@@ -14,7 +14,9 @@ the server endpoint. This can be done in the dedicated section of `application.c
 {
   "RaceDirector.PitCrew.Plugin": {
     "Enabled": true,
-    "ServerUrl": "ws://myserver:8042/"
+    "ServerUrl": "ws://myserver:8042/",
+    "TelemetryThrottling": "00:00:01.000",
+    "MaxMenuNavigationWait": "00:00:00.100"
   }
 }
 ```
@@ -24,6 +26,14 @@ It can also be overridden via the command line:
 ```
 --RaceDirector.PitCrew.Plugin:Enabled=true --RaceDirector.PitCrew.Plugin:ServerUrl=ws://myserver:8042/
 ```
+
+The only necessary configuration is the `ServerUrl`. Other parameters have sensible defaults:
+- `TelemetryThrottling` is the maximum frequency that the client will send telemetry to the server.
+- `MaxMenuNavigationWait` is needed because some games don't expose the selected item in the pit
+   menu and we need to use some heuristics to guess where we are. This parameter determines the
+   maximum time that we'll wait for a change before assuming that nothing observable happened.
+   It is important for this value to be large enough to be able to see some telemetry data
+   (at least double the `PollingInterval` for the game).
 
 PitCrew relies on the [DeviceIO plugin](DeviceIO.md) to control the pit menu. Make sure that it
 is configured correctly.
