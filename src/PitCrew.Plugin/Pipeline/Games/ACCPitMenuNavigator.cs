@@ -85,6 +85,9 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
             
             return AdjustValue("Tire Set", pitMenu?.TireSet, psrTireSet, logger)
                 .Append(GameAction.PitMenuDown)
+                // TODO Set tire compound
+                .Append(GameAction.PitMenuDown)
+                .Append(GameAction.PitMenuDown)
                 .Concat(AdjustPressure("Front Left", 0, 0, psrFrontLeftKpa))
                 .Append(GameAction.PitMenuDown)
                 .Concat(AdjustPressure("Front Right", 0, 1, psrFrontRightKpa))

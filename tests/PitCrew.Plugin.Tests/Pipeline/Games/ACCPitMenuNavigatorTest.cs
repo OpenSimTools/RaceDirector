@@ -261,6 +261,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnCompleted<GameAction>(Subscribed + telemetryTicks)
         );
     }
@@ -289,6 +291,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
                 gameTelemetryObservable, NullLogger.Instance
             )
         ).Messages.AssertEqual(
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
@@ -325,6 +329,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             )
         ).Messages.AssertEqual(
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuLeft),
             OnNext(Subscribed + telemetryTicks, GameAction.PitMenuDown),
