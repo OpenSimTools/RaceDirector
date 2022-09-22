@@ -8,7 +8,7 @@ namespace RaceDirector.PitCrew.Pipeline;
 
 public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
 {
-    public PitCrewClient(string serverUrl) : base(serverUrl, PitCrewCodec)
+    public PitCrewClient(string serverUrl, TimeSpan throttling) : base(serverUrl, PitCrewCodec, throttling)
     {
     }
 

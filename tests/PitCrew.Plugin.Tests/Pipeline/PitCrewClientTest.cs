@@ -14,7 +14,7 @@ namespace PitCrew.Plugin.Tests.Pipeline;
 [IntegrationTest]
 public class PitCrewClientTest
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(1000);
 
     [Fact]
     public void ReceivesPitStrategyFromClients()
@@ -91,7 +91,7 @@ public class PitCrewClientTest
         }, NullLogger.Instance);
         Assert.True(testServer.Start());
 
-        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}");
+        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}", TimeSpan.Zero);
         Assert.True(pitCrewClient.Connect());
         pitCrewClient.Connected.Wait(Timeout);
 

@@ -1,9 +1,7 @@
 ﻿using System.Net;
-using Microsoft.Extensions.Logging.Abstractions;
+using System.Reactive.Linq;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Server;
-using TestUtils;
 using Xunit;
 using Xunit.Categories;
 using static TestUtils.EventuallyAssertion;
@@ -31,23 +29,39 @@ public class SyncWsClientTest
         Assert.Equal("<- not empty", client.Next());
     }
     
-    #region Test Setup
-    
-    private class EchoServer : MultiEndpointWsServer<string, string>
+    [Fact]
+    public void CanSendMessages()
     {
-        private static readonly HttpEndpoint<string, string>[] Endpoint =
-        {
-            new(_ => true, Codec.UTF8String)
-        };
+        using var server = new EchoServer();
+        Assert.True(server.Start());
 
-        public EchoServer() :
-            base(IPAddress.Any, Tcp.FreePort(), Endpoint, NullLogger.Instance)
-        {
-            // The server would refuse to send an empty message, so we need to make
-            // sure that empty messages from the client are still sent back.
-            MessageHandler += (session, message) => session.WsSendAsync($"<- {message}");
-        }
+        using var client = new SyncWsClient<string, string>($"ws://{IPAddress.Loopback}:{server.Port}", Codec.UTF8String, Timeout);
+        Assert.True(client.ConnectAndWait());
+        Observable.Range(0, 3).Select(_ => _.ToString())
+            .Subscribe(client.Out);
+
+        Eventually(() => Assert.Equal(3, client.Available())).Within(Timeout);
+        Assert.Equal("<- 0", client.Next());
+        Assert.Equal("<- 1", client.Next());
+        Assert.Equal("<- 2", client.Next());
     }
     
-    #endregion
+    [Fact]
+    public void CanThrottleMessages()
+    {
+        using var server = new EchoServer();
+        Assert.True(server.Start());
+
+        var throttling = TimeSpan.FromMilliseconds(100);
+        using var client = new SyncWsClient<string, string>($"ws://{IPAddress.Loopback}:{server.Port}", Codec.UTF8String, throttling, Timeout);
+        Assert.True(client.ConnectAndWait());
+        Observable.Interval(TimeSpan.FromMilliseconds(45)).Select(_ => (2 * (_ / 2)).ToString())
+            .Take(6)
+            .Subscribe(client.Out);
+
+        Eventually(() => Assert.Equal(3, client.Available())).Within(Timeout);
+        Assert.Equal("<- 0", client.Next());
+        Assert.Equal("<- 2", client.Next());
+        Assert.Equal("<- 4", client.Next());
+    }
 }

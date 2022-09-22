@@ -54,7 +54,7 @@ public class PitCrewNodeTest
         }, NullLogger.Instance);
         Assert.True(testServer.Start());
 
-        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}");
+        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}", TimeSpan.Zero);
         var node = new PitCrewNode(pitCrewClient);
         // This would be done by the Remote.Networking plugin
         Assert.True(pitCrewClient.Connect());

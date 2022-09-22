@@ -15,6 +15,5 @@ public class PitCrewNode : INode
                 Observable.Empty<IPitStrategyRequest>() :
                 Observable.Return(psr)
         );
-        PitStrategyObservable.Subscribe(Console.WriteLine);
     }
 }
