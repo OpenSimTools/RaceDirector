@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using Microsoft.Extensions.Logging;
 using RaceDirector.DeviceIO.Pipeline;
 using RaceDirector.Pipeline.Games;
@@ -17,12 +18,13 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
         IObservable<IGameTelemetry> gto, ILogger logger) =>
         new[] {GameAction.PitMenuOpen, GameAction.PitMenuDown, GameAction.PitMenuDown}.ToObservable()
             .Concat(SetFuel(psr.FuelToAddL, gto, logger));
+            // TODO TEST EACH PART SEPARATELY ONLY :FACEPALM:
             // .Concat(GoToKnownTireState(gto))
             // .Concat(SetTires(psr.TireSet, psr.FrontTires, psr.RearTires, gto, logger))
             // .Append(GameAction.PitMenuDown) // Leave selection to brakes entry
             // .Catch(Observable.Return(GameAction.PitMenuOpen)); // Leave selection to top on error
 
-    private IObservable<GameAction> SetFuel(double? requestedFuelToAdd,
+    public IObservable<GameAction> SetFuel(double? requestedFuelToAdd,
         IObservable<IGameTelemetry> gameTelemetryObservable, ILogger logger) =>
         gameTelemetryObservable.Take(1).SelectMany(t =>
         {
@@ -37,7 +39,7 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
         });
 
     // TODO Bad implementation, replace with the one below after tests
-    private IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto) =>
+    private IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto, IScheduler? scheduler = null) =>
         new[] {GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight}.ToObservable()
             .Concat(gto.IfFieldDidNotChange(
                 gt => gt.Player?.PitMenu.TireSet,
@@ -54,11 +56,14 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
                                     .Concat(gto.IfFieldDidNotChange(
                                         gt => gt.Player?.PitMenu.TireSet,
                                         _timeout,
-                                        Observable.Throw<GameAction>(new Exception("Something went wrong")
-                                        )
-                                    ))
-                            ))
-                    ))
+                                        Observable.Throw<GameAction>(new Exception("Something went wrong")),
+                                        scheduler
+                                    )),
+                                scheduler
+                            )),
+                        scheduler
+                    )),
+                scheduler
             ));
 
     // TODO Better implementation with builder pattern
@@ -80,36 +85,4 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
         return Observable.Empty<GameAction>();
     }
     
-}
-
-public static class ObservablePitStrategyExt
-{
-    public static IObservable<GameAction> IfFieldDidNotChange<TOuter, TInner>(this IObservable<TOuter> observable,
-        Func<TOuter, TInner?> extractField, TimeSpan timeout, IObservable<GameAction> then) =>
-        observable
-            .WaitForFieldChange(extractField, timeout)
-            .Where(cond => !cond)
-            .SelectMany(_ => then);
-
-    public static IObservable<bool> WaitForFieldChange<TOuter, TInner>(this IObservable<TOuter> observable,
-        Func<TOuter, TInner?> extractField, TimeSpan timeout) =>
-        observable
-            .CompareWithFirst(FieldNotNullAndNotEqual(extractField))
-            .WaitTrue(timeout);
-
-    // Returns a single true element if successful within the timeout, false otherwise
-    public static IObservable<bool> WaitTrue(this IObservable<bool> observable, TimeSpan timeout) =>
-        observable.SkipWhile(_ => !_).Take(1).Amb(Observable.Timer(timeout).Select(_ => false));
-
-    // Returns the result of applying the predicate to each element and the first
-    public static IObservable<bool> CompareWithFirst<T>(this IObservable<T> observable,
-        Func<T, T, bool> predicate) =>
-        observable.Take(1)
-            .SelectMany(t0 => observable.Select(ti => predicate(ti, t0)));
-
-    public static Func<TOuter, TOuter, bool> FieldNotNullAndNotEqual<TOuter, TInner>(Func<TOuter, TInner?> extract) =>
-        (t1, t2) => NotNullAndNotEqual(extract(t1), extract(t2));
-
-    public static bool NotNullAndNotEqual<T>(T? t1, T? t2) =>
-        t1 is not null && t2 is not null && !t1.Equals(t2);
 }

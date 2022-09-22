@@ -6,7 +6,6 @@ using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Pipeline.Games;
-using RaceDirector.PitCrew.Protocol;
 using Xunit;
 using Xunit.Categories;
 using PitMenu = RaceDirector.Pipeline.Telemetry.PitMenu;
@@ -19,78 +18,69 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void DontChangeFuelIfNotPresentInTelemetry()
     {
-        var testScheduler = new TestScheduler();
-        var gameTelemetryObservable = testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(3, GameTelemetry.Empty),
-            OnCompleted<IGameTelemetry>(10)
+        var telemetryTick = 3;
+        
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext<IGameTelemetry>(telemetryTick, GameTelemetry.Empty),
+            OnCompleted<IGameTelemetry>(telemetryTick + 1)
         );
 
         var pmn = new ACCPitMenuNavigator();
-        var psrMock = new Mock<IPitStrategyRequest>();
-        psrMock.SetupGet(_ => _.FuelToAddL).Returns(7);
 
-        var output = testScheduler
-            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
+        var output = _testScheduler
+            .Start(() => pmn.SetFuel(7, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnNext(200, GameAction.PitMenuOpen),
-            OnNext(200, GameAction.PitMenuDown),
-            OnNext(200, GameAction.PitMenuDown),
-            OnCompleted<GameAction>(203)
+            OnCompleted<GameAction>(Subscribed + telemetryTick)
         );
     }
 
     [Fact]
     public void AddFuelIfCurrentIsLower()
     {
-        var testScheduler = new TestScheduler();
-        var gameTelemetryObservable = testScheduler.CreateColdObservable(
-            OnNext(3, TelemetryWithPitFuelToAdd(ICapacity.FromL(5))),
-            OnCompleted<IGameTelemetry>(10)
+        var telemetryFuel = 5;
+        var telemetryTick = 3;
+
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(telemetryTick, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
+            OnCompleted<IGameTelemetry>(telemetryTick + 1)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-        var psrMock = new Mock<IPitStrategyRequest>();
-        psrMock.SetupGet(_ => _.FuelToAddL).Returns(7);
-
-        var output = testScheduler
-            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
+        var output = _testScheduler
+            .Start(() => _pmn.SetFuel(telemetryFuel + 2, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnNext(200, GameAction.PitMenuOpen),
-            OnNext(200, GameAction.PitMenuDown),
-            OnNext(200, GameAction.PitMenuDown),
-            OnNext(203, GameAction.PitMenuRight),
-            OnNext(203, GameAction.PitMenuRight),
-            OnCompleted<GameAction>(203)
+            OnNext(Subscribed + telemetryTick, GameAction.PitMenuRight),
+            OnNext(Subscribed + telemetryTick, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + telemetryTick)
         );
     }
     
     [Fact]
     public void RemovesFuelIfCurrentIsHigher()
     {
-        var testScheduler = new TestScheduler();
-        var gameTelemetryObservable = testScheduler.CreateColdObservable(
-            OnNext(3, TelemetryWithPitFuelToAdd(ICapacity.FromL(5))),
-            OnCompleted<IGameTelemetry>(10)
+        var telemetryFuel = 5;
+        var telemetryTick = 3;
+
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(telemetryTick, TelemetryWithPitFuelToAdd(ICapacity.FromL(telemetryFuel))),
+            OnCompleted<IGameTelemetry>(telemetryTick + 1)
         );
 
-        var pmn = new ACCPitMenuNavigator();
-        var psrMock = new Mock<IPitStrategyRequest>();
-        psrMock.SetupGet(_ => _.FuelToAddL).Returns(3);
-
-        var output = testScheduler
-            .Start(() => pmn.SetStrategy(psrMock.Object, gameTelemetryObservable, NullLogger.Instance));
+        var output = _testScheduler
+            .Start(() => _pmn.SetFuel(telemetryFuel - 2, gameTelemetryObservable, NullLogger.Instance));
 
         output.Messages.AssertEqual(
-            OnNext(200, GameAction.PitMenuOpen),
-            OnNext(200, GameAction.PitMenuDown),
-            OnNext(200, GameAction.PitMenuDown),
-            OnNext(203, GameAction.PitMenuLeft),
-            OnNext(203, GameAction.PitMenuLeft),
-            OnCompleted<GameAction>(203)
+            OnNext(Subscribed + telemetryTick, GameAction.PitMenuLeft),
+            OnNext(Subscribed + telemetryTick, GameAction.PitMenuLeft),
+            OnCompleted<GameAction>(Subscribed + telemetryTick)
         );
     }
+
+    #region Test Setup
+
+    private readonly TestScheduler _testScheduler = new TestScheduler();
+    private readonly ACCPitMenuNavigator _pmn = new ACCPitMenuNavigator();
 
     private IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd) =>
         TelemetryWithPitMenu(new PitMenu(
@@ -114,4 +104,6 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             });
         return telemetryMock.Object;
     }
+    
+    #endregion
 }
