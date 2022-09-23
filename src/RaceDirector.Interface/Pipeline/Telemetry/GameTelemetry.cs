@@ -199,6 +199,7 @@ public record Player
     VehicleSettings VehicleSettings,
     VehicleDamage VehicleDamage,
     Tire[][] Tires,
+    uint? TireSet,
     Fuel Fuel,
     Engine Engine,
     Vector3<IDistance> CgLocation,
@@ -369,7 +370,8 @@ public record PitMenu
     PitMenuFocusedItem FocusedItem,
     PitMenuSelectedItems SelectedItems,
     ICapacity? FuelToAdd,
-    int? TireSet,
+    uint? StrategyTireSet,
+    uint? TireSet,
     IPressure[][] TirePressures
 ) : IPitMenu;
 

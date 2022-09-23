@@ -29,15 +29,21 @@ public class ChangeMonitor<TIn, TOut>
         return this;
     }
 
-    public ChangeMonitor<TIn, TOut> IfUnchangedSend(params TOut[] values)
+    public ChangeMonitor<TIn, TOut> OrSend(params TOut[] values)
     {
         _stack.Push(values.ToList());
         return this;
     }
 
-    public IObservable<TOut> IfUnchangedFailWith(Exception exception)
+    public IObservable<TOut> OrEndWith(params TOut[] values) =>
+        OrEndWith(values.ToObservable());
+
+    public IObservable<TOut> OrEndWith(Exception exception) =>
+        OrEndWith(Observable.Throw<TOut>(exception));
+
+    private IObservable<TOut> OrEndWith(IObservable<TOut> fallback)
     {
-        IObservable<TOut> ret = Observable.Throw<TOut>(exception);
+        IObservable<TOut> ret = fallback;
         while (_stack.TryPop(out var current))
         {
             ret = current.ToObservable().Concat(_observable.IfNoChange(ret, _timeout, _scheduler));

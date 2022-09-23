@@ -530,6 +530,7 @@ internal class TelemetryConverter
                 TransmissionPercent: sharedData.CarDamage.Transmission
             ),
             Tires: ToTires(ref sharedData),
+            TireSet: null,
             Fuel: new Fuel
             (
                 Max: ICapacity.FromL(sharedData.FuelCapacity),
@@ -580,6 +581,7 @@ internal class TelemetryConverter
                 FocusedItem: ToFocusedItem(sharedData.PitMenuSelection),
                 SelectedItems: ToSelectedItems(sharedData.PitMenuState),
                 FuelToAdd: null,
+                StrategyTireSet: null,
                 TireSet: null,
                 TirePressures: Array.Empty<IPressure[]>()
             )

@@ -639,6 +639,8 @@ namespace RaceDirector.Pipeline.Telemetry
             IVehicleDamage VehicleDamage { get; }
 
             ITire[][] Tires { get; } // [[FL,FR],[RL,RR]]
+            
+            uint? TireSet { get; }
 
             IFuel Fuel { get; }
 
@@ -903,7 +905,8 @@ namespace RaceDirector.Pipeline.Telemetry
             PitMenuFocusedItem FocusedItem { get; }
             PitMenuSelectedItems SelectedItems { get; }
             ICapacity? FuelToAdd { get; }
-            int? TireSet { get; }
+            uint? StrategyTireSet { get; }
+            uint? TireSet { get; }
             IPressure[][] TirePressures { get; }
         }
 

@@ -18,7 +18,7 @@ public record TireValues<T>(T FrontLeft, T FrontRight, T RearLeft, T RearRight);
 public record PitMenu
 (
     double? FuelToAddL,
-    int? TireSet,
+    uint? TireSet,
     PitMenuTires? FrontTires,
     PitMenuTires? RearTires
 ) : IPitStrategyRequest

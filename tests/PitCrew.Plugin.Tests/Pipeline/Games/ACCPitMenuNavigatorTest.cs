@@ -15,7 +15,91 @@ namespace PitCrew.Plugin.Tests.Pipeline.Games;
 [UnitTest]
 public class ACCPitMenuNavigatorTest : ReactiveTest
 {
-    // TODO Two SetStrategy tests success and failure
+    #region GoToFuel
+
+    [Fact]
+    public void GoToFuelPitStrategyMenuIsPresent()
+    {
+        const int telemetryOffset = 5;
+        
+        var gameTelemetryObservable = _testScheduler.CreateHotObservable(
+            OnNext(0, TelemetryWithPitFuelToAdd(ICapacity.FromL(1))),
+            OnNext(Subscribed + telemetryOffset, TelemetryWithPitFuelToAdd(ICapacity.FromL(0))),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var replySubject = new ReplaySubject<IGameTelemetry>(1);
+        gameTelemetryObservable.Subscribe(replySubject);
+
+        _testScheduler.Start(() =>
+            _pmn.GoToFuel(replySubject)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + telemetryOffset)
+        );
+    }
+    
+    [Fact]
+    public void GoToFuelPitStrategyMenuIsNotPresent()
+    {
+        const int telemetryOffset = 5;
+        
+        var gameTelemetryObservable = _testScheduler.CreateHotObservable(
+            OnNext(0, TelemetryWithPitFuelToAdd(ICapacity.FromL(1))),
+            OnNext(Subscribed + 1 * TimeoutTicks + telemetryOffset, TelemetryWithPitFuelToAdd(ICapacity.FromL(0))),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var replySubject = new ReplaySubject<IGameTelemetry>(1);
+        gameTelemetryObservable.Subscribe(replySubject);
+
+        _testScheduler.Start(() =>
+            _pmn.GoToFuel(replySubject)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuRight),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed + TimeoutTicks + telemetryOffset)
+        );
+    }
+    
+    [Fact]
+    public void GoToFuelUnknownState()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateHotObservable(
+            OnNext(0, TelemetryWithPitFuelToAdd(ICapacity.FromL(1))),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var replySubject = new ReplaySubject<IGameTelemetry>(1);
+        gameTelemetryObservable.Subscribe(replySubject);
+
+        _testScheduler.Start(() =>
+            _pmn.GoToFuel(replySubject)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuDown),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuLeft),
+            OnNext(Subscribed + 0, GameAction.PitMenuRight),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuUp),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
+            OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuRight),
+            OnError<GameAction>(Subscribed + 2 * TimeoutTicks, _ => true)
+        );
+    }
+
+    #endregion
     
     #region SetFuel
 
@@ -334,18 +418,20 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             FocusedItem: PitMenuFocusedItem.Unavailable,
             SelectedItems: 0,
             FuelToAdd: fuelToAdd,
+            StrategyTireSet: null,
             TireSet: null,
             TirePressures: Array.Empty<IPressure[]>()
         ));
     
-    private IGameTelemetry TelemetryWithTireSet(int? tireSet) =>
+    private IGameTelemetry TelemetryWithTireSet(uint? tireSet) =>
         TelemetryWithTires(tireSet, Array.Empty<IPressure[]>());
 
-    private IGameTelemetry TelemetryWithTires(int? tireSet, IPressure[][] tirePressures) =>
+    private IGameTelemetry TelemetryWithTires(uint? tireSet, IPressure[][] tirePressures) =>
         TelemetryWithPitMenu(new PitMenu(
             FocusedItem: PitMenuFocusedItem.Unavailable,
             SelectedItems: 0,
             FuelToAdd: null,
+            StrategyTireSet: null,
             TireSet: tireSet,
             TirePressures: tirePressures
         ));

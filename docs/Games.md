@@ -132,6 +132,7 @@
 | Player.Tyres[][].BrakeTemperatures.OptimalTemperature | ✓       |             |
 | Player.Tyres[][].BrakeTemperatures.ColdTemperature    | ✓       |             |
 | Player.Tyres[][].BrakeTemperatures.HotTemperature     | ✓       |             |
+| Player.TireSet                                        | ✗       | ✓           |
 | Player.Fuel.Max                                       | ✓       |             |
 | Player.Fuel.Left                                      | ✓       | ✓           |
 | Player.Fuel.PerLap                                    | ✓       |             |
@@ -168,6 +169,7 @@
 | Player.PitMenu.FocusedItem                            | ✓       | ✗           |
 | Player.PitMenu.SelectedItems                          | ✓       | ✗           |
 | Player.PitMenu.FuelToAdd                              | ✗       | ✓           |
+| Player.PitMenu.StrategyTireSet                        | ✗       | ✓           |
 | Player.PitMenu.TireSet                                | ✗       | ✓           |
 | Player.PitMenu.TirePressures                          | ✗       | ✓           |
 

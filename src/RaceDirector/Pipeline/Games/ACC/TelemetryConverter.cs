@@ -264,6 +264,7 @@ internal class TelemetryConverter
                 TransmissionPercent: 0
             ),
             Tires: ToTires(ref sharedData.Physics),
+            TireSet: NullIfZeroOrNegative(sharedData.Graphic.CurrentTyreSet),
             Fuel: new Fuel
             (
                 Max: ICapacity.FromL(0), // TODO
@@ -313,7 +314,8 @@ internal class TelemetryConverter
                 FocusedItem: PitMenuFocusedItem.Unavailable,
                 SelectedItems: PitMenuSelectedItems.Unavailable,
                 FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd),
-                TireSet: sharedData.Graphic.MfdTyreSet,
+                StrategyTireSet: NullIfZeroOrNegative(sharedData.Graphic.StrategyTyreSet),
+                TireSet: NullIfZeroOrNegative(sharedData.Graphic.MfdTyreSet),
                 TirePressures: new[]
                 {
                     new[]
@@ -405,4 +407,6 @@ internal class TelemetryConverter
             T ITireExtractor.CurrentTire<T>(ref Contrib.Data.Wheels<T> outer) => outer.RR;
         }
     }
+    
+    private static uint? NullIfZeroOrNegative(int value) => value > 0 ? (uint) value : null;
 }

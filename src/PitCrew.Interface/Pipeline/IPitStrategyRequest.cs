@@ -3,7 +3,7 @@
 public interface IPitStrategyRequest
 {
     double? FuelToAddL { get; }
-    int? TireSet { get; }
+    uint? TireSet { get; }
     IPitMenuTires? FrontTires { get; }
     IPitMenuTires? RearTires { get; }
 }
