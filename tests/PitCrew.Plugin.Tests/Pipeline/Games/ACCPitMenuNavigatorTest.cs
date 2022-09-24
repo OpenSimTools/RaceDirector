@@ -7,8 +7,10 @@ using RaceDirector.Pipeline.Telemetry;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Pipeline.Games;
+using RaceDirector.PitCrew.Protocol;
 using Xunit;
 using Xunit.Categories;
+using PitMenu = RaceDirector.Pipeline.Telemetry.PitMenu;
 
 namespace PitCrew.Plugin.Tests.Pipeline.Games;
 
@@ -95,7 +97,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
             OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuLeft),
             OnNext(Subscribed + TimeoutTicks, GameAction.PitMenuRight),
-            OnError<GameAction>(Subscribed + 2 * TimeoutTicks, _ => true)
+            OnError<GameAction>(Subscribed + 2 * TimeoutTicks,
+                _ => _.Message.Contains("unknown state"))
         );
     }
 
@@ -106,7 +109,6 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void DontChangeFuelIfNotPresentInTelemetry()
     {
-        
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
             OnNext<IGameTelemetry>(TelemetryTicks, GameTelemetry.Empty),
             OnCompleted<IGameTelemetry>(TelemetryTicks + 1)
@@ -293,7 +295,8 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuLeft),
             OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuUp),
             OnNext(Subscribed + 3 * TimeoutTicks, GameAction.PitMenuRight),
-            OnError<GameAction>(Subscribed + 4 * TimeoutTicks, _ => true)
+            OnError<GameAction>(Subscribed + 4 * TimeoutTicks,
+                _ => _.Message.Contains("unknown state"))
         );
     }
     
@@ -304,49 +307,27 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void SetTiresDoesNotChangeAnythingIfNotPresentInTelemetry()
     {
-        
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
             OnNext<IGameTelemetry>(TelemetryTicks, GameTelemetry.Empty),
             OnCompleted<IGameTelemetry>(Disposed)
         );
-
-        _testScheduler.Start(() =>
-            _pmn.SetTires(
-                psrTireSet: 1,
-                psrFrontLeftKpa: 2, psrFrontRightKpa: 3, psrRearLeftKpa: 4, psrRearRightKpa: 5,
-                gameTelemetryObservable, NullLogger.Instance
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: 1,
+            FrontTires: new PitMenuTires(
+                Compound: TireCompound.Unknown,
+                LeftPressureKpa: IPressure.FromPsi(2.2).Kpa,
+                RightPressureKpa: IPressure.FromPsi(3.2).Kpa
+            ),
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Unknown,
+                LeftPressureKpa: IPressure.FromPsi(4.2).Kpa,
+                RightPressureKpa: IPressure.FromPsi(5.2).Kpa
             )
-        ).Messages.AssertEqual(
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
-            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
-        );
-    }
-
-    [Fact]
-    public void SetTiresDoesNotChangeAnythingIfNotRequested()
-    {
-        
-        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(TelemetryTicks, TelemetryWithTires(
-                tireSet: 0,
-                tirePressures: new [] {
-                    new [] { IPressure.FromPsi(2.3), IPressure.FromPsi(3.1) },
-                    new [] { IPressure.FromPsi(4.3), IPressure.FromPsi(5.1) }
-                })),
-            OnCompleted<IGameTelemetry>(Disposed)
         );
 
         _testScheduler.Start(() =>
-            _pmn.SetTires(
-                psrTireSet: null,
-                psrFrontLeftKpa: null, psrFrontRightKpa: null, psrRearLeftKpa: null, psrRearRightKpa: null,
-                gameTelemetryObservable, NullLogger.Instance
-            )
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
             OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
@@ -359,10 +340,156 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     }
     
     [Fact]
-    public void SetTiresAppliesTheDifference()
+    public void SetTiresDoesNotChangeTiresIfBothAxlesAreNull()
     {
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
-            OnNext<IGameTelemetry>(TelemetryTicks, TelemetryWithTires(
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: null,
+            FrontTires: null,
+            RearTires: null
+        );
+
+        _testScheduler.Start(() =>
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed, GameAction.PitMenuUp),
+            OnNext(Subscribed, GameAction.PitMenuRight),
+            OnCompleted<GameAction>(Subscribed)
+        );
+    }
+    
+    [Fact]
+    public void SetTiresDoesNotChangeAnythingIfNotRequested()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(TelemetryTicks, AnyTireTelemetry()),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: null,
+            FrontTires: new PitMenuTires(
+                Compound: TireCompound.Unknown,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            ),
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Unknown,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            )
+        );
+
+        _testScheduler.Start(() =>
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
+        );
+    }
+
+    [Fact]
+    public void SetTiresErrorsIfDifferentCompoundsRequested()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(TelemetryTicks, AnyTireTelemetry()),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: null,
+            FrontTires: new PitMenuTires(
+                Compound: TireCompound.Dry,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            ),
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Wet,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            )
+        );
+
+        _testScheduler.Start(() =>
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
+        ).Messages.AssertEqual(
+            OnError<GameAction>(Subscribed, _ => _.Message.Contains("compound per axle"))
+        );
+    }
+    
+    [Fact]
+    public void SetTiresErrorsIfOnlyOneAxleRequested()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: null,
+            FrontTires: null,
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Unknown,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            )
+        );
+
+        _testScheduler.Start(() =>
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
+        ).Messages.AssertEqual(
+            OnError<GameAction>(Subscribed, _ => _.Message.Contains("one axle"))
+        );
+    }
+    
+    [Fact]
+    public void SetTiresAppliesWetCompound()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(TelemetryTicks, AnyTireTelemetry()),
+            OnCompleted<IGameTelemetry>(Disposed)
+        );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: null,
+            FrontTires: new PitMenuTires(
+                Compound: TireCompound.Wet,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            ),
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Wet,
+                LeftPressureKpa: null,
+                RightPressureKpa: null
+            )
+        );
+
+        _testScheduler.Start(() =>
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
+        ).Messages.AssertEqual(
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
+            OnCompleted<GameAction>(Subscribed + TelemetryTicks)
+        );
+    }
+    
+    [Fact]
+    public void SetTiresAppliesThePressureDifference()
+    {
+        var gameTelemetryObservable = _testScheduler.CreateColdObservable(
+            OnNext(TelemetryTicks, TelemetryWithTires(
                 tireSet: 0,
                 tirePressures: new [] {
                     new [] { IPressure.FromPsi(2.3), IPressure.FromPsi(3.1) },
@@ -370,16 +497,23 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
                 })),
             OnCompleted<IGameTelemetry>(Disposed)
         );
+        var psr = new RaceDirector.PitCrew.Protocol.PitMenu(
+            FuelToAddL: null,
+            TireSet: 1,
+            FrontTires: new PitMenuTires(
+                Compound: TireCompound.Dry,
+                LeftPressureKpa: IPressure.FromPsi(2.2).Kpa,
+                RightPressureKpa: IPressure.FromPsi(3.2).Kpa
+            ),
+            RearTires: new PitMenuTires(
+                Compound: TireCompound.Dry,
+                LeftPressureKpa: IPressure.FromPsi(4.2).Kpa,
+                RightPressureKpa: IPressure.FromPsi(5.2).Kpa
+            )
+        );
 
         _testScheduler.Start(() =>
-            _pmn.SetTires(
-                psrTireSet: 1,
-                psrFrontLeftKpa: IPressure.FromPsi(2.2).Kpa,
-                psrFrontRightKpa: IPressure.FromPsi(3.2).Kpa,
-                psrRearLeftKpa: IPressure.FromPsi(4.2).Kpa,
-                psrRearRightKpa: IPressure.FromPsi(5.2).Kpa,
-                gameTelemetryObservable, NullLogger.Instance
-            )
+            _pmn.SetTires(psr, gameTelemetryObservable, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuRight),
             OnNext(Subscribed + TelemetryTicks, GameAction.PitMenuDown),
@@ -412,7 +546,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         _pmn = new ACCPitMenuNavigator(TimeSpan.FromTicks(TimeoutTicks), _testScheduler);
     }
 
-    private IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd) =>
+    private static IGameTelemetry TelemetryWithPitFuelToAdd(ICapacity? fuelToAdd) =>
         TelemetryWithPitMenu(new PitMenu(
             FocusedItem: PitMenuFocusedItem.Unavailable,
             SelectedItems: 0,
@@ -422,10 +556,10 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             TirePressures: Array.Empty<IPressure[]>()
         ));
     
-    private IGameTelemetry TelemetryWithTireSet(uint? tireSet) =>
+    private static IGameTelemetry TelemetryWithTireSet(uint? tireSet) =>
         TelemetryWithTires(tireSet, Array.Empty<IPressure[]>());
 
-    private IGameTelemetry TelemetryWithTires(uint? tireSet, IPressure[][] tirePressures) =>
+    private static IGameTelemetry TelemetryWithTires(uint? tireSet, IPressure[][] tirePressures) =>
         TelemetryWithPitMenu(new PitMenu(
             FocusedItem: PitMenuFocusedItem.Unavailable,
             SelectedItems: 0,
@@ -435,7 +569,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             TirePressures: tirePressures
         ));
     
-    private IGameTelemetry TelemetryWithPitMenu(IPitMenu pitMenu)
+    private static IGameTelemetry TelemetryWithPitMenu(IPitMenu pitMenu)
     {
         var telemetryMock = new Mock<IGameTelemetry>();
         telemetryMock.SetupGet(_ => _.Player)
@@ -448,6 +582,16 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
             });
         return telemetryMock.Object;
     }
-    
+
+    private static IGameTelemetry AnyTireTelemetry() =>
+        TelemetryWithTires(
+            tireSet: 0,
+            tirePressures: new[]
+            {
+                new[] {IPressure.FromPsi(12), IPressure.FromPsi(34)},
+                new[] {IPressure.FromPsi(56), IPressure.FromPsi(78)}
+            }
+        );
+
     #endregion
 }

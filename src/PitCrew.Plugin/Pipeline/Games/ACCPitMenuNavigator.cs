@@ -24,11 +24,11 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
 
     public IObservable<GameAction> SetStrategy(IPitStrategyRequest psr,
         IObservable<IGameTelemetry> gto, ILogger logger) =>
-        GoToFuel(gto)
+        Observable.Return(GameAction.PitMenuOpen)
+            .Concat(GoToFuel(gto))
             .Concat(SetFuel(psr.FuelToAddL, gto, logger))
             .Concat(GoToKnownTireState(gto))
-            .Concat(SetTires(psr.TireSet, psr.FrontTires?.LeftPressureKpa, psr.FrontTires?.RightPressureKpa,
-                psr.RearTires?.LeftPressureKpa, psr.RearTires?.RightPressureKpa, gto, logger))
+            .Concat(SetTires(psr, gto, logger))
             .Append(GameAction.PitMenuDown) // Leave selection to brakes entry
             .Catch(Observable.Return(GameAction.PitMenuOpen)); // Leave selection to top on error
 
@@ -50,6 +50,9 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
             return AdjustValue("Fuel", fuelInMenu, requestedFuelToAdd, logger);
         });
 
+    /// <summary>
+    /// Known tire state is tyre change selected, with dry compound and on tyre set entry.
+    /// </summary>
     public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto)
     {
         var tireSetEntry = gto.Select(_ => _.Player?.PitMenu.TireSet);
@@ -61,10 +64,29 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
             .OrSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
             .OrEndWith(new Exception("Pit menu in unknown state"));
     }
-    
-    public IObservable<GameAction> SetTires(uint? psrTireSet, double? psrFrontLeftKpa, double? psrFrontRightKpa,
-        double? psrRearLeftKpa, double? psrRearRightKpa, IObservable<IGameTelemetry> gto, ILogger logger) =>
-        gto.Take(1).SelectMany(gt =>
+
+    public IObservable<GameAction> SetTires(IPitStrategyRequest psr, IObservable<IGameTelemetry> gto, ILogger logger)
+    {
+        // Close tire change menu if no tires to change
+        if (psr.FrontTires is null && psr.RearTires is null)
+            return Observable
+                .Return(GameAction.PitMenuUp)
+                .Append(GameAction.PitMenuRight);
+
+        // Error if only one axle
+        if (psr.FrontTires is null || psr.RearTires is null)
+            return Observable.Throw<GameAction>(
+                new Exception("Game does not support changing tires on one axle")
+            );
+
+        // Error if different compound per axle
+        if (psr.FrontTires?.Compound != psr.RearTires?.Compound)
+            return Observable.Throw<GameAction>(
+                new Exception("Game does not support different compound per axle")
+            );
+        var compound = psr.FrontTires?.Compound;
+        
+        return gto.Take(1).SelectMany(gt =>
         {
             var pitMenu = gt.Player?.PitMenu;
             IObservable<GameAction> AdjustPressure(string itemName, int frontRear, int leftRight, double? requestedKpa)
@@ -75,19 +97,22 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
                 return AdjustValue(itemName, menuPsi * 10.0, requestedPsi * 10.0, logger);
             }
             
-            return AdjustValue("Tire Set", pitMenu?.TireSet, psrTireSet, logger)
+            return AdjustValue("Tire Set", pitMenu?.TireSet, psr.TireSet, logger)
                 .Append(GameAction.PitMenuDown)
-                // TODO Set tire compound
+                .Concat(TireCompound.Wet == compound
+                    ? Observable.Return(GameAction.PitMenuRight)
+                    : Observable.Empty<GameAction>())
                 .Append(GameAction.PitMenuDown)
                 .Append(GameAction.PitMenuDown)
-                .Concat(AdjustPressure("Front Left", 0, 0, psrFrontLeftKpa))
+                .Concat(AdjustPressure("Front Left", 0, 0, psr.FrontTires?.LeftPressureKpa))
                 .Append(GameAction.PitMenuDown)
-                .Concat(AdjustPressure("Front Right", 0, 1, psrFrontRightKpa))
+                .Concat(AdjustPressure("Front Right", 0, 1, psr.FrontTires?.RightPressureKpa))
                 .Append(GameAction.PitMenuDown)
-                .Concat(AdjustPressure("Rear Left", 1, 0, psrRearLeftKpa))
+                .Concat(AdjustPressure("Rear Left", 1, 0, psr.RearTires?.LeftPressureKpa))
                 .Append(GameAction.PitMenuDown)
-                .Concat(AdjustPressure("Rear Right", 1, 1, psrRearRightKpa));
+                .Concat(AdjustPressure("Rear Right", 1, 1, psr.RearTires?.RightPressureKpa));
         });
+    }
 
     private IObservable<GameAction> AdjustValue(string itemName, double? valueInMenu, double? requestedValue,
         ILogger logger)

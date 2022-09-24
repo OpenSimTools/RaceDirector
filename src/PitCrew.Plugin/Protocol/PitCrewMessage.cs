@@ -42,7 +42,7 @@ public record PitMenu(
 }
 
 public record PitMenuTires(
-    TireCompound Compound,
-    double? LeftPressureKpa,
-    double? RightPressureKpa
+    TireCompound Compound = TireCompound.Unknown,
+    double? LeftPressureKpa = null,
+    double? RightPressureKpa = null
 ) : IPitStrategyTires;
