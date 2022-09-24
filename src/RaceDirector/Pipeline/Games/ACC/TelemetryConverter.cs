@@ -263,7 +263,7 @@ internal class TelemetryConverter
                 SuspensionPercent: 0,
                 TransmissionPercent: 0
             ),
-            Tires: ToTires(ref sharedData.Physics),
+            Tires: ToTires(ref sharedData),
             TireSet: NullIfZeroOrNegative(sharedData.Graphic.CurrentTyreSet),
             Fuel: new Fuel
             (
@@ -315,7 +315,7 @@ internal class TelemetryConverter
                 SelectedItems: PitMenuSelectedItems.Unavailable,
                 FuelToAdd: ICapacity.FromL(sharedData.Graphic.MfdFuelToAdd),
                 StrategyTireSet: NullIfZeroOrNegative(sharedData.Graphic.StrategyTyreSet),
-                TireSet: NullIfZeroOrNegative(sharedData.Graphic.MfdTyreSet),
+                TireSet: NullIfZeroOrNegative(sharedData.Graphic.MfdTyreSet + 1),
                 TirePressures: new[]
                 {
                     new[]
@@ -333,27 +333,29 @@ internal class TelemetryConverter
         );
     }
 
-    private static Tire[][] ToTires(ref Contrib.Data.SPageFilePhysics sharedDataPhysics)
+    private static Tire[][] ToTires(ref Contrib.Data.Shared sharedData)
     {
         return new[]
         {
             new[]
             {
-                ToTire(ref sharedDataPhysics, ITireExtractor.FrontLeft),
-                ToTire(ref sharedDataPhysics, ITireExtractor.FrontRight)
+                ToTire(ref sharedData, ITireExtractor.FrontLeft),
+                ToTire(ref sharedData, ITireExtractor.FrontRight)
             },
             new[]
             {
-                ToTire(ref sharedDataPhysics, ITireExtractor.RearLeft),
-                ToTire(ref sharedDataPhysics, ITireExtractor.RearRight)
+                ToTire(ref sharedData, ITireExtractor.RearLeft),
+                ToTire(ref sharedData, ITireExtractor.RearRight)
             }
         };
     }
 
-    private static Tire ToTire(ref Contrib.Data.SPageFilePhysics sharedDataPhysics, ITireExtractor extract)
+    private static Tire ToTire(ref Contrib.Data.Shared sharedData, ITireExtractor extract)
     {
+        var sharedDataPhysics = sharedData.Physics;
         return new Tire
         (
+            Compound: ToTireCompound(sharedData.Graphic.TyreCompound),
             Pressure: IPressure.FromPsi(extract.CurrentTire(ref sharedDataPhysics.WheelPressure)),
             Dirt: extract.CurrentTire(ref sharedDataPhysics.TyreDirtyLevel),
             Grip: 0.0, // TODO
@@ -377,6 +379,14 @@ internal class TelemetryConverter
             )
         );
     }
+
+    private static TireCompound ToTireCompound(string tyreCompound) =>
+        tyreCompound switch
+        {
+            "dry_compound" => TireCompound.Dry,
+            "wet_compound" => TireCompound.Wet,
+            _ => TireCompound.Unknown
+        };
 
     private interface ITireExtractor
     {

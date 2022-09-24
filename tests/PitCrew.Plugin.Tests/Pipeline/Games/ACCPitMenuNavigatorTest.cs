@@ -361,7 +361,6 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
     [Fact]
     public void SetTiresAppliesTheDifference()
     {
-        
         var gameTelemetryObservable = _testScheduler.CreateColdObservable(
             OnNext<IGameTelemetry>(TelemetryTicks, TelemetryWithTires(
                 tireSet: 0,

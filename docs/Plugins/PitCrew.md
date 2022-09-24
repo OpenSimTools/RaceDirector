@@ -49,18 +49,47 @@ connected clients. Currently there is no UI, so a WebSocket client or a
 from the same URL where the client is pushing telemetry to.
 
 The received telemetry messages look like this:
+
 ```json
 {
   "Telemetry": {
     "FuelLeftL": 12.34,
-    "TirePressuresKpa": {
-      "FrontLeft": 186.16,
-      "FrontRight": 184.78,
-      "RearLeft": 187.54,
-      "RearRight": 186.16
+    "TireSet": 1,
+    "FrontTires": {
+      "Compound": "Dry",
+      "Left": {
+        "PressureKpa": 186.16,
+        "Wear": 0.72
+      },
+      "Right": {
+        "PressureKpa": 184.78,
+        "Wear": 0.68
+      }
+    },
+    "RearTires": {
+      "Compound": "Dry",
+      "Left": {
+        "PressureKpa": 187.54,
+        "Wear": 0.71
+      },
+      "Right": {
+        "PressureKpa": 186.16,
+        "Wear": 0.70
+      }
     },
     "PitMenu": {
-      "FuelToAddL":56
+      "FuelToAddL": 56,
+      "TireSet": 2,
+      "FrontTires": {
+        "Compound": "Dry",
+        "LeftPressureKpa": 182.13,
+        "RightPressureKpa": 180.75
+      },
+      "RearTires": {
+        "Compound": "Dry",
+        "LeftPressureKpa": 183.51,
+        "RightPressureKpa": 182.13
+      }
     }
   }
 }
@@ -71,12 +100,14 @@ The same connection can be used to set the pit strategy in game by sending a mes
 {
   "PitStrategyRequest": {
     "FuelToAddL": 42,
-    "TireSet": 1,
+    "TireSet": 3,
     "FrontTires": {
+      "Compound": "Dry",
       "LeftPressureKpa": 182.13,
       "RightPressureKpa": 180.75
     },
     "RearTires": {
+      "Compound": "Dry",
       "LeftPressureKpa": 183.51,
       "RightPressureKpa": 182.13
     }
@@ -84,8 +115,13 @@ The same connection can be used to set the pit strategy in game by sending a mes
 }
 ```
 
-Note:
- - Fields or combinations not supported by the game will be ignored. Depending on game or racing series, it might not be possible to change only tyres on one axle.
+ - Depending on game or racing series, it might not be possible to change only tyres on one axle,
+   have different compounds, etc. Fields or combinations not supported by the game will fail to
+   configure the pit menu.
  - If `FuelToAddL` is not present or 0, the car will not be refuelled.
- - If `TireSet` is not present or is the current one, tires will not be changed.
- - If `FrontTires` or `RearTires` are not present, tires on that axle will not be changed.
+ - If `Tires` is not present, tires will not be changed.
+   - If `Set` is not present, the default will be used.
+   - If `Front` or `Rear` is present, tires on that axle will be changed.
+     - If `Compound` is not present, it will use the current one.
+     - If `LeftPressureKpa` or `RightPressureKpa` are not present, it will try to use the default
+       ones and might produce unexpected behaviours in some games.

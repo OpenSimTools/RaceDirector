@@ -58,8 +58,8 @@ public static class Codec
         Decode = JsonDecode<TD>()
     };
     
-    public static Encode<T> JsonEncode<T>() => t => JsonSerializer.SerializeToUtf8Bytes(t);
-    public static Decode<T> JsonDecode<T>() => payload => JsonSerializer.Deserialize<T>(payload.Span)!;
+    public static Encode<T> JsonEncode<T>(JsonSerializerOptions? options = null) => t => JsonSerializer.SerializeToUtf8Bytes(t, options);
+    public static Decode<T> JsonDecode<T>(JsonSerializerOptions? options = null) => payload => JsonSerializer.Deserialize<T>(payload.Span, options)!;
 
     public static Codec<Nothing, JsonDocument> JsonDocument = new()
     {

@@ -798,7 +798,8 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ITire
         {
-            // Compound
+            TireCompound Compound { get; }
+
             IPressure Pressure { get; }
 
             double Dirt { get; } // [0,1] where 0 = no dirt
@@ -810,6 +811,13 @@ namespace RaceDirector.Pipeline.Telemetry
             ITemperaturesMatrix Temperatures { get; } // [[L,C,R]] not [[I,C,O]], when more layers (rF2) [Thread,...,Carcass]
 
             ITemperaturesSingle BrakeTemperatures { get; }
+        }
+
+        public enum TireCompound
+        {
+            Unknown,
+            Dry,
+            Wet
         }
 
         public interface ITemperaturesSingle

@@ -1,4 +1,6 @@
-﻿namespace RaceDirector.PitCrew.Protocol;
+﻿using RaceDirector.Pipeline.Telemetry.V0;
+
+namespace RaceDirector.PitCrew.Protocol;
 
 public record PitCrewMessage
 (
@@ -9,26 +11,38 @@ public record PitCrewMessage
 public record Telemetry
 (
     double FuelLeftL,
-    TireValues<double>? TirePressuresKpa,
+    uint? TireSet,
+    TelemetryTireAxle? FrontTires,
+    TelemetryTireAxle? RearTires,
     PitMenu PitMenu
 );
 
-public record TireValues<T>(T FrontLeft, T FrontRight, T RearLeft, T RearRight);
-
-public record PitMenu
+public record TelemetryTireAxle
 (
+    TireCompound Compound, 
+    TelemetryTire Left,
+    TelemetryTire Right
+);
+
+public record TelemetryTire
+(
+    double? PressureKpa,
+    double Wear
+);
+
+public record PitMenu(
     double? FuelToAddL,
     uint? TireSet,
     PitMenuTires? FrontTires,
     PitMenuTires? RearTires
 ) : IPitStrategyRequest
 {
-    IPitMenuTires? IPitStrategyRequest.FrontTires => FrontTires;
-    IPitMenuTires? IPitStrategyRequest.RearTires => RearTires;
-};
+    IPitStrategyTires? IPitStrategyRequest.FrontTires => FrontTires;
+    IPitStrategyTires? IPitStrategyRequest.RearTires => RearTires;
+}
 
 public record PitMenuTires(
-    // TODO Compound (some games and series allow different compounds per axle)
+    TireCompound Compound,
     double? LeftPressureKpa,
     double? RightPressureKpa
-) : IPitMenuTires;
+) : IPitStrategyTires;

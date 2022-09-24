@@ -1,4 +1,6 @@
-﻿using RaceDirector.Pipeline.Telemetry.Physics;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Protocol;
 using RaceDirector.Remote.Networking;
@@ -12,17 +14,27 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
     {
     }
 
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        Converters =
+        {
+            new JsonStringEnumConverter()
+        }
+    };
+
     private static readonly Codec<IGameTelemetry, IPitStrategyRequest?> PitCrewCodec = new()
     {
-        Encode = Codec.JsonEncode<PitCrewMessage>().IgnoreNull().Select<IGameTelemetry, PitCrewMessage?>(TransformTelemetry),
-        Decode = Codec.JsonDecode<PitCrewMessage>().IgnoreErrors().Select<PitCrewMessage?, IPitStrategyRequest?>(m => m?.PitStrategyRequest)
+        Encode = Codec.JsonEncode<PitCrewMessage>(JsonSerializerOptions).IgnoreNull().Select<IGameTelemetry, PitCrewMessage?>(TransformTelemetry),
+        Decode = Codec.JsonDecode<PitCrewMessage>(JsonSerializerOptions).IgnoreErrors().Select<PitCrewMessage?, IPitStrategyRequest?>(m => m?.PitStrategyRequest)
     };
 
     private static PitCrewMessage? TransformTelemetry(IGameTelemetry gt) =>
         gt.Player is null ? null : new PitCrewMessage(
             Telemetry: new Telemetry(
                 FuelLeftL: gt.Player.Fuel.Left.L,
-                TirePressuresKpa: ToTyrePressureValues(gt.Player.Tires),
+                TireSet: gt.Player.TireSet,
+                FrontTires: ToTelemetryTireAxle(gt.Player.Tires, 0),
+                RearTires: ToTelemetryTireAxle(gt.Player.Tires, 1),
                 PitMenu: new PitMenu
                 (
                     FuelToAddL: gt.Player.PitMenu.FuelToAdd?.L,
@@ -34,17 +46,18 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
             PitStrategyRequest: null
         );
 
-    private static TireValues<double>? ToTyrePressureValues(ITire[][] playerTires)
+    private static TelemetryTireAxle? ToTelemetryTireAxle(ITire[][] playerTires, int index)
     {
         if (!IsTwoByTwo(playerTires))
             return null;
-        var fronts = playerTires[0];
-        var rears = playerTires[1];
-        return new TireValues<double>(
-            fronts[0].Pressure.Kpa,
-            fronts[1].Pressure.Kpa,
-            rears[0].Pressure.Kpa,
-            rears[1].Pressure.Kpa
+        var axle = playerTires[index];
+        var left = axle[0];
+        var right = axle[1];
+        var compound = left.Compound != right.Compound ? TireCompound.Unknown : left.Compound;
+        return new TelemetryTireAxle(
+            Compound: compound,
+            Left: new TelemetryTire(left.Pressure.Kpa, left.Wear),
+            Right: new TelemetryTire(right.Pressure.Kpa, right.Wear)
         );
     }
 
@@ -53,7 +66,11 @@ public class PitCrewClient : WsClient<IGameTelemetry, IPitStrategyRequest?>
         if (!IsTwoByTwo(tirePressures))
             return null;
         var axle = tirePressures[index];
-        return new PitMenuTires(axle[0].Kpa, axle[1].Kpa);
+        return new PitMenuTires(
+            Compound: TireCompound.Unknown,
+            LeftPressureKpa: axle[0].Kpa,
+            RightPressureKpa: axle[1].Kpa
+        );
     }
 
     private static bool IsTwoByTwo<T>(T[][] matrix) =>

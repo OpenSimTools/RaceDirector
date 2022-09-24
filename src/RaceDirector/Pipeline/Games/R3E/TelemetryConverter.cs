@@ -673,6 +673,7 @@ internal class TelemetryConverter
         var tireTemps = extract.CurrentTire(ref sharedData.TireTemp);
         var brakeTemps = extract.CurrentTire(ref sharedData.BrakeTemp);
         return new Tire(
+            Compound: TireCompound.Unknown, // TODO
             Pressure: IPressure.FromKpa(extract.CurrentTire(ref sharedData.TirePressure)),
             Dirt: extract.CurrentTire(ref sharedData.TireDirt),
             Grip: extract.CurrentTire(ref sharedData.TireGrip),

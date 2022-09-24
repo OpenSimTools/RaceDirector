@@ -287,6 +287,7 @@ public record VehicleDamage
 
 public record Tire
 (
+    TireCompound Compound,
     IPressure Pressure,
     double Dirt,
     double Grip,

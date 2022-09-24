@@ -1,14 +1,18 @@
-﻿namespace RaceDirector.PitCrew.Protocol;
+﻿using RaceDirector.Pipeline.Telemetry.V0;
+
+namespace RaceDirector.PitCrew.Protocol;
 
 public interface IPitStrategyRequest
 {
     double? FuelToAddL { get; }
     uint? TireSet { get; }
-    IPitMenuTires? FrontTires { get; }
-    IPitMenuTires? RearTires { get; }
+    IPitStrategyTires? FrontTires { get; }
+    IPitStrategyTires? RearTires { get; }
 }
 
-public interface IPitMenuTires {
+public interface IPitStrategyTires
+{
+    TireCompound Compound { get; }
     double? LeftPressureKpa { get; }
     double? RightPressureKpa { get; }
 }

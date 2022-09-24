@@ -1075,6 +1075,7 @@ public class R3EDashTransformerTest
                     new []
                     {
                         new Tire(
+                            Compound: TireCompound.Unknown,
                             Pressure: IPressure.FromKpa(1.0),
                             Dirt: 1.1,
                             Grip: 1.2,

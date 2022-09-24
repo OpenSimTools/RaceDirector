@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Reactive.Testing;
+using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Pipeline;
 using RaceDirector.PitCrew.Protocol;
 using RaceDirector.Remote.Networking;
@@ -31,6 +32,7 @@ public class PitCrewClientTest
                     ""FuelToAddL"": 1,
                     ""TireSet"": 2,
                     ""FrontTires"": {
+                      ""Compound"": ""Wet"",
                       ""LeftPressureKpa"": 3.1,
                       ""RightPressureKpa"": 3.2
                     },
@@ -48,8 +50,8 @@ public class PitCrewClientTest
                         (
                             FuelToAddL: 1,
                             TireSet: 2,
-                            FrontTires: new PitMenuTires(3.1, 3.2),
-                            RearTires: new PitMenuTires(4.1, 4.2)
+                            FrontTires: new PitMenuTires(TireCompound.Wet, 3.1, 3.2),
+                            RearTires: new PitMenuTires(TireCompound.Unknown, 4.1, 4.2)
                         )},
                         testObserver.ReceivedValues()
                     )

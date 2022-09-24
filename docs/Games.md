@@ -120,6 +120,7 @@
 | Player.VehicleDamage.EnginePercent                    | ✓       |             |
 | Player.VehicleDamage.SuspensionPercent                | ✓       |             |
 | Player.VehicleDamage.TransmissionPercent              | ✓       |             |
+| Player.Tyres[][].Compound                             |         | ✓           |
 | Player.Tyres[][].Pressure                             | ✓       | ✓           |
 | Player.Tyres[][].Dirt                                 | ✓       | ✓           |
 | Player.Tyres[][].Grip                                 | ✓       |             |
