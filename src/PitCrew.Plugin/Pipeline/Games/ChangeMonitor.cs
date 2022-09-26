@@ -1,5 +1,6 @@
 ﻿using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using RaceDirector.Reactive;
 
 namespace RaceDirector.PitCrew.Pipeline.Games;
 
@@ -50,9 +51,4 @@ public class ChangeMonitor<TIn, TOut>
         }
         return ret;
     }
-}
-
-public static class ChangeMonitor
-{
-
 }

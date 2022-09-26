@@ -7,6 +7,7 @@ using RaceDirector.Pipeline.GameMonitor.V0;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Pipeline.Games;
 using RaceDirector.PitCrew.Protocol;
+using RaceDirector.Reactive;
 
 namespace RaceDirector.PitCrew.Pipeline;
 
@@ -30,7 +31,7 @@ public class PitMenuNode : INode
         RunningGameObserver = runningGameSubject;
         GameTelemetryObserver = gameTelemetrySubject;
         GameActionObservable = pitStrategySubject
-            .SelectMany(pitStrategy =>
+            .SelectManyConcat(pitStrategy =>
                 PitMenuNavigator(runningGameSubject, pitMenuNavigators).SelectMany(navigator =>
                     navigator.SetStrategy(pitStrategy, gameTelemetrySubject, logger)
                 )

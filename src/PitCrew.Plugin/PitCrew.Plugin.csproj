@@ -10,7 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\DeviceIO.Interface\DeviceIO.Interface.csproj" />
     <ProjectReference Include="..\PitCrew.Interface\PitCrew.Interface.csproj" />
-    <ProjectReference Include="..\Remote.Plugin\Remote.Plugin.csproj" />
+    <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
+    <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
+    <ProjectReference Include="..\RaceDirector.Reactive\RaceDirector.Reactive.csproj" />
+    <ProjectReference Include="..\Remote.Networking\Remote.Networking.csproj" />
   </ItemGroup>
 
 </Project>
