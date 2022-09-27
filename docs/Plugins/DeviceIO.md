@@ -24,7 +24,7 @@ configuration can be decreased to values around 5ms (see below).
       "PitMenuRight": "{RIGHT}",
       "PitMenuSelect": ""
     },
-    "WaitBetweenKeys": "00:00:00.005"
+    "WaitBetweenKeys": "00:00:00.015"
   }
 }
 ```

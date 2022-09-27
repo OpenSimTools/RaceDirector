@@ -110,7 +110,9 @@ public class PitMenuNodeTest : ReactiveTest
 
         node.GameActionObservable.Subscribe(gameActionObserver);
         pitStrategyObservable.Subscribe(node.PitStrategyObserver);
-        Observable.Return(new RunningGame(_testGameName)).Subscribe(node.RunningGameObserver);
+        Observable.Return(new RunningGame(_testGameName))
+            .Concat(Observable.Never<RunningGame>()) // This is an endless stream!
+            .Subscribe(node.RunningGameObserver);
 
         _testScheduler.Start();
 

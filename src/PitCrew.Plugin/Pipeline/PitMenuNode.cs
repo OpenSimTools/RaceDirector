@@ -13,6 +13,8 @@ namespace RaceDirector.PitCrew.Pipeline;
 
 public class PitMenuNode : INode
 {
+    private readonly IEnumerable<IGamePitMenuNavigator> _pitMenuNavigators;
+
     public IObserver<IPitStrategyRequest> PitStrategyObserver { get; }
 
     public IObserver<IRunningGame> RunningGameObserver { get; }
@@ -23,25 +25,26 @@ public class PitMenuNode : INode
 
     public PitMenuNode(IEnumerable<IGamePitMenuNavigator> pitMenuNavigators, ILogger<PitMenuNode> logger)
     {
+        _pitMenuNavigators = pitMenuNavigators;
+
         var pitStrategySubject = new Subject<IPitStrategyRequest>();
         var gameTelemetrySubject = new ReplaySubject<IGameTelemetry>(1);
         var runningGameSubject = new ReplaySubject<IRunningGame>(1);
+        var pitMenuNavigatorObservable = runningGameSubject.Select(PitMenuNavigator);
 
         PitStrategyObserver = pitStrategySubject;
         RunningGameObserver = runningGameSubject;
         GameTelemetryObserver = gameTelemetrySubject;
         GameActionObservable = pitStrategySubject
-            .SelectManyConcat(pitStrategy =>
-                PitMenuNavigator(runningGameSubject, pitMenuNavigators).SelectMany(navigator =>
+            .SelectManyConcat(pitStrategy => 
+                pitMenuNavigatorObservable.Take(1).SelectMany(navigator =>
                     navigator.ApplyStrategy(pitStrategy, gameTelemetrySubject, logger)
                 )
             );
     }
     
-    private IObservable<IGamePitMenuNavigator> PitMenuNavigator(IObservable<IRunningGame> runningGameObservable,
-        IEnumerable<IGamePitMenuNavigator> pitMenuNavigators) =>
-        runningGameObservable.Select(runningGame =>
-            pitMenuNavigators.Where(_ => _.GameName.Equals(runningGame.Name)).SingleOrDefault(new NullPitMenuNavigator()));
+    private IGamePitMenuNavigator PitMenuNavigator(IRunningGame runningGame) =>
+        _pitMenuNavigators.Where(_ => _.GameName.Equals(runningGame.Name)).SingleOrDefault(new NullPitMenuNavigator());
     
     private class NullPitMenuNavigator : IGamePitMenuNavigator
     {

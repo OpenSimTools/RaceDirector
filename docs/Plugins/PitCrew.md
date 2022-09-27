@@ -32,8 +32,8 @@ The only necessary configuration is the `ServerUrl`. Other parameters have sensi
 - `MaxMenuNavigationWait` is needed because some games don't expose the selected item in the pit
    menu and we need to use some heuristics to guess where we are. This parameter determines the
    maximum time that we'll wait for a change before assuming that nothing observable happened.
-   It is important for this value to be large enough to be able to see some telemetry data
-   (at least double the `PollingInterval` for the game).
+   It is important for this value to be large enough to be able to see some telemetry data.
+   By default it is set to 300ms, with `PollingInterval` and `WaitBetweenKeys` both being 15ms.
 
 PitCrew relies on the [DeviceIO plugin](DeviceIO.md) to control the pit menu. Make sure that it
 is configured correctly.
