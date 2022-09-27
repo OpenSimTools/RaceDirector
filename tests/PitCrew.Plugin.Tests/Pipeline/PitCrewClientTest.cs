@@ -15,7 +15,7 @@ namespace PitCrew.Plugin.Tests.Pipeline;
 [IntegrationTest]
 public class PitCrewClientTest
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(1000);
+    private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(500);
 
     [Fact]
     public void ReceivesPitStrategyFromClients()

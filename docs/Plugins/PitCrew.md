@@ -16,7 +16,7 @@ the server endpoint. This can be done in the dedicated section of `application.c
     "Enabled": true,
     "ServerUrl": "ws://myserver:8042/",
     "TelemetryThrottling": "00:00:01.000",
-    "MaxMenuNavigationWait": "00:00:00.100"
+    "MaxMenuNavigationWait": "00:00:00.300"
   }
 }
 ```
@@ -28,12 +28,12 @@ It can also be overridden via the command line:
 ```
 
 The only necessary configuration is the `ServerUrl`. Other parameters have sensible defaults:
-- `TelemetryThrottling` is the maximum frequency that the client will send telemetry to the server.
+- `TelemetryThrottling` is how frequently the client will send telemetry to the server.
 - `MaxMenuNavigationWait` is needed because some games don't expose the selected item in the pit
    menu and we need to use some heuristics to guess where we are. This parameter determines the
    maximum time that we'll wait for a change before assuming that nothing observable happened.
-   It is important for this value to be large enough to be able to see some telemetry data.
-   By default it is set to 300ms, with `PollingInterval` and `WaitBetweenKeys` both being 15ms.
+   It is important for this value to be large enough to see some telemetry data. By default it
+   is set to 300ms, with `PollingInterval` and `WaitBetweenKeys` both 15ms.
 
 PitCrew relies on the [DeviceIO plugin](DeviceIO.md) to control the pit menu. Make sure that it
 is configured correctly.
