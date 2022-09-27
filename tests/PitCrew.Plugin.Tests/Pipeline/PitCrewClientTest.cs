@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Reactive.Testing;
+using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Pipeline;
 using RaceDirector.PitCrew.Protocol;
 using RaceDirector.Remote.Networking;
@@ -25,11 +26,33 @@ public class PitCrewClientTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest?>();
             pitCrewClient.In.Subscribe(testObserver);
 
-            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2}}");
+            testServer.WsMulticastAsync(
+                @"{
+                  ""PitStrategyRequest"": {
+                    ""FuelToAddL"": 1,
+                    ""TireSet"": 2,
+                    ""FrontTires"": {
+                      ""Compound"": ""Wet"",
+                      ""LeftPressureKpa"": 3.1,
+                      ""RightPressureKpa"": 3.2
+                    },
+                    ""RearTires"": {
+                      ""LeftPressureKpa"": 4.1,
+                      ""RightPressureKpa"": 4.2
+                    }
+                  }
+                }"
+            );
 
             EventuallyAssertion.Eventually(() =>
                     Assert.Equal(
-                        new [] { new PitStrategyRequest(2) },
+                        new [] { new PitMenu
+                        (
+                            FuelToAddL: 1,
+                            TireSet: 2,
+                            FrontTires: new PitMenuTires(TireCompound.Wet, 3.1, 3.2),
+                            RearTires: new PitMenuTires(TireCompound.Unknown, 4.1, 4.2)
+                        )},
                         testObserver.ReceivedValues()
                     )
                 )
@@ -46,11 +69,11 @@ public class PitCrewClientTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest?>();
             pitCrewClient.In.Subscribe(testObserver);
 
-            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":true}}");
+            testServer.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAddL\":true}}");
 
             EventuallyAssertion.Eventually(() =>
                     Assert.Equal(
-                        new PitStrategyRequest?[] { null },
+                        new PitMenu?[] { null },
                         testObserver.ReceivedValues()
                     )
                 )
@@ -70,7 +93,7 @@ public class PitCrewClientTest
         }, NullLogger.Instance);
         Assert.True(testServer.Start());
 
-        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}");
+        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}", TimeSpan.Zero);
         Assert.True(pitCrewClient.Connect());
         pitCrewClient.Connected.Wait(Timeout);
 

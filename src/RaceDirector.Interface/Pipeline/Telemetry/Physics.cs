@@ -260,3 +260,41 @@ public interface ICapacity
 
     public record CapacityLiters(double L) : ICapacity;
 }
+
+public interface IPressure
+{
+    double Psi { get; }
+    double Kpa { get; }
+    double Bar { get; }
+
+    static IPressure FromPsi(double value) => new PressurePsi(value);
+    static IPressure FromKpa(double value) => new PressureKpa(value);
+    static IPressure FromBar(double value) => new PressureBar(value);
+
+    public record PressurePsi(double Psi) : IPressure
+    {
+        public static readonly double PsiToKpaRatio = 6.894757;
+        public static readonly double PsiToBarRatio = PsiToKpaRatio * PressureBar.BarToKpaRatio;
+
+        public double Kpa => Psi * PsiToKpaRatio;
+        public double Bar => Psi * PsiToKpaRatio;
+    }
+
+    public record PressureKpa(double Kpa) : IPressure
+    {
+        public static readonly double KpaToPsiRatio = 1 / PressurePsi.PsiToKpaRatio;
+        public static readonly double KapToBarRatio = 1 / PressureBar.BarToKpaRatio;
+
+        public double Psi => Kpa * KpaToPsiRatio;
+        public double Bar => Kpa * KapToBarRatio;
+    }
+
+    public record PressureBar(double Bar) : IPressure
+    {
+        public static readonly double BarToPsiRatio = 1 / PressurePsi.PsiToBarRatio;
+        public static readonly double BarToKpaRatio = 100;
+
+        public double Psi => Bar * BarToPsiRatio;
+        public double Kpa => Bar * BarToKpaRatio;
+    }
+}

@@ -7,9 +7,11 @@ public class SyncWsClient<TOut, TIn> : WsClient<TOut, TIn>
     private readonly BlockingCollection<TIn> _received;
     private readonly TimeSpan _timeout;
 
-    public SyncWsClient(string uri, Codec<TOut, TIn> codec, TimeSpan timeout) : this(new Uri(uri), codec, timeout) { }
+    public SyncWsClient(string uri, Codec<TOut, TIn> codec, TimeSpan timeout) : this(new Uri(uri), codec, TimeSpan.Zero, timeout) { }
+    
+    public SyncWsClient(string uri, Codec<TOut, TIn> codec, TimeSpan throttling, TimeSpan timeout) : this(new Uri(uri), codec, throttling, timeout) { }
 
-    public SyncWsClient(Uri uri, Codec<TOut, TIn> codec, TimeSpan timeout) : base(uri, codec)
+    public SyncWsClient(Uri uri, Codec<TOut, TIn> codec, TimeSpan throttling, TimeSpan timeout) : base(uri, codec, throttling)
     {
         _received = new BlockingCollection<TIn>();
         _timeout = timeout;
@@ -28,5 +30,7 @@ public class SyncWsClient<TOut, TIn> : WsClient<TOut, TIn>
         return body;
     }
 
-    public bool NextIsAvailable() => _received.Count > 0;
+    public bool NextIsAvailable() => Available() > 0;
+
+    public int Available() => _received.Count;
 }

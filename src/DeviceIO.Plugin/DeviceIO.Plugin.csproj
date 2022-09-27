@@ -12,6 +12,7 @@
         <ProjectReference Include="..\DeviceIO.Interface\DeviceIO.Interface.csproj" />
         <ProjectReference Include="..\RaceDirector.Interface\RaceDirector.Interface.csproj" />
         <ProjectReference Include="..\RaceDirector.Plugin\RaceDirector.Plugin.csproj" />
+        <ProjectReference Include="..\RaceDirector.Reactive\RaceDirector.Reactive.csproj" />
     </ItemGroup>
 
     <ItemGroup>

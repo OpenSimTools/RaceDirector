@@ -639,6 +639,8 @@ namespace RaceDirector.Pipeline.Telemetry
             IVehicleDamage VehicleDamage { get; }
 
             ITire[][] Tires { get; } // [[FL,FR],[RL,RR]]
+            
+            uint? TireSet { get; }
 
             IFuel Fuel { get; }
 
@@ -796,8 +798,10 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ITire
         {
-            // Compound
-            // Pressure
+            TireCompound Compound { get; }
+
+            IPressure Pressure { get; }
+
             double Dirt { get; } // [0,1] where 0 = no dirt
 
             double Grip { get; } // [0,1] where 0 = no grip, 1 = max grip
@@ -807,6 +811,13 @@ namespace RaceDirector.Pipeline.Telemetry
             ITemperaturesMatrix Temperatures { get; } // [[L,C,R]] not [[I,C,O]], when more layers (rF2) [Thread,...,Carcass]
 
             ITemperaturesSingle BrakeTemperatures { get; }
+        }
+
+        public enum TireCompound
+        {
+            Unknown,
+            Dry,
+            Wet
         }
 
         public interface ITemperaturesSingle
@@ -822,7 +833,7 @@ namespace RaceDirector.Pipeline.Telemetry
 
         public interface ITemperaturesMatrix
         {
-            ITemperature[][] CurrentTemperatures { get; }
+            ITemperature[][] CurrentTemperatures { get; } // TODO specify what this array means
 
             ITemperature OptimalTemperature { get; }
 
@@ -901,8 +912,10 @@ namespace RaceDirector.Pipeline.Telemetry
         {
             PitMenuFocusedItem FocusedItem { get; }
             PitMenuSelectedItems SelectedItems { get; }
-            
             ICapacity? FuelToAdd { get; }
+            uint? StrategyTireSet { get; }
+            uint? TireSet { get; }
+            IPressure[][] TirePressures { get; }
         }
 
         public enum PitMenuFocusedItem

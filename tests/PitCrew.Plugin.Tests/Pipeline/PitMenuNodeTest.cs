@@ -98,7 +98,7 @@ public class PitMenuNodeTest : ReactiveTest
         pitMenuNavigatorMock
             .SetupGet(_ => _.GameName).Returns(_testGameName);
         pitMenuNavigatorMock
-            .Setup(_ => _.SetStrategy(psr,
+            .Setup(_ => _.ApplyStrategy(psr,
                 It.IsAny<IObservable<IGameTelemetry>>(), It.IsAny<ILogger>()))
             .Returns(_testScheduler.CreateColdObservable(
                 OnNext(7, GameAction.PitMenuUp),
@@ -110,7 +110,9 @@ public class PitMenuNodeTest : ReactiveTest
 
         node.GameActionObservable.Subscribe(gameActionObserver);
         pitStrategyObservable.Subscribe(node.PitStrategyObserver);
-        Observable.Return(new RunningGame(_testGameName)).Subscribe(node.RunningGameObserver);
+        Observable.Return(new RunningGame(_testGameName))
+            .Concat(Observable.Never<RunningGame>()) // This is an endless stream!
+            .Subscribe(node.RunningGameObserver);
 
         _testScheduler.Start();
 

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using RaceDirector.Pipeline.Telemetry.V0;
-using RaceDirector.Pipeline.Utils;
+using RaceDirector.Reactive;
 
 namespace RaceDirector.Pipeline.Telemetry;
 
@@ -31,7 +31,7 @@ public sealed class TelemetryReaderNode : INode, IDisposable
             .Concat(telemetryObservableFactories
                 .FirstOrDefault(tsf => tsf.GameName.Equals(runningGame.Name))
                 ?.CreateTelemetryObservable()
-            ?? Observable.Empty<V0.IGameTelemetry>());
+            ?? Observable.Empty<IGameTelemetry>());
     }
 
     public void Dispose()

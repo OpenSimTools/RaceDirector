@@ -199,6 +199,7 @@ public record Player
     VehicleSettings VehicleSettings,
     VehicleDamage VehicleDamage,
     Tire[][] Tires,
+    uint? TireSet,
     Fuel Fuel,
     Engine Engine,
     Vector3<IDistance> CgLocation,
@@ -286,6 +287,8 @@ public record VehicleDamage
 
 public record Tire
 (
+    TireCompound Compound,
+    IPressure Pressure,
     double Dirt,
     double Grip,
     double Wear,
@@ -367,7 +370,10 @@ public record PitMenu
 (
     PitMenuFocusedItem FocusedItem,
     PitMenuSelectedItems SelectedItems,
-    ICapacity? FuelToAdd
+    ICapacity? FuelToAdd,
+    uint? StrategyTireSet,
+    uint? TireSet,
+    IPressure[][] TirePressures
 ) : IPitMenu;
 
 public static class DistanceFraction

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NetCoreServer;
 
@@ -31,14 +32,19 @@ public class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
 
     public event MessageHandler<TIn>? MessageHandler;
 
-    public WsClient(string uri, Codec<TOut, TIn> codec) : this(new Uri(uri), codec) { }
+    public WsClient(string uri, Codec<TOut, TIn> codec) : this(uri, codec, TimeSpan.Zero) { }
+    
+    public WsClient(string uri, Codec<TOut, TIn> codec, TimeSpan throttling) : this(new Uri(uri), codec, throttling) { }
+
+    public WsClient(Uri uri, Codec<TOut, TIn> codec) : this(uri, codec, TimeSpan.Zero) { }
 
     /// <summary>
     /// Initialises a WebSocket client, without connecting.
     /// </summary>
     /// <param name="uri">Server URI with host, port and path.</param>
     /// <param name="codec">Encoder/decoder to/from binary messages.</param>
-    public WsClient(Uri uri, Codec<TOut, TIn> codec)
+    /// <param name="throttling">Throttling of outgoing streamed messages.</param>
+    public WsClient(Uri uri, Codec<TOut, TIn> codec, TimeSpan throttling)
     {
         if (uri.Scheme != Uri.UriSchemeWs)
             throw new NotSupportedException($"Protocol {uri.Scheme} is not supported. Use {Uri.UriSchemeWs} instead.");
@@ -47,10 +53,15 @@ public class WsClient<TOut, TIn> : IWsClient<TOut, TIn>
         _connectedCompletionSource = new TaskCompletionSource();
         _path = uri.AbsolutePath;
 
-        var subject = new Subject<TIn>();
-        MessageHandler += i => subject.OnNext(i);
-        In = subject;
-        Out = Observer.Create<TOut>(_ => WsSendAsync(_));
+        var inSubject = new Subject<TIn>();
+        MessageHandler += i => inSubject.OnNext(i);
+        In = inSubject;
+        
+        var outSubject = new Subject<TOut>();
+        // Zero throttling might still do some throttling, according to the docs.
+        (throttling != TimeSpan.Zero ? outSubject.Sample(throttling) : outSubject)
+            .Subscribe(Observer.Create<TOut>(_ => WsSendAsync(_)));
+        Out = outSubject;
     }
 
     private InnerClient CreateInnerClient(Uri uri)

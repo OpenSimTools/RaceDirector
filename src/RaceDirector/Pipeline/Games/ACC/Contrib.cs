@@ -405,38 +405,38 @@ public static class Contrib
         [Serializable]
         public struct Wheels<T>
         {
-            T FL;
-            T FR;
-            T RL;
-            T RR;
+            public T FL;
+            public T FR;
+            public T RL;
+            public T RR;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         [Serializable]
         public struct Coords
         {
-            float X;
-            float Y;
-            float Z;
+            public float X;
+            public float Y;
+            public float Z;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         [Serializable]
         public struct Damage
         {
-            float Front;
-            float Rear;
-            float Left;
-            float Right;
-            float Center;
+            public float Front;
+            public float Rear;
+            public float Left;
+            public float Right;
+            public float Center;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         [Serializable]
         public struct RideHeight
         {
-            float Front;
-            float Rear;
+            public float Front;
+            public float Rear;
         }
     }
 }

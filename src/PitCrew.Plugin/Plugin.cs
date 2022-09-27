@@ -12,13 +12,15 @@ public class Plugin : PluginBase<Plugin.Configuration>
     public class Configuration : PluginBase.Config
     {
         public string ServerUrl { get; set; } = null!;
+        public TimeSpan TelemetryThrottling { get; set; } = TimeSpan.Zero;
+        public TimeSpan MaxMenuNavigationWait { get; set; } = TimeSpan.Zero;
     }
 
     protected override void Init(Configuration configuration, IServiceCollection services)
     {
         services
-            .AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl))
-            .AddSingletonWithInterfaces<ACCPitMenuNavigator>()
+            .AddSingletonWithInterfaces(_ => new PitCrewClient(configuration.ServerUrl, configuration.TelemetryThrottling))
+            .AddSingletonWithInterfaces(_ => new ACCPitMenuNavigator(configuration.MaxMenuNavigationWait))
             .AddSingletonWithInterfaces<R3EPitMenuNavigator>()
             .AddSingletonWithInterfaces<PitCrewNode>()
             .AddSingletonWithInterfaces<PitMenuNode>();

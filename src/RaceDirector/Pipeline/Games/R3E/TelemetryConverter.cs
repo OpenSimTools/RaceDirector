@@ -530,6 +530,7 @@ internal class TelemetryConverter
                 TransmissionPercent: sharedData.CarDamage.Transmission
             ),
             Tires: ToTires(ref sharedData),
+            TireSet: null,
             Fuel: new Fuel
             (
                 Max: ICapacity.FromL(sharedData.FuelCapacity),
@@ -579,7 +580,10 @@ internal class TelemetryConverter
             (
                 FocusedItem: ToFocusedItem(sharedData.PitMenuSelection),
                 SelectedItems: ToSelectedItems(sharedData.PitMenuState),
-                FuelToAdd: null
+                FuelToAdd: null,
+                StrategyTireSet: null,
+                TireSet: null,
+                TirePressures: Array.Empty<IPressure[]>()
             )
         );
     }
@@ -653,13 +657,13 @@ internal class TelemetryConverter
         {
             new[]
             {
-                ToTire(ref sharedData, new ITireExtractor.FrontLeft()),
-                ToTire(ref sharedData, new ITireExtractor.FrontRight())
+                ToTire(ref sharedData, ITireExtractor.FrontLeft),
+                ToTire(ref sharedData, ITireExtractor.FrontRight)
             },
             new[]
             {
-                ToTire(ref sharedData, new ITireExtractor.RearLeft()),
-                ToTire(ref sharedData, new ITireExtractor.RearRight())
+                ToTire(ref sharedData, ITireExtractor.RearLeft),
+                ToTire(ref sharedData, ITireExtractor.RearRight)
             }
         };
     }
@@ -669,6 +673,8 @@ internal class TelemetryConverter
         var tireTemps = extract.CurrentTire(ref sharedData.TireTemp);
         var brakeTemps = extract.CurrentTire(ref sharedData.BrakeTemp);
         return new Tire(
+            Compound: TireCompound.Unknown, // TODO
+            Pressure: IPressure.FromKpa(extract.CurrentTire(ref sharedData.TirePressure)),
             Dirt: extract.CurrentTire(ref sharedData.TireDirt),
             Grip: extract.CurrentTire(ref sharedData.TireGrip),
             Wear: extract.CurrentTire(ref sharedData.TireWear),
@@ -699,24 +705,29 @@ internal class TelemetryConverter
 
     private interface ITireExtractor
     {
+        static ITireExtractor FrontLeft = new FrontLeftExtractor();
+        static ITireExtractor FrontRight = new FrontRightExtractor();
+        static ITireExtractor RearLeft = new RearLeftExtractor();
+        static ITireExtractor RearRight = new RearRightExtractor();
+
         T CurrentTire<T>(ref Contrib.Data.TireData<T> outer);
 
-        class FrontLeft : ITireExtractor
+        private class FrontLeftExtractor: ITireExtractor
         {
             T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.FrontLeft;
         }
 
-        class FrontRight : ITireExtractor
+        private class FrontRightExtractor : ITireExtractor
         {
             T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.FrontRight;
         }
 
-        class RearLeft : ITireExtractor
+        private class RearLeftExtractor : ITireExtractor
         {
             T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.RearLeft;
         }
 
-        class RearRight : ITireExtractor
+        private class RearRightExtractor : ITireExtractor
         {
             T ITireExtractor.CurrentTire<T>(ref Contrib.Data.TireData<T> outer) => outer.RearRight;
         }

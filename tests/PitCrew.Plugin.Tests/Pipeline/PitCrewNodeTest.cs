@@ -8,6 +8,7 @@ using RaceDirector.Remote.Networking.Server;
 using TestUtils;
 using Xunit;
 using Xunit.Categories;
+using static TestUtils.EventuallyAssertion;
 
 namespace PitCrew.Plugin.Tests.Pipeline;
 
@@ -25,11 +26,17 @@ public class PitCrewNodeTest
             var testObserver = testScheduler.CreateObserver<IPitStrategyRequest>();
             node.PitStrategyObservable.Subscribe(testObserver);
 
-            server.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAdd\":2}}");
+            server.WsMulticastAsync("{\"PitStrategyRequest\": {\"FuelToAddL\":2}}");
 
-            EventuallyAssertion.Eventually(() =>
+            Eventually(() =>
                     Assert.Equal(
-                        new [] { new PitStrategyRequest(2) },
+                        new [] { new PitMenu
+                        (
+                            FuelToAddL: 2,
+                            TireSet: null,
+                            FrontTires: null,
+                            RearTires: null
+                        )},
                         testObserver.ReceivedValues()
                     )
                 )
@@ -47,7 +54,7 @@ public class PitCrewNodeTest
         }, NullLogger.Instance);
         Assert.True(testServer.Start());
 
-        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}");
+        using var pitCrewClient = new PitCrewClient($"ws://{IPAddress.Loopback}:{serverPort}", TimeSpan.Zero);
         var node = new PitCrewNode(pitCrewClient);
         // This would be done by the Remote.Networking plugin
         Assert.True(pitCrewClient.Connect());

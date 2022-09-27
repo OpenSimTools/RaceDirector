@@ -29,11 +29,15 @@ pointed to https://sector3studios.github.io/webhud/dist/.
 
 Alternatively, the telemetry can be seen connecting to the WebSocket port
 (`ws://localhost:8070/r3e`) using a client or a
-[Web browser test page](http://livepersoninc.github.io/ws-test-page/)):
-```json lines
-{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
-{"VersionMajor":2,"VersionMinor":8,"GameInMenus":1,...}
-...
+[Web browser test page](http://livepersoninc.github.io/ws-test-page/)).
+Messages will look like this:
+```json
+{
+  "VersionMajor":2,
+  "VersionMinor":8,
+  "GameInMenus":1,
+  ...
+}
 ```
 
 ## Protocols
@@ -325,10 +329,10 @@ It is an alternative to [RaceRoom's Dash](https://github.com/sector3studios/webh
 | TireFlatspot.FrontRight | |
 | TireFlatspot.RearLeft | |
 | TireFlatspot.RearRight | |
-| TirePressure.FrontLeft | |
-| TirePressure.FrontRight | |
-| TirePressure.RearLeft | |
-| TirePressure.RearRight | |
+| TirePressure.FrontLeft | ✓ |
+| TirePressure.FrontRight | ✓ |
+| TirePressure.RearLeft | ✓ |
+| TirePressure.RearRight | ✓ |
 | TireDirt.FrontLeft | ✓ |
 | TireDirt.FrontRight | ✓ |
 | TireDirt.RearLeft | ✓ |
