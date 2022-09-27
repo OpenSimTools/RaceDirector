@@ -33,7 +33,7 @@ public class PitMenuNode : INode
         GameActionObservable = pitStrategySubject
             .SelectManyConcat(pitStrategy =>
                 PitMenuNavigator(runningGameSubject, pitMenuNavigators).SelectMany(navigator =>
-                    navigator.SetStrategy(pitStrategy, gameTelemetrySubject, logger)
+                    navigator.ApplyStrategy(pitStrategy, gameTelemetrySubject, logger)
                 )
             );
     }
@@ -47,7 +47,7 @@ public class PitMenuNode : INode
     {
         public string GameName => throw new NotSupportedException();
 
-        public IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gto, ILogger logger)
+        public IObservable<GameAction> ApplyStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gto, ILogger logger)
         {
             logger.LogWarning("This game does not support setting pit strategies");
             return Observable.Empty<GameAction>();

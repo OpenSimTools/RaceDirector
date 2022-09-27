@@ -33,7 +33,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToFuel(replySubject)
+            _pmn.GoToFuel(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -58,7 +58,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToFuel(replySubject)
+            _pmn.GoToFuel(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -85,7 +85,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToFuel(replySubject)
+            _pmn.GoToFuel(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -180,7 +180,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToKnownTireState(replySubject)
+            _pmn.GoToKnownTireState(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -203,7 +203,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToKnownTireState(replySubject)
+            _pmn.GoToKnownTireState(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -229,7 +229,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToKnownTireState(replySubject)
+            _pmn.GoToKnownTireState(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -257,7 +257,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         gameTelemetryObservable.Subscribe(replySubject);
 
         _testScheduler.Start(() =>
-            _pmn.GoToKnownTireState(replySubject)
+            _pmn.GoToKnownTireState(replySubject, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
@@ -282,7 +282,7 @@ public class ACCPitMenuNavigatorTest : ReactiveTest
         );
 
         _testScheduler.Start(() =>
-            _pmn.GoToKnownTireState(gameTelemetryObservable)
+            _pmn.GoToKnownTireState(gameTelemetryObservable, NullLogger.Instance)
         ).Messages.AssertEqual(
             OnNext(Subscribed + 0, GameAction.PitMenuDown),
             OnNext(Subscribed + 0, GameAction.PitMenuDown),

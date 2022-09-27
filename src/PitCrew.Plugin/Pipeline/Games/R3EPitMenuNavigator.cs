@@ -11,7 +11,7 @@ public class R3EPitMenuNavigator : IGamePitMenuNavigator
 {
     public string GameName => Names.R3E;
 
-    public IObservable<GameAction> SetStrategy(IPitStrategyRequest psr,
+    public IObservable<GameAction> ApplyStrategy(IPitStrategyRequest psr,
         IObservable<IGameTelemetry> gto, ILogger logger)
     {
         // TODO SendKeys doesn't work in RaceRoom and we can't verify it until we implement an alternative

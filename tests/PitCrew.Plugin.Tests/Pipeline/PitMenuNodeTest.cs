@@ -98,7 +98,7 @@ public class PitMenuNodeTest : ReactiveTest
         pitMenuNavigatorMock
             .SetupGet(_ => _.GameName).Returns(_testGameName);
         pitMenuNavigatorMock
-            .Setup(_ => _.SetStrategy(psr,
+            .Setup(_ => _.ApplyStrategy(psr,
                 It.IsAny<IObservable<IGameTelemetry>>(), It.IsAny<ILogger>()))
             .Returns(_testScheduler.CreateColdObservable(
                 OnNext(7, GameAction.PitMenuUp),

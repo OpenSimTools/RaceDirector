@@ -6,6 +6,7 @@ using RaceDirector.Pipeline.Games;
 using RaceDirector.Pipeline.Telemetry.Physics;
 using RaceDirector.Pipeline.Telemetry.V0;
 using RaceDirector.PitCrew.Protocol;
+using RaceDirector.Reactive;
 
 namespace RaceDirector.PitCrew.Pipeline.Games;
 
@@ -22,23 +23,28 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
         _schedulerOverride = schedulerOverride;
     }
 
-    public IObservable<GameAction> SetStrategy(IPitStrategyRequest psr,
+    public IObservable<GameAction> ApplyStrategy(IPitStrategyRequest psr,
         IObservable<IGameTelemetry> gto, ILogger logger) =>
         Observable.Return(GameAction.PitMenuOpen)
-            .Concat(GoToFuel(gto))
+            .Concat(GoToFuel(gto, logger))
             .Concat(SetFuel(psr.FuelToAddL, gto, logger))
-            .Concat(GoToKnownTireState(gto))
+            .Concat(GoToKnownTireState(gto, logger))
             .Concat(SetTires(psr, gto, logger))
             .Append(GameAction.PitMenuDown) // Leave selection to brakes entry
-            .Catch(Observable.Return(GameAction.PitMenuOpen)); // Leave selection to top on error
+            .Catch((Exception ex) => // Leave selection to top on error
+            {
+                logger.LogWarning(ex, "Failed to apply pit strategy");
+                return Observable.Return(GameAction.PitMenuOpen);
+            });
 
-    public IObservable<GameAction> GoToFuel(IObservable<IGameTelemetry> gto)
+    public IObservable<GameAction> GoToFuel(IObservable<IGameTelemetry> gto, ILogger logger)
     {
         var fuelEntry = gto.Select(_ => _.Player?.PitMenu.FuelToAdd?.L);
 
-        return ChangeMonitor<double?, GameAction>.MonitorChanges(fuelEntry, _timeout, _schedulerOverride)
-            .Send(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuLeft, GameAction.PitMenuLeft, GameAction.PitMenuRight)
-            .OrSend(GameAction.PitMenuRight, GameAction.PitMenuUp, GameAction.PitMenuLeft, GameAction.PitMenuLeft, GameAction.PitMenuRight)
+        return fuelEntry
+            .MonitorChanges<double?, GameAction>(_timeout, _schedulerOverride, logger)
+            .Produce(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuLeft, GameAction.PitMenuLeft, GameAction.PitMenuRight)
+            .OrProduce(GameAction.PitMenuRight, GameAction.PitMenuUp, GameAction.PitMenuLeft, GameAction.PitMenuLeft, GameAction.PitMenuRight)
             .OrEndWith(new Exception("Pit menu in unknown state"));
     }
 
@@ -53,15 +59,16 @@ public class ACCPitMenuNavigator : IGamePitMenuNavigator
     /// <summary>
     /// Known tire state is tyre change selected, with dry compound and on tyre set entry.
     /// </summary>
-    public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto)
+    public IObservable<GameAction> GoToKnownTireState(IObservable<IGameTelemetry> gto, ILogger logger)
     {
         var tireSetEntry = gto.Select(_ => _.Player?.PitMenu.TireSet);
 
-        return ChangeMonitor<uint?, GameAction>.MonitorChanges(tireSetEntry, _timeout, _schedulerOverride)
-            .Send(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight)
-            .OrSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
-            .OrSend(GameAction.PitMenuDown, GameAction.PitMenuRight)
-            .OrSend(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
+        return tireSetEntry
+            .MonitorChanges<uint?, GameAction>(_timeout, _schedulerOverride)
+            .Produce(GameAction.PitMenuDown, GameAction.PitMenuDown, GameAction.PitMenuRight)
+            .OrProduce(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
+            .OrProduce(GameAction.PitMenuDown, GameAction.PitMenuRight)
+            .OrProduce(GameAction.PitMenuLeft, GameAction.PitMenuUp, GameAction.PitMenuRight)
             .OrEndWith(new Exception("Pit menu in unknown state"));
     }
 

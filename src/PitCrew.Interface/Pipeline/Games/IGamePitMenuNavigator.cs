@@ -8,5 +8,5 @@ namespace RaceDirector.PitCrew.Pipeline.Games;
 
 public interface IGamePitMenuNavigator : IGameInfo
 {
-    IObservable<GameAction> SetStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gto, ILogger logger);
+    IObservable<GameAction> ApplyStrategy(IPitStrategyRequest request, IObservable<IGameTelemetry> gto, ILogger logger);
 }
