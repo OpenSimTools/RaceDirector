@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PitCrew</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+
+<body class="text-bg-light">
+
+  <header class="p-3 text-bg-dark">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center">
+        <div class="me-lg-auto">
+          <h1>PitCrew</h1>
+        </div>
+        <form class="mb-lg-0 me-lg-3" role="connect">
+          <input id="server-url" type="text" class="form-control form-control-dark text-bg-dark" placeholder="Server URL">
+        </form>
+        <div>
+          <button id="connect-disconnect" type="button" class="btn btn-primary" onclick="connectOrDisconnect()">Connect</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container text-center mt-4">
+    <div class="row">
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4>Car Information</h4>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-4">Fuel</div>
+              <div class="col-4"><span class="card p-1 text-bg-secondary">- / lap</span></div>
+              <div class="col-4"><span id="current-fuel" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row mt-3">
+              <label class="col-4 col-form-label">Set</label>
+              <div class="col-4"><span id="current-compound" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-set" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-2">
+              <div class="col-4">Pressures</div>
+              <div class="col-4"><span id="current-fl" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-fr" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-2">
+              <div class="col-4"></div>
+              <div class="col-4"><span id="current-rl" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-rr" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-3">
+              <div class="col-4">Stint Left</div>
+              <div class="col-8"><span class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4>Current Strategy</h4>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-4">Fuel</div>
+              <div class="col-4"></div>
+              <div class="col-4"><span id="current-menu-fuel" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row mt-3">
+              <label class="col-4 col-form-label">Set</label>
+              <div class="col-4"><span id="current-menu-compound" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-menu-set" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-2">
+              <div class="col-4">Pressures</div>
+              <div class="col-4"><span id="current-menu-fl" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-menu-fr" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-2">
+              <div class="col-4"></div>
+              <div class="col-4"><span id="current-menu-rl" class="card p-1 text-bg-secondary">-</span></div>
+              <div class="col-4"><span id="current-menu-rr" class="card p-1 text-bg-secondary">-</span></div>
+            </div>
+            <div class="row align-items-center mt-3">
+              <div class="col-1"></div>
+              <button id="copy" class="col-10 btn btn-primary" disabled="true" onclick="copyStrategy()">Copy</button>
+              <div class="col-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4>Apply Strategy</h4>
+          </div>
+          <div class="card-body">
+            <form role="strategy">
+              <div class="row">
+                <label for="apply-fuel" class="col-4 col-form-label">Fuel</label>
+                <div class="col-4"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fuel"></div>
+              </div>
+              <div class="row mt-2">
+                <label class="col-4 col-form-label">Set</label>
+                <div class="col-4">
+                  <select class="form-select" id="apply-compound">
+                    <option>Dry</option>
+                    <option>Wet</option>
+                  </select>
+                </div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-set"></div>
+              </div>
+              <div class="row align-items-center mt-2">
+                <div class="col-4">Pressures</div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fl"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fr"></div>
+              </div>
+              <div class="row align-items-center mt-1">
+                <div class="col-4"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-rl"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-rr"></div>
+              </div>
+            </form>
+            <div class="row align-items-center mt-3">
+              <div class="col-1"></div>
+              <button id="apply" class="col-10 btn btn-outline-danger" onclick="applyPitStrategy()">Apply</button>
+              <div class="col-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4">
+      <div class="col">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <h4>History</h4>
+          </div>
+          <div class="card-body">
+            <table id="history" class="table">
+              <thead>
+                <tr>
+                  <th>Race Time</th>
+                  <th>Fuel</th>
+                  <th colspan=2>Set</th>
+                  <th>FL</th>
+                  <th>FR</th>
+                  <th>RL</th>
+                  <th>RR</th>
+                </tr>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
+    integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz"
+    crossorigin="anonymous"></script>
+  <script src="index.js"></script>
+</body>
+
+</html>
