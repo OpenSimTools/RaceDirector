@@ -23,8 +23,8 @@ function connectOrDisconnect() {
 
 function connect() {
   try {
-    connectButton.innerHTML = "Connecting";
-    connectButton.className = "btn btn-secondary"
+    connectButton.innerHTML = "Connect";
+    connectButton.disabled = true
     serverUrlInput.disabled = true
 
     ws = new WebSocket(document.getElementById("server-url").value);
@@ -32,6 +32,7 @@ function connect() {
     ws.onopen = function () {
       connectButton.innerHTML = "Disconnect";
       connectButton.className = "btn btn-warning"
+      connectButton.disabled = false
       serverUrlInput.disabled = true
     };
     ws.onmessage = function (event) {
@@ -48,12 +49,14 @@ function connect() {
     ws.onclose = function () {
       connectButton.innerHTML = "Connect";
       connectButton.className = "btn btn-primary"
+      connectButton.disabled = false
       serverUrlInput.disabled = false;
     };
   } catch(e) {
     console.log("Failed to connect", e);
     connectButton.innerHTML = "Connect";
     connectButton.className = "btn btn-primary"
+    connectButton.disabled = false
     serverUrlInput.disabled = false;
   }
 }
