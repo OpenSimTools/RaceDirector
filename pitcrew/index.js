@@ -24,14 +24,14 @@ function connectOrDisconnect() {
 
 function connect() {
   try {
-    connectButton.innerHTML = "Connect";
+    connectButton.innerText = "Connect";
     connectButton.disabled = true;
     serverUrlInput.disabled = true;
 
-    ws = new WebSocket(document.getElementById("server-url").value);
+    ws = new WebSocket(serverUrlInput.value);
 
     ws.onopen = function () {
-      connectButton.innerHTML = "Disconnect";
+      connectButton.innerText = "Disconnect";
       connectButton.className = "btn btn-warning";
       connectButton.disabled = false;
       serverUrlInput.disabled = true;
@@ -49,7 +49,7 @@ function connect() {
       }
     };
     ws.onclose = function () {
-      connectButton.innerHTML = "Connect";
+      connectButton.innerText = "Connect";
       connectButton.className = "btn btn-primary"
       connectButton.disabled = false
       serverUrlInput.disabled = false;
@@ -57,7 +57,7 @@ function connect() {
     };
   } catch(e) {
     console.log("Failed to connect", e);
-    connectButton.innerHTML = "Connect";
+    connectButton.innerText = "Connect";
     connectButton.className = "btn btn-primary"
     connectButton.disabled = false
     serverUrlInput.disabled = false;
@@ -69,22 +69,40 @@ function disconnect() {
 }
 
 function fillTelemetry(telemetry) {
-  console.log("Telemetry", telemetry);
+  try {
+    document.getElementById("current-fuel").innerText = telemetry.FuelLeftL.toFixed(2);
+    document.getElementById("current-compound").innerText = telemetry.FrontTires.Compound;
+    document.getElementById("current-set").innerText = telemetry.TireSet;
+    document.getElementById("current-fl").innerText = (telemetry.FrontTires.Left.PressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-fr").innerText = (telemetry.FrontTires.Right.PressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-rl").innerText = (telemetry.RearTires.Left.PressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-rr").innerText = (telemetry.RearTires.Right.PressureKpa * kpaToPsi).toFixed(1);
+    
+    document.getElementById("current-menu-fuel").innerText = telemetry.PitMenu.FuelToAddL;
+    document.getElementById("current-menu-compound").innerText = telemetry.PitMenu.FrontTires.Compound;
+    document.getElementById("current-menu-set").innerText = telemetry.PitMenu.TireSet;
+    document.getElementById("current-menu-fl").innerText = (telemetry.PitMenu.FrontTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-menu-fr").innerText = (telemetry.PitMenu.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-menu-rl").innerText = (telemetry.PitMenu.RearTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("current-menu-rr").innerText = (telemetry.PitMenu.RearTires.RightPressureKpa * kpaToPsi).toFixed(1);
+  } catch(e) {
+    console.log("Unable to fill telemetry", telemetry, e);
+  }
 }
 
 function logPitStrategyRequest(pitStrategyRequest) {
   var row = historyTable.insertRow();
   try {
-    row.insertCell().innerHTML = "-";
-    row.insertCell().innerHTML = pitStrategyRequest.FuelToAddL;
-    row.insertCell().innerHTML = pitStrategyRequest.FrontTires.Compound;
+    row.insertCell().innerText = "-";
+    row.insertCell().innerText = pitStrategyRequest.FuelToAddL;
+    row.insertCell().innerText = pitStrategyRequest.FrontTires.Compound;
     const tireSetCell = row.insertCell();
     if (pitStrategyRequest.TireSet)
-      tireSetCell.innerHTML = pitStrategyRequest.TireSet;
-    row.insertCell().innerHTML = (pitStrategyRequest.FrontTires.LeftPressureKpa * kpaToPsi).toFixed(1);
-    row.insertCell().innerHTML = (pitStrategyRequest.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
-    row.insertCell().innerHTML = (pitStrategyRequest.RearTires.LeftPressureKpa * kpaToPsi).toFixed(1);
-    row.insertCell().innerHTML = (pitStrategyRequest.RearTires.RightPressureKpa * kpaToPsi).toFixed(1);
+      tireSetCell.innerText = pitStrategyRequest.TireSet;
+    row.insertCell().innerText = (pitStrategyRequest.FrontTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerText = (pitStrategyRequest.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerText = (pitStrategyRequest.RearTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerText = (pitStrategyRequest.RearTires.RightPressureKpa * kpaToPsi).toFixed(1);
   } catch(e) {
     console.log(e);
   }
