@@ -21,7 +21,7 @@
           <input id="server-url" type="text" class="form-control form-control-dark text-bg-dark" placeholder="Server URL">
         </form>
         <div>
-          <button id="connect-button" type="button" class="btn btn-primary" onclick="connectOrDisconnect()">Connect</button>
+          <button id="connect-disconnect" type="button" class="btn btn-primary" onclick="connectOrDisconnect()">Connect</button>
         </div>
       </div>
     </div>
@@ -114,36 +114,36 @@
           <div class="card-body">
             <form role="strategy">
               <div class="row">
-                <label for="fuel" class="col-4 col-form-label">Fuel</label>
+                <label for="apply-fuel" class="col-4 col-form-label">Fuel</label>
                 <div class="col-4"></div>
-                <div class="col-4"><input type="text" class="form-control" id="fuel"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fuel"></div>
               </div>
               <div class="row mt-2">
                 <label class="col-4 col-form-label">Set</label>
                 <div class="col-4">
-                  <select class="form-select" id="tire-compound">
+                  <select class="form-select" id="apply-compound">
                     <option>Dry</option>
                     <option>Wet</option>
                   </select>
                 </div>
-                <div class="col-4"><input type="text" class="form-control" id="tire-set"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-set"></div>
               </div>
               <div class="row align-items-center mt-2">
                 <div class="col-4">Pressures</div>
-                <div class="col-4"><input type="text" class="form-control" id="fl"></div>
-                <div class="col-4"><input type="text" class="form-control" id="fr"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fl"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-fr"></div>
               </div>
               <div class="row align-items-center mt-1">
                 <div class="col-4"></div>
-                <div class="col-4"><input type="text" class="form-control" id="rl"></div>
-                <div class="col-4"><input type="text" class="form-control" id="rr"></div>
-              </div>
-              <div class="row align-items-center mt-3">
-                <div class="col-1"></div>
-                <button class="col-10 btn btn-outline-danger">Apply</button>
-                <div class="col-1"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-rl"></div>
+                <div class="col-4"><input type="text" class="form-control" id="apply-rr"></div>
               </div>
             </form>
+            <div class="row align-items-center mt-3">
+              <div class="col-1"></div>
+              <button id="apply" class="col-10 btn btn-outline-danger" onclick="applyPitStrategy()">Apply</button>
+              <div class="col-1"></div>
+            </div>
           </div>
         </div>
       </div>

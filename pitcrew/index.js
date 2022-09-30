@@ -1,8 +1,9 @@
 const psiToKpa = 6.89476;
 const kpaToPsi = 1 / psiToKpa;
 
-const connectButton = document.getElementById("connect-button");
 const serverUrlInput = document.getElementById("server-url");
+const connectButton = document.getElementById("connect-disconnect");
+const applyButton = document.getElementById("apply");
 const historyTable = document.getElementById("history");
 
 var ws;
@@ -24,16 +25,17 @@ function connectOrDisconnect() {
 function connect() {
   try {
     connectButton.innerHTML = "Connect";
-    connectButton.disabled = true
-    serverUrlInput.disabled = true
+    connectButton.disabled = true;
+    serverUrlInput.disabled = true;
 
     ws = new WebSocket(document.getElementById("server-url").value);
 
     ws.onopen = function () {
       connectButton.innerHTML = "Disconnect";
-      connectButton.className = "btn btn-warning"
-      connectButton.disabled = false
-      serverUrlInput.disabled = true
+      connectButton.className = "btn btn-warning";
+      connectButton.disabled = false;
+      serverUrlInput.disabled = true;
+      applyButton.disabled = false;
     };
     ws.onmessage = function (event) {
       try {
@@ -51,6 +53,7 @@ function connect() {
       connectButton.className = "btn btn-primary"
       connectButton.disabled = false
       serverUrlInput.disabled = false;
+      applyButton.disabled = true;
     };
   } catch(e) {
     console.log("Failed to connect", e);
@@ -85,4 +88,24 @@ function logPitStrategyRequest(pitStrategyRequest) {
   } catch(e) {
     console.log(e);
   }
+}
+
+function applyPitStrategy() {
+  const compound = document.getElementById("apply-compound").value;
+  const pitStrategyRequest = {
+    "FuelToAddL": parseInt(document.getElementById("apply-fuel").value),
+    "TireSet": parseInt(document.getElementById("apply-set").value),
+    "FrontTires": {
+      "Compound": compound,
+      "LeftPressureKpa": parseFloat(document.getElementById("apply-fl").value) * psiToKpa,
+      "RightPressureKpa": parseFloat(document.getElementById("apply-fr").value) * psiToKpa
+    },
+    "RearTires": {
+      "Compound": compound,
+      "LeftPressureKpa": parseFloat(document.getElementById("apply-rl").value) * psiToKpa,
+      "RightPressureKpa": parseFloat(document.getElementById("apply-rr").value) * psiToKpa
+    }
+  };
+  ws.send(JSON.stringify({"PitStrategyRequest": pitStrategyRequest}));
+  logPitStrategyRequest(pitStrategyRequest);
 }
