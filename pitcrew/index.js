@@ -2,6 +2,12 @@ var ws;
 var connectButton = document.getElementById("connect-button");
 var serverUrlInput = document.getElementById("server-url");
 
+const params = new URLSearchParams(window.location.search)
+if (params.has('connect')) {
+  serverUrlInput.value = params.get('connect');
+  connect();
+}
+
 function connectOrDisconnect() {
   if (ws != null && ws.readyState == WebSocket.OPEN) {
     disconnect();
