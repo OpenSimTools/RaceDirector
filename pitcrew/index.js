@@ -1,6 +1,11 @@
+const psiToKpa = 6.89476;
+const kpaToPsi = 1 / psiToKpa;
+
+const connectButton = document.getElementById("connect-button");
+const serverUrlInput = document.getElementById("server-url");
+const historyTable = document.getElementById("history");
+
 var ws;
-var connectButton = document.getElementById("connect-button");
-var serverUrlInput = document.getElementById("server-url");
 
 const params = new URLSearchParams(window.location.search)
 if (params.has('connect')) {
@@ -62,5 +67,19 @@ function fillTelemetry(telemetry) {
 }
 
 function logPitStrategyRequest(pitStrategyRequest) {
-  console.log("PitStrategyRequest", pitStrategyRequest);
+  var row = historyTable.insertRow();
+  try {
+    row.insertCell().innerHTML = "-";
+    row.insertCell().innerHTML = pitStrategyRequest.FuelToAddL;
+    row.insertCell().innerHTML = pitStrategyRequest.FrontTires.Compound;
+    const tireSetCell = row.insertCell();
+    if (pitStrategyRequest.TireSet)
+      tireSetCell.innerHTML = pitStrategyRequest.TireSet;
+    row.insertCell().innerHTML = (pitStrategyRequest.FrontTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerHTML = (pitStrategyRequest.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerHTML = (pitStrategyRequest.RearTires.LeftPressureKpa * kpaToPsi).toFixed(1);
+    row.insertCell().innerHTML = (pitStrategyRequest.RearTires.RightPressureKpa * kpaToPsi).toFixed(1);
+  } catch(e) {
+    console.log(e);
+  }
 }
