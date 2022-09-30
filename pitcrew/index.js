@@ -85,6 +85,7 @@ function fillTelemetry(telemetry) {
     document.getElementById("current-menu-fr").innerText = (telemetry.PitMenu.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
     document.getElementById("current-menu-rl").innerText = (telemetry.PitMenu.RearTires.LeftPressureKpa * kpaToPsi).toFixed(1);
     document.getElementById("current-menu-rr").innerText = (telemetry.PitMenu.RearTires.RightPressureKpa * kpaToPsi).toFixed(1);
+    document.getElementById("copy").disabled = false;
   } catch(e) {
     console.log("Unable to fill telemetry", telemetry, e);
   }
@@ -126,4 +127,14 @@ function applyPitStrategy() {
   };
   ws.send(JSON.stringify({"PitStrategyRequest": pitStrategyRequest}));
   logPitStrategyRequest(pitStrategyRequest);
+}
+
+function copyStrategy() {
+  document.getElementById("apply-fuel").value = document.getElementById("current-menu-fuel").innerText;
+  document.getElementById("apply-set").value = document.getElementById("current-menu-set").innerText;
+  document.getElementById("apply-compound").value = document.getElementById("current-menu-compound").innerText;
+  document.getElementById("apply-fl").value = document.getElementById("current-menu-fl").innerText;
+  document.getElementById("apply-fr").value = document.getElementById("current-menu-fr").innerText;
+  document.getElementById("apply-rl").value = document.getElementById("current-menu-rl").innerText;
+  document.getElementById("apply-rr").value = document.getElementById("current-menu-rr").innerText;
 }
