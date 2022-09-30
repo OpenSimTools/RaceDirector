@@ -18,10 +18,10 @@
           <h1>PitCrew</h1>
         </div>
         <form class="mb-lg-0 me-lg-3" role="connect">
-          <input type="search" class="form-control form-control-dark text-bg-dark" placeholder="Server URL">
+          <input id="server-url" type="text" class="form-control form-control-dark text-bg-dark" placeholder="Server URL">
         </form>
         <div>
-          <button type="button" class="btn btn-primary">Connect</button>
+          <button id="connect-button" type="button" class="btn btn-primary" onclick="connectOrDisconnect()">Connect</button>
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@
       <div class="col">
         <div class="card shadow-sm">
           <div class="card-header">
-            <h4>Set Strategy</h4>
+            <h4>Apply Strategy</h4>
           </div>
           <div class="card-body">
             <form role="strategy">
