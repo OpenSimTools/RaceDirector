@@ -1,5 +1,6 @@
 const psiToKpa = 6.89476;
 const kpaToPsi = 1 / psiToKpa;
+const unknownRepresentation = "-";
 
 const serverUrlInput = document.getElementById("server-url");
 const connectButton = document.getElementById("connect-disconnect");
@@ -71,7 +72,7 @@ function disconnect() {
 function fillTelemetry(telemetry) {
   try {
     document.getElementById("current-fuel").innerText = telemetry.FuelLeftL.toFixed(2);
-    document.getElementById("current-compound").innerText = telemetry.FrontTires.Compound;
+    document.getElementById("current-compound").innerText = safeCompoundConversion(telemetry.FrontTires.Compound);
     document.getElementById("current-set").innerText = telemetry.TireSet;
     document.getElementById("current-fl").innerText = (telemetry.FrontTires.Left.PressureKpa * kpaToPsi).toFixed(1);
     document.getElementById("current-fr").innerText = (telemetry.FrontTires.Right.PressureKpa * kpaToPsi).toFixed(1);
@@ -79,7 +80,7 @@ function fillTelemetry(telemetry) {
     document.getElementById("current-rr").innerText = (telemetry.RearTires.Right.PressureKpa * kpaToPsi).toFixed(1);
     
     document.getElementById("current-menu-fuel").innerText = telemetry.PitMenu.FuelToAddL;
-    document.getElementById("current-menu-compound").innerText = telemetry.PitMenu.FrontTires.Compound;
+    document.getElementById("current-menu-compound").innerText = safeCompoundConversion(telemetry.PitMenu.FrontTires.Compound)
     document.getElementById("current-menu-set").innerText = telemetry.PitMenu.TireSet;
     document.getElementById("current-menu-fl").innerText = (telemetry.PitMenu.FrontTires.LeftPressureKpa * kpaToPsi).toFixed(1);
     document.getElementById("current-menu-fr").innerText = (telemetry.PitMenu.FrontTires.RightPressureKpa * kpaToPsi).toFixed(1);
@@ -89,6 +90,10 @@ function fillTelemetry(telemetry) {
   } catch(e) {
     console.log("Unable to fill telemetry", telemetry, e);
   }
+}
+
+function safeCompoundConversion(compound) {
+  return (compound && compound != "Unknown") ? compound : unknownRepresentation;
 }
 
 function logPitStrategyRequest(pitStrategyRequest) {
@@ -132,7 +137,9 @@ function applyPitStrategy() {
 function copyStrategy() {
   document.getElementById("apply-fuel").value = document.getElementById("current-menu-fuel").innerText;
   document.getElementById("apply-set").value = document.getElementById("current-menu-set").innerText;
-  document.getElementById("apply-compound").value = document.getElementById("current-menu-compound").innerText;
+  const compound = document.getElementById("current-menu-compound").innerText;
+  if (unknownRepresentation != compound)
+    document.getElementById("apply-compound").value = compound;
   document.getElementById("apply-fl").value = document.getElementById("current-menu-fl").innerText;
   document.getElementById("apply-fr").value = document.getElementById("current-menu-fr").innerText;
   document.getElementById("apply-rl").value = document.getElementById("current-menu-rl").innerText;
