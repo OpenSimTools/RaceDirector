@@ -28,6 +28,40 @@ public class PitCrewServerTest
             Assert.Equal("c2", client1.Next());
         });
     }
+
+    [Fact]
+    public void ReturnsStaticContent()
+    {
+        WithServer(serverPort =>
+        {
+            using var client = new HttpClient();
+            var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/ui/index.js");
+            Assert.Contains("function", task.Result);
+        });
+    }
+
+    [Fact]
+    public void ReturnsDefaultsForDirectories()
+    {
+        WithServer(serverPort =>
+        {
+            using var client = new HttpClient();
+            var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/ui/");
+            Assert.StartsWith("<!doctype html>", task.Result);
+        });
+    }
+
+    [Fact]
+    public void TimesOutInsteadOfReturningNotFound()
+    {
+        WithServer(serverPort =>
+        {
+            using var client = new HttpClient();
+            var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/foo.html");
+            // Very sad...
+            Assert.False(task.Wait(Timeout.Milliseconds), "It returned something!");
+        });
+    }
     
     private static void WithServer(Action<int> action)
     {
