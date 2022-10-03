@@ -1,9 +1,7 @@
 ﻿using System.Net;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RaceDirector.Remote.Networking;
 using RaceDirector.Remote.Networking.Client;
-using RaceDirector.Remote.Networking.Server;
 using TestUtils;
 using Xunit;
 using Xunit.Categories;
@@ -30,7 +28,7 @@ public class PitCrewServerTest
     }
 
     [Fact]
-    public void ReturnsStaticContent()
+    public void ServesUI()
     {
         WithServer(serverPort =>
         {
@@ -41,9 +39,9 @@ public class PitCrewServerTest
     }
 
     [Fact]
-    public void ReturnsDefaultsForDirectories()
+    public void UIDefaultsToIndexHtmlForDirectories()
     {
-        WithServer(serverPort =>
+        WithServer(new Config { ServeUI = true }, serverPort =>
         {
             using var client = new HttpClient();
             var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/ui/");
@@ -52,21 +50,24 @@ public class PitCrewServerTest
     }
 
     [Fact]
-    public void TimesOutInsteadOfReturningNotFound()
+    public void UIServingCanBeDisabled()
     {
-        WithServer(serverPort =>
+        WithServer(new Config { ServeUI = false },serverPort =>
         {
             using var client = new HttpClient();
-            var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/foo.html");
+            var task = client.GetStringAsync($"http://{IPAddress.Loopback}:{serverPort}/ui/");
             // Very sad...
             Assert.False(task.Wait(Timeout.Milliseconds), "It returned something!");
         });
     }
-    
-    private static void WithServer(Action<int> action)
+
+    private static void WithServer(Action<int> action) => WithServer(new Config(), action);
+
+    private static void WithServer(Config config, Action<int> action)
     {
         var serverPort = Tcp.FreePort();
-        using var server = new PitCrewServer(new Config { Port = serverPort }, NullLogger<PitCrewServer>.Instance);
+        config.Port = serverPort;
+        using var server = new PitCrewServer(config, NullLogger<PitCrewServer>.Instance);
         Assert.True(server.Start());
         action(serverPort);
     }
