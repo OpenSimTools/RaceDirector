@@ -1,6 +1,7 @@
 # RaceDirector
 
-![build](https://github.com/OpenSimTools/RaceDirector/actions/workflows/ci.yaml/badge.svg)
+![Build](https://github.com/OpenSimTools/RaceDirector/actions/workflows/ci.yaml/badge.svg)
+![Deploy to Pages](https://github.com/OpenSimTools/RaceDirector/actions/workflows/pages.yaml/badge.svg)
 
 RaceDirector is the sim racer's Swiss Army knife.
 

@@ -5,7 +5,9 @@ The PitCrew plugin provides remote pit stop control similar to what is offered b
 or [ACC Live](https://accdrive.com/). Telemetry is sent to a server, where other team mates
 can see it. Incoming pit strategy requests are sent to the game.
 
-## Configuration
+## Client
+
+### Configuration
 
 This plugin is disabled by default, and it needs to be enabled before use, after configuring
 the server endpoint. This can be done in the dedicated section of `application.conf`:
@@ -41,12 +43,33 @@ is configured correctly.
 ## Server
 
 A separate package can be downloaded from the same location as RaceDirector and run in a similar
-way. The default port is 8042.
+way. Once the server is running, pushed telemetry and pit strategies are broadcasted to all
+connected clients.
 
-Once the server is running, telemetry pushed by RaceDirector will be broadcasted to all
-connected clients. Currently there is no UI, so a WebSocket client or a
-[Web browser test page](http://livepersoninc.github.io/ws-test-page/) is required to access it
-from the same URL where the client is pushing telemetry to.
+The Web interface can be accessed:
+ - From the `/ui` directory on the server itself (e.g. `http://myserver:8042/ui/`).
+ - On the [PitCrew section](https://opensimtools.github.io/RaceDirector/PitCrew/) of
+   RaceDirector's Web pages. Note that the server will have to support encrypted connections
+   to use this method (configuration is out of scope for this guide).
+
+Autoconnect can also be triggered using the `connect` parameter (e.g.
+`https://opensimtools.github.io/RaceDirector/PitCrew/?connect=wss://myserver:8042/`).
+
+### Configuration
+
+The default port is 8042, and it can be changed in the `appsettings.json` configuration file.
+Serving the UI can also be disabled if that is not required.
+
+```json
+{
+    "Port": 8042,
+    "ServeUI": true
+}
+```
+
+## Internals
+
+WebSocket messages can be seen connecting to the same URL as the client.
 
 The received telemetry messages look like this:
 
