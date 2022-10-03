@@ -19,10 +19,14 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
     private readonly List<HttpEndpoint<TOut, TIn>> _endpoints;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// Default to index.html for directory requests.
+    /// </summary>
+    protected virtual bool UseDefaults => false;
+
     public event MessageHandler<TIn, TOut>? MessageHandler;
     public IObserver<TOut> Out { get; }
     public IObservable<TIn> In { get; }
-
     public int Port => _inner.Port;
 
     public MultiEndpointWsServer(IPAddress address, int port, IEnumerable<HttpEndpoint<TOut, TIn>> endpoints, ILogger logger)
@@ -50,6 +54,8 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
     public bool WsMulticastAsync(TOut message, Func<ISession<TOut>, bool> condition) =>
         _inner.WsMulticastAsync(message, condition);
 
+    protected void AddStaticContent(string relativePath) => _inner.AddStaticContent(relativePath, $"/{relativePath}");
+
     private class InnerServer : WsServer
     {
         private readonly MultiEndpointWsServer<TOut, TIn> _outer;
@@ -58,7 +64,7 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
         {
             _outer = outer;
         }
-        
+
         protected sealed override TcpSession CreateSession()
         {
             return new InnerSession(_outer);
@@ -107,6 +113,33 @@ public class MultiEndpointWsServer<TOut, TIn> : IWsServer<TOut, TIn>
         {
             _outer = outer;
             _wsConnected = false;
+        }
+
+        protected override void OnReceivedRequest(HttpRequest request)
+        {
+            if (_outer.UseDefaults && request.Method == "GET")
+            {
+                var urlNoQuery = StripQueryParameters(request.Url);
+                if (urlNoQuery.EndsWith("/"))
+                {
+                    var key = urlNoQuery + "index.html";
+                    var (found, content) = Cache.Find(key);
+                    if (found && content is not null)
+                    {
+                        OnReceivedCachedRequest(request, content);
+                        return;
+                    }
+                }
+            }
+            base.OnReceivedRequest(request);
+            // How on Earth are we supposed to handle not matching routes?!
+            // For now this just times out!
+        }
+
+        private string StripQueryParameters(string requestUrl)
+        {
+            var length = requestUrl.IndexOf('?');
+            return length < 0 ? requestUrl : requestUrl.Substring(0, length);
         }
 
         public override bool OnWsConnecting(HttpRequest innerRequest, HttpResponse _)
