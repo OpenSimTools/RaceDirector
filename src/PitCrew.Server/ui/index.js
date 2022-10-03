@@ -35,11 +35,19 @@ const historyTable = document.getElementById("history");
 
 var ws;
 
-const params = new URLSearchParams(window.location.search)
-if (params.has('connect')) {
-  serverUrlInput.value = params.get('connect');
-  connect();
-}
+(function() {
+    var autoconnect;
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('connect')) {
+        autoconnect = params.get('connect');
+    } else if (window.location.pathname.startsWith("/ui/")) {
+        autoconnect = `ws://${window.location.host}/`
+    }
+    if (autoconnect) {
+      serverUrlInput.value = autoconnect;
+      connect();
+    }
+})();
 
 function connectOrDisconnect() {
   if (ws != null && ws.readyState == WebSocket.OPEN) {

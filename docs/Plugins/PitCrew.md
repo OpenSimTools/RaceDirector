@@ -47,12 +47,13 @@ way. Once the server is running, pushed telemetry and pit strategies are broadca
 connected clients.
 
 The Web interface can be accessed:
- - From the `/ui` directory on the server itself (e.g. `http://myserver:8042/ui/`).
+ - From the `/ui` directory on the server itself (e.g. `http://myserver:8042/ui/`). It will try
+   to connect automatically to the same server, unless otherwise specified. 
  - On the [PitCrew section](https://opensimtools.github.io/RaceDirector/PitCrew/) of
    RaceDirector's Web pages. Note that the server will have to support encrypted connections
    to use this method (configuration is out of scope for this guide).
 
-Autoconnect can also be triggered using the `connect` parameter (e.g.
+Auto-connect can also be triggered using the `connect` parameter (e.g.
 `https://opensimtools.github.io/RaceDirector/PitCrew/?connect=wss://myserver:8042/`).
 
 ### Configuration
